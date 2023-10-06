@@ -114,6 +114,7 @@
     <Compile Include="Machine.cs" />
     <Compile Include="MachineCommands.cs" />
     <Compile Include="MachineMessage.cs" />
+    <Compile Include="Part.cs" />
     <Compile Include="RelayInterface.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -129,7 +130,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PartPickList.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

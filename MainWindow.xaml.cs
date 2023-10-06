@@ -1,9 +1,14 @@
 ﻿using System;
+using System.IO;
 using System.ComponentModel;
 using System.Threading;
 using System.Windows.Data;
+using Microsoft.Win32;
 using OpenCvSharp;
 using OpenCvSharp.WpfExtensions;
+using static Picky.MachineMessage;
+using System.Windows.Media;
+using System.Collections.Generic;
 
 /********************************************************************
  * Notes:
@@ -11,7 +16,7 @@ using OpenCvSharp.WpfExtensions;
  * For GUI See https://github.com/lepoco/wpfui
  * For S3G Serial Commands See: https://github.com/makerbot/s3g/blob/master/doc/s3gProtocol.md
  * 
- *********************************************************************/ 
+ *********************************************************************/
 
 namespace Picky
 {
@@ -24,14 +29,12 @@ namespace Picky
         private readonly BackgroundWorker bkgWorker;
         private readonly RelayInterface relayInterface;
         private readonly Machine machine;
+        private List<Part> pickList;
 
         public MainWindow()
         {
             InitializeComponent();
-            pickList.ItemsSource = PartPickList.GetPickList();
             
-            PartPickList.test();
-
             relayInterface = new RelayInterface();
             machine = new Machine();
             this.DataContext = machine;
@@ -110,25 +113,25 @@ namespace Picky
 
         void ButtonXLeft(object sender, EventArgs e)
         {
-            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeXYPosition(10, 0));
+            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeXYPosition(-machine.distanceToAdvance, 0));
             machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
         }
 
         void ButtonXRight(object sender, EventArgs e)
         {
-            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeXYPosition(-10, 0));
+            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeXYPosition(machine.distanceToAdvance, 0));
             machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
         }
 
         void ButtonYUp(object sender, EventArgs e)
         {
-            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeXYPosition(0, -10));
+            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeXYPosition(0, machine.distanceToAdvance));
             machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
         }
         
         void ButtonYDown(object sender, EventArgs e)
         {
-            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeXYPosition(0, 10));
+            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeXYPosition(0, -machine.distanceToAdvance));
             machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
         }
 
@@ -143,7 +146,7 @@ namespace Picky
 
         void ButtonZUp(object sender, EventArgs e)
         {
-            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeZPosition(-10));
+            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeZPosition(-machine.distanceToAdvance));
             machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
         }
 
@@ -155,13 +158,13 @@ namespace Picky
 
         void ButtonZDown(object sender, EventArgs e)
         {
-            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeZPosition(10));
+            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeZPosition(machine.distanceToAdvance));
             machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
         }
 
         void ButtonAUp(object sender, EventArgs e)
         {
-            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeAngle(10));
+            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeAngle(machine.distanceToAdvance));
             machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
         }
 
@@ -172,13 +175,13 @@ namespace Picky
 
         void ButtonADown(object sender, EventArgs e)
         {
-            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeAngle(-10));
+            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeAngle(-machine.distanceToAdvance));
             machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
         }
 
         void ButtonBUp(object sender, EventArgs e)
         {
-            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeBPosition(10));
+            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeBPosition(machine.distanceToAdvance));
             machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
         }
 
@@ -189,7 +192,7 @@ namespace Picky
 
         void ButtonBDown(object sender, EventArgs e)
         {
-            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeBPosition(-10));
+            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeBPosition(-machine.distanceToAdvance));
             machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
         }
 
@@ -211,5 +214,60 @@ namespace Picky
             machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
         }
 
+        void OnLoadPickFile(object sender, EventArgs e)
+        {
+            bool isBody = false; int last, len, first = 0;
+            int[] startIndex = new int[8];
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+
+            openFileDialog.InitialDirectory = "c:\\";
+            openFileDialog.Filter = "Pick And Place Files (*.pnp, *.txt)|*.pnp;*.txt";
+            openFileDialog.FilterIndex = 0;
+            openFileDialog.RestoreDirectory = true;
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                pickList = new List<Part>();
+                var lines = File.ReadAllLines(openFileDialog.FileName);
+                for(int i = 0; i < lines.Length; i++)
+                {                
+                    if (!isBody)
+                    {
+                        if (lines[i].IndexOf("Designator") == 0)
+                        {
+                            startIndex[0] = 0;
+                            startIndex[1] = lines[i].IndexOf("Comment");
+                            startIndex[2] = lines[i].IndexOf("Layer");
+                            startIndex[3] = lines[i].IndexOf("Footprint");
+                            startIndex[4] = lines[i].IndexOf("Center-X");
+                            startIndex[5] = lines[i].IndexOf("Center-Y");
+                            startIndex[6] = lines[i].IndexOf("Rotation");
+                            startIndex[7] = lines[i].IndexOf("Description");
+                            isBody = true;
+                        }
+                    }
+                    else
+                    {
+                        Part part = new Part();
+                        part.Designator = lines[i].Substring(startIndex[0], lines[i].IndexOf(' ', startIndex[0]) - startIndex[0]);
+                        if (lines[i].IndexOf('\"', startIndex[1], 1) >= 0)
+                            part.Comment = lines[i].Substring(startIndex[1] + 1, lines[i].IndexOf('\"', startIndex[1] + 1) - startIndex[1] - 1);
+                        else
+                            part.Comment = lines[i].Substring(startIndex[1], lines[i].IndexOf(' ', startIndex[1]) - startIndex[1]);
+                        part.Layer = lines[i].Substring(startIndex[2], lines[i].IndexOf(' ', startIndex[2]) - startIndex[2]);
+                        part.Footprint = lines[i].Substring(startIndex[3], lines[i].IndexOf(' ', startIndex[3]) - startIndex[3]);
+                        part.CenterX = lines[i].Substring(startIndex[4], lines[i].IndexOf(' ', startIndex[4]) - startIndex[4]);
+                        part.CenterY = lines[i].Substring(startIndex[5], lines[i].IndexOf(' ', startIndex[5]) - startIndex[5]);
+                        part.Rotation = lines[i].Substring(startIndex[6], lines[i].IndexOf(' ', startIndex[6]) - startIndex[6]);
+                        part.Description = lines[i].Substring(startIndex[7] + 1, lines[i].IndexOf('\"', startIndex[7] + 1) - startIndex[7] - 1);
+
+                        Console.WriteLine("Part: " + part.Description);
+                        pickList.Add(part);
+                    }
+                }
+                pickListView.ItemsSource = pickList;
+                return;
+            }
+        }
     }
 }

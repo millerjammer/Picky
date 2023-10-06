@@ -54,6 +54,14 @@ namespace Picky
             set { C_B = value; PropertyChanged(this, new PropertyChangedEventArgs("currentB")); }
         }
 
+        public double distanceToAdvance;
+        private double[] distToAdvValue = new double[] { 0.1, 1.0, 10.0, 100.0 };
+        private bool[] DistToAdv = new bool[] { false, true, false, false }; 
+        public bool[] distToAdv
+        {
+            get { int i = Array.IndexOf(DistToAdv, true);  Console.WriteLine("Default: " + i); distanceToAdvance = distToAdvValue[i];  return DistToAdv; }
+        }
+
         static SerialPort serialPort;
 
         public event PropertyChangedEventHandler PropertyChanged;

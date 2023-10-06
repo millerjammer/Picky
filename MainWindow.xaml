@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:local="clr-namespace:Picky"
-        mc:Ignorable="d" FontSize="20" 
-        Height="800" Width="1200" ResizeMode="CanResize"
+        mc:Ignorable="d" FontSize="12" 
+        Height="1040" Width="1200" ResizeMode="CanResize"
         WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterScreen" Background="Transparent">
 
     <Border CornerRadius="10" Background="#151f2d" Margin="0 0 0 0">
@@ -94,10 +94,10 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <ui:Button Grid.Column="0" CornerRadius="4" Height="45" Content=".01mm"/>
-                                    <ui:Button Grid.Column="1" CornerRadius="4" Height="45" Content=".10mm"/>
-                                    <ui:Button Grid.Column="2" CornerRadius="4" Height="45" Content="1.0mm"/>
-                                    <ui:Button Grid.Column="3" CornerRadius="4" Height="45" Content="10.0mm"/>
+                                    <RadioButton GroupName="Distance" IsChecked="{Binding distToAdv[0]}" Style="{StaticResource {x:Type ToggleButton}}" Grid.Column="0" Height="45" Content="0.10mm"/>
+                                    <RadioButton GroupName="Distance" IsChecked="{Binding distToAdv[1]}" Style="{StaticResource {x:Type ToggleButton}}" Grid.Column="1" Height="45" Content="1.00mm"/>
+                                    <RadioButton GroupName="Distance" IsChecked="{Binding distToAdv[2]}" Style="{StaticResource {x:Type ToggleButton}}" Grid.Column="2" Height="45" Content="10.0mm"/>
+                                    <RadioButton GroupName="Distance" IsChecked="{Binding distToAdv[3]}" Style="{StaticResource {x:Type ToggleButton}}" Grid.Column="3" Height="45" Content="100 mm"/>
                                 </Grid>
                                 <Grid Grid.Row="2" Margin="0 10 0 10" HorizontalAlignment="Stretch">
                                     <!-- Live X, Y, Z Positions -->
@@ -151,11 +151,50 @@
                 </Grid>
             </Grid>
             <Grid Grid.Row="1" Grid.Column="1" Margin="10">
-                <Expander Header="Part Pick List"  IsExpanded="False">
+                <Expander IsExpanded="False">
+                    <Expander.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Component Placement" Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"  TextAlignment="Left" />
+                            <ui:Button Grid.Column="1" Content="Load Pick and Place File..." Click="OnLoadPickFile" Height="35" Margin="0,0,15,0" HorizontalAlignment="Right"/>
+                        </Grid>
+                    </Expander.Header>
                     <Expander.Content>
-                        <ui:DataGrid Name="pickList">
-
-                        </ui:DataGrid>
+                        <Grid Margin="0 10 0 10" HorizontalAlignment="Stretch">
+                            <!-- Placement and Cassettte -->
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto" />
+                                <ColumnDefinition Width="400"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:DataGrid Grid.Column="0" HorizontalAlignment="Left" Name="pickListView" AutoGenerateColumns="False" CanUserSortColumns="False" HorizontalContentAlignment="Stretch" MaxHeight="250" VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="True" >
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Binding="{Binding Designator}" Header="Designator" Width="80"/>
+                                    <DataGridTextColumn Binding="{Binding Description}" Header="Description" Width="auto"/>
+                                    <DataGridTextColumn Binding="{Binding CenterX}" Header="Center-X" Width="70"/>
+                                    <DataGridTextColumn Binding="{Binding CenterY}" Header="Center-Y" Width="70"/>
+                                    <DataGridTextColumn Binding="{Binding Rotation}" Header="Rotation" Width="70"/>
+                                </DataGrid.Columns>
+                                <ui:DataGrid.RowStyle>
+                                    <Style TargetType="DataGridRow">
+                                        <Style.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter Property="Background" Value="#80B9EE"/>
+                                                <Setter Property="Foreground" Value="Black"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ui:DataGrid.RowStyle>
+                                <DataGrid.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Go to Location" Click="MenuItem_Click" />
+                                        <MenuItem Header="Add to Cassette" Click="MenuItem_Add" />
+                                    </ContextMenu>
+                                </DataGrid.ContextMenu>
+                            </ui:DataGrid>
+                        </Grid>
                     </Expander.Content>
                 </Expander>
             </Grid>
