@@ -288,6 +288,7 @@ namespace Picky
             feeder.part = part;
             currentCassette.feeders.Add(feeder);
             Console.WriteLine("Count: " + currentCassette.feeders.Count());
+            cassetteView.Items.Refresh();   // Yes, use observable collection instead
             
 
         }

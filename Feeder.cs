@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Picky
 {
-    internal class Feeder
+    internal class Feeder : INotifyPropertyChanged
     {
         public Part part { get; set; }
         public double width { get; set; }
@@ -16,5 +17,7 @@ namespace Picky
         public Feeder()
         {
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
     }
 }
