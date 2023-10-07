@@ -4,9 +4,11 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-        xmlns:local="clr-namespace:Picky"
+        xmlns:local="clr-namespace:Picky" 
+        xmlns:cb="clr-namespace:Microsoft.VisualStudio.CommandBars;assembly=Microsoft.VisualStudio.Interop" 
+        xmlns:cb1="clr-namespace:Microsoft.VisualStudio.CommandBars;assembly=Microsoft.VisualStudio.CommandBars"
         mc:Ignorable="d" FontSize="12" 
-        Height="1040" Width="1200" ResizeMode="CanResize"
+        Height="1040" Width="1300" ResizeMode="CanResize"
         WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterScreen" Background="Transparent">
 
     <Border CornerRadius="10" Background="#151f2d" Margin="0 0 0 0">
@@ -150,8 +152,8 @@
                     </Expander>
                 </Grid>
             </Grid>
-            <Grid Grid.Row="1" Grid.Column="1" Margin="10">
-                <Expander IsExpanded="False">
+            <Grid Grid.Row="1" Grid.Column="1" Margin="10 10 10 10">
+                <Expander IsExpanded="True">
                     <Expander.Header>
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -159,41 +161,112 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Component Placement" Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"  TextAlignment="Left" />
-                            <ui:Button Grid.Column="1" Content="Load Pick and Place File..." Click="OnLoadPickFile" Height="35" Margin="0,0,15,0" HorizontalAlignment="Right"/>
                         </Grid>
                     </Expander.Header>
                     <Expander.Content>
-                        <Grid Margin="0 10 0 10" HorizontalAlignment="Stretch">
-                            <!-- Placement and Cassettte -->
+                        <Grid Margin="0 0 0 0" HorizontalAlignment="Stretch">
+                            <!-- Placement and Cassettte 2 Cols -->
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="auto" />
-                                <ColumnDefinition Width="400"/>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <ui:DataGrid Grid.Column="0" HorizontalAlignment="Left" Name="pickListView" AutoGenerateColumns="False" CanUserSortColumns="False" HorizontalContentAlignment="Stretch" MaxHeight="250" VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="True" >
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Binding="{Binding Designator}" Header="Designator" Width="80"/>
-                                    <DataGridTextColumn Binding="{Binding Description}" Header="Description" Width="auto"/>
-                                    <DataGridTextColumn Binding="{Binding CenterX}" Header="Center-X" Width="70"/>
-                                    <DataGridTextColumn Binding="{Binding CenterY}" Header="Center-Y" Width="70"/>
-                                    <DataGridTextColumn Binding="{Binding Rotation}" Header="Rotation" Width="70"/>
-                                </DataGrid.Columns>
-                                <ui:DataGrid.RowStyle>
-                                    <Style TargetType="DataGridRow">
-                                        <Style.Triggers>
-                                            <Trigger Property="IsSelected" Value="True">
-                                                <Setter Property="Background" Value="#80B9EE"/>
-                                                <Setter Property="Foreground" Value="Black"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </ui:DataGrid.RowStyle>
-                                <DataGrid.ContextMenu>
-                                    <ContextMenu>
-                                        <MenuItem Header="Go to Location" Click="MenuItem_Click" />
-                                        <MenuItem Header="Add to Cassette" Click="MenuItem_Add" />
-                                    </ContextMenu>
-                                </DataGrid.ContextMenu>
-                            </ui:DataGrid>
+                            <Grid Grid.Column="0" Margin="5 -10 5 5" HorizontalAlignment="Stretch">
+                                <!-- Placement 2 Rows -->
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="45" />
+                                    <RowDefinition Height="auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid Grid.Row="0" Margin="10 0 10 0" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <!-- Placement 1 Row - Title and Basic Controls -->
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Part Pick List" Margin="10,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"  TextAlignment="Left" />
+                                    <ui:Button Grid.Column="1" Content="Open..." Icon="Folder32" Click="OnLoadPickFile" Height="30" Margin="0,0,0,0" HorizontalAlignment="Right"/>
+                                </Grid>
+                                <ui:DataGrid  Grid.Row="1" HorizontalAlignment="Stretch" Name="pickListView" AutoGenerateColumns="False" CanUserSortColumns="False" HorizontalContentAlignment="Stretch" MaxHeight="299" VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="True" >
+                                    <!-- Placement 2nd Row - Data Grid -->
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Binding="{Binding Designator}" Header="Designator" Width="80"/>
+                                        <DataGridTextColumn Binding="{Binding Description}" Header="Description" Width="auto"/>
+                                        <DataGridTextColumn Binding="{Binding CenterX}" Header="Center-X" Width="70"/>
+                                        <DataGridTextColumn Binding="{Binding CenterY}" Header="Center-Y" Width="70"/>
+                                        <DataGridTextColumn Binding="{Binding Rotation}" Header="Rotation" Width="70"/>
+                                    </DataGrid.Columns>
+                                    <ui:DataGrid.RowStyle>
+                                        <Style TargetType="DataGridRow">
+                                            <Style.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter Property="Background" Value="#80B9EE"/>
+                                                    <Setter Property="Foreground" Value="Black"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ui:DataGrid.RowStyle>
+                                    <DataGrid.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="Go to Location"  />
+                                            <MenuItem Header="Add to Cassette" Click="addPartToCassette" />
+                                        </ContextMenu>
+                                    </DataGrid.ContextMenu>
+                                </ui:DataGrid>
+                            </Grid>
+                            <Grid Grid.Column="1" Margin="5 -10 5 5" HorizontalAlignment="Stretch">
+                                <!-- Cassette 2 Rows -->
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="45" />
+                                    <RowDefinition Height="auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid Grid.Row="0" Margin="10 0 10 0" HorizontalAlignment="Stretch">
+                                    <!-- Cassette 1 Row - Title and Basic Controls -->
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Cassette Contents" Margin="5,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"  TextAlignment="Left" />
+                                    <ui:Button Grid.Column="1" Content="Add..." Icon="Folder32" Click="OnLoadPickFile" Height="30" Margin="0,0,0,0" HorizontalAlignment="Right"/>
+                                </Grid>
+                                <TabControl Grid.Row="1">
+                                    <TabItem >
+                                        <TabItem.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="Save..."/>
+                                                <MenuItem Header="Remove"/>
+                                                <MenuItem Header="Rename..."/>
+                                            </ContextMenu>
+                                        </TabItem.ContextMenu>
+                                        <TabItem.Header>
+                                            <TextBlock  Height="auto" Text="Unnamed"/>
+                                        </TabItem.Header>
+                                        <ui:DataGrid Margin="5" HorizontalAlignment="Stretch" Name="cassetteView" AutoGenerateColumns="False" CanUserSortColumns="False" HorizontalContentAlignment="Stretch" MaxHeight="250" VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="True" >
+                                            <!-- Cassette 2nd Row - Data Grid -->
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Binding="{Binding part.Description}" Header="Description" Width="auto"/>
+                                                <DataGridTextColumn Binding="{Binding width}" Header="Slot Width" Width="90"/>
+                                                <DataGridTextColumn Binding="{Binding thickness}" Header="Thickness" Width="80"/>
+                                                <DataGridTextColumn Binding="{Binding interval}" Header="Interval" Width="70"/>
+                                            </DataGrid.Columns>
+                                            <ui:DataGrid.RowStyle>
+                                                <Style TargetType="DataGridRow">
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsSelected" Value="True">
+                                                            <Setter Property="Background" Value="#80B9EE"/>
+                                                            <Setter Property="Foreground" Value="Black"/>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </ui:DataGrid.RowStyle>
+                                            <DataGrid.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="Go to Location"  />
+                                                    <MenuItem Header="Remove" />
+                                                </ContextMenu>
+                                            </DataGrid.ContextMenu>
+                                        </ui:DataGrid>
+                                    </TabItem>
+                                </TabControl>
+                            </Grid>
                         </Grid>
                     </Expander.Content>
                 </Expander>

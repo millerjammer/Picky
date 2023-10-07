@@ -9,6 +9,7 @@ using OpenCvSharp.WpfExtensions;
 using static Picky.MachineMessage;
 using System.Windows.Media;
 using System.Collections.Generic;
+using System.Linq;
 
 /********************************************************************
  * Notes:
@@ -30,6 +31,7 @@ namespace Picky
         private readonly RelayInterface relayInterface;
         private readonly Machine machine;
         private List<Part> pickList;
+        private List<Cassette> cassetteList;
 
         public MainWindow()
         {
@@ -46,6 +48,12 @@ namespace Picky
 
             Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
+
+            /* Fix this later */
+            cassetteList = new List<Cassette>();
+            Cassette cassette = new Cassette();
+            cassetteList.Add(cassette);
+            cassetteView.ItemsSource = cassette.feeders;
         }
         private void MainWindow_Loaded(object sender, System.Windows.RoutedEventArgs e)
         {
@@ -268,6 +276,20 @@ namespace Picky
                 pickListView.ItemsSource = pickList;
                 return;
             }
+        }
+
+        private void addPartToCassette(object sender, System.Windows.RoutedEventArgs e)
+        {
+            Part part = (Part)pickListView.SelectedItem;
+            Console.WriteLine("Object: " + part.Description);
+            /* Put the part in a feeder the current cassette */
+            Cassette currentCassette = cassetteList.First();
+            Feeder feeder = new Feeder();
+            feeder.part = part;
+            currentCassette.feeders.Add(feeder);
+            Console.WriteLine("Count: " + currentCassette.feeders.Count());
+            
+
         }
     }
 }
