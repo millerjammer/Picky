@@ -237,7 +237,7 @@
                                             </ContextMenu>
                                         </TabItem.ContextMenu>
                                         <TabItem.Header>
-                                            <TextBlock  Height="auto" Text="Unnamed"/>
+                                            <TextBlock  Height="auto" Text="No Name"/>
                                         </TabItem.Header>
                                         <ui:DataGrid Margin="5" HorizontalAlignment="Stretch" Name="cassetteView" AutoGenerateColumns="False" CanUserSortColumns="False" HorizontalContentAlignment="Stretch" MaxHeight="250" VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="True" >
                                             <!-- Cassette 2nd Row - Data Grid -->
