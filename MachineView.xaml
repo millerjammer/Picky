@@ -1,0 +1,107 @@
+﻿<UserControl x:Class="Picky.MachineView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:local="clr-namespace:Picky"
+             xmlns:cb="clr-namespace:Microsoft.VisualStudio.CommandBars;assembly=Microsoft.VisualStudio.Interop" 
+             xmlns:cb1="clr-namespace:Microsoft.VisualStudio.CommandBars;assembly=Microsoft.VisualStudio.CommandBars"
+             mc:Ignorable="d" FontSize="12" 
+             d:DesignHeight="450" d:DesignWidth="800">
+  
+            <!-- Center Settings Expander -->
+    <Grid Grid.Column="1" Margin="10" VerticalAlignment="Top">
+        <Expander Header="Settings" Width="330" IsExpanded="True">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" >
+                    <Grid.ColumnDefinitions>
+                        <!-- Jog Buttons -->
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+                    <ui:Button Click="ButtonXLeft" Grid.Column="0" Grid.Row="1" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="CaretLeft24" Content="X-"/>
+                    <ui:Button Click="ButtonYUp" Grid.Column="1" Grid.Row="0" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="CaretUp24" Content="Y+"/>
+                    <ui:Button Click="ButtonXYHome" Grid.Column="1" Grid.Row="1" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="Home32" />
+                    <ui:Button Click="ButtonYDown" Grid.Column="1" Grid.Row="2" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="CaretDown24" Content="Y-"/>
+                    <ui:Button Click="ButtonXRight" Grid.Column="2" Grid.Row="1" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="CaretRight24" Content="X+"/>
+                    <ui:Button Click="ButtonZUp" Grid.Column="3" Grid.Row="0" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="CaretUp24" Content="Z+"/>
+                    <ui:Button Click="ButtonZHome" Grid.Column="3" Grid.Row="1" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="Home32" />
+                    <ui:Button Click="ButtonZDown" Grid.Column="3" Grid.Row="2" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="CaretDown24" Content="Z-"/>
+                    <ui:Button Click="ButtonAUp" Grid.Column="4" Grid.Row="0" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="RotateLeft24" Content="A+"/>
+                    <ui:Button Click="ButtonAHome" Grid.Column="4" Grid.Row="1" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="Home32" />
+                    <ui:Button Click="ButtonADown" Grid.Column="4" Grid.Row="2" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="RotateRight24" Content="A-"/>
+                    <ui:Button Click="ButtonBUp" Grid.Column="5" Grid.Row="0" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="StreamInput20" Content="B+"/>
+                    <ui:Button Click="ButtonBHome" Grid.Column="5" Grid.Row="1" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="Home32" />
+                    <ui:Button Click="ButtonBDown" Grid.Column="5" Grid.Row="2" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="StreamOutput20" Content="B-"/>
+                </Grid>
+                <Grid Grid.Row="1" Margin="0 20 0 20" HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <RadioButton GroupName="Distance" IsChecked="{Binding distToAdv[0]}" Style="{StaticResource {x:Type ToggleButton}}" Grid.Column="0" Height="45" Content="0.10mm"/>
+                    <RadioButton GroupName="Distance" IsChecked="{Binding distToAdv[1]}" Style="{StaticResource {x:Type ToggleButton}}" Grid.Column="1" Height="45" Content="1.00mm"/>
+                    <RadioButton GroupName="Distance" IsChecked="{Binding distToAdv[2]}" Style="{StaticResource {x:Type ToggleButton}}" Grid.Column="2" Height="45" Content="10.0mm"/>
+                    <RadioButton GroupName="Distance" IsChecked="{Binding distToAdv[3]}" Style="{StaticResource {x:Type ToggleButton}}" Grid.Column="3" Height="45" Content="100 mm"/>
+                </Grid>
+                <Grid Grid.Row="2" Margin="0 10 0 10" HorizontalAlignment="Stretch">
+                    <!-- Live X, Y, Z Positions -->
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Stretch" Margin="2">
+                        <Label Content="X:" VerticalAlignment="Center" FontSize="12" Padding="3 0 10 0"/>
+                        <TextBox  Height="auto" Width="74" FontSize="12" Name="PositionXText" Text="{Binding currentX, StringFormat={}{0:0.00}}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Stretch" Margin="2">
+                        <Label Content="Y:" VerticalAlignment="Center" FontSize="12" Padding="3 0 10 0"/>
+                        <TextBox  Height="auto" Width="74" FontSize="12" Name="PositionYText" Text="{Binding currentY, StringFormat={}{0:0.00}}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Stretch" Margin="2">
+                        <Label Content="Z:" VerticalAlignment="Center" FontSize="12" Padding="3 0 10 0"/>
+                        <TextBox  Height="auto" Width="74" FontSize="12" Name="PositionZText" Text="{Binding currentZ, StringFormat={}{0:0.00}}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Stretch" Margin="2">
+                        <Label Content="A:" VerticalAlignment="Center" FontSize="12" Padding="3 0 10 0"/>
+                        <TextBox  Height="auto" Width="74" FontSize="12" Name="PositionAText" Text="{Binding currentA, StringFormat={}{0:0.00}}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Stretch" Margin="2">
+                        <Label Content="B:" VerticalAlignment="Center" FontSize="12" Padding="3 0 10 0"/>
+                        <TextBox  Height="auto" Width="74" FontSize="12" Name="PositionBText" Text="{Binding currentB, StringFormat={}{0:0.00}}"/>
+                    </StackPanel>
+                </Grid>
+                <Grid Grid.Row="3" Margin="0 10 0 10" HorizontalAlignment="Stretch">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                        <ui:ToggleSwitch Click="ToggleLEDEvent" Name="toggleLED" Height="45" Width="100" Content="Light" Margin="0 0 10 0"/>
+                        <ui:ToggleSwitch Click="TogglePumpEvent" Name="togglePump" Height="45" Width="100" Content="Vacuum" Margin="0 0 10 0"/>
+                        <ui:ToggleSwitch Height="45" Width="100" Content="Aux" Margin="0 0 10 0"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Expander>
+    </Grid>
+</UserControl>

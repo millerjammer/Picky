@@ -16,6 +16,7 @@ namespace Picky
 
         public Feeder()
         {
+
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -9,14 +10,26 @@ namespace Picky
 {
     internal class Cassette : INotifyPropertyChanged
     {
-        public List<Feeder> feeders { get; set; }
-        public double originX { get; set; }
-        public double originY { get; set; }
-        public double originZ { get; set; }
+        public string name { get; set; }
+        public double x_origin { get; set; } = 0;
+        public double y_origin { get; set; } = 0;
+        public double z_origin { get; set; } = 0;
 
-        public Cassette() {
-            feeders = new List<Feeder>();
-           
+        private ObservableCollection<Feeder> feeders;
+        public ObservableCollection<Feeder> Feeders
+        {
+            get { return feeders; }
+            set
+            {
+                feeders = value;
+                //PropertyChanged(this, new PropertyChangedEventArgs("Feeders"));
+            }
+        }
+
+        public Cassette()
+        {
+            feeders = new ObservableCollection<Feeder>();
+           // name = "hhheehhe";
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

@@ -7,9 +7,16 @@
         xmlns:local="clr-namespace:Picky" 
         xmlns:cb="clr-namespace:Microsoft.VisualStudio.CommandBars;assembly=Microsoft.VisualStudio.Interop" 
         xmlns:cb1="clr-namespace:Microsoft.VisualStudio.CommandBars;assembly=Microsoft.VisualStudio.CommandBars"
+        xmlns:controls="clr-namespace:Picky"
         mc:Ignorable="d" FontSize="12" 
         Height="1040" Width="1300" ResizeMode="CanResize"
         WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterScreen" Background="Transparent">
+
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type local:MachineViewModel}">
+            <local:MachineView/>
+        </DataTemplate>
+    </Window.Resources>
 
     <Border CornerRadius="10" Background="#151f2d" Margin="0 0 0 0">
         <Grid VerticalAlignment="Top">
@@ -41,108 +48,15 @@
                         <Expander Header="Commands" Width="180" IsExpanded="True">
                             <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="2">
                                 <ui:Button Content="Initialize" HorizontalAlignment="Stretch" Margin="2" Icon="Run20"/>
-                                <ui:Button Content="Home" Click="OnHome" HorizontalAlignment="Stretch" Margin="2" Icon="Home20"/>
+                                <ui:Button Content="Home"  HorizontalAlignment="Stretch" Margin="2" Icon="Home20"/>
                                 <ui:Button Content="Self Check" HorizontalAlignment="Stretch" Margin="2" Icon="Check20"/>
                                 <ui:Button Content="Start" HorizontalAlignment="Stretch" Margin="2" Icon="Play20"/>
                                 <ui:Button Content="Pause" HorizontalAlignment="Stretch" Margin="2" Icon="Pause20"/>
-                                <ui:Button Content="Stop" Click="OnButtonStop" HorizontalAlignment="Stretch" Margin="2" Icon="Stop20"/>
+                                <ui:Button Content="Stop"  HorizontalAlignment="Stretch" Margin="2" Icon="Stop20"/>
                             </StackPanel>
                         </Expander>
                     </Grid>
-                    <!-- Center Settings Expander -->
-                    <Grid Grid.Column="1" Margin="10" VerticalAlignment="Top">
-                        <Expander Header="Settings" Width="330" IsExpanded="True">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="auto"/>
-                                    <RowDefinition Height="auto"/>
-                                    <RowDefinition Height="auto"/>
-                                    <RowDefinition Height="auto"/>
-                                </Grid.RowDefinitions>
-                                <Grid Grid.Row="0" >
-                                    <Grid.ColumnDefinitions>
-                                        <!-- Jog Buttons -->
-                                        <ColumnDefinition Width="auto"/>
-                                        <ColumnDefinition Width="auto"/>
-                                        <ColumnDefinition Width="auto"/>
-                                        <ColumnDefinition Width="auto"/>
-                                        <ColumnDefinition Width="auto"/>
-                                        <ColumnDefinition Width="auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="auto"/>
-                                        <RowDefinition Height="auto"/>
-                                        <RowDefinition Height="auto"/>
-                                   </Grid.RowDefinitions>
-                                    <ui:Button Click="ButtonXLeft" Grid.Column="0" Grid.Row="1" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="CaretLeft24" Content="X-"/>
-                                    <ui:Button Click="ButtonYUp" Grid.Column="1" Grid.Row="0" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="CaretUp24" Content="Y+"/>
-                                    <ui:Button Click="ButtonXYHome" Grid.Column="1" Grid.Row="1" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="Home32" />
-                                    <ui:Button Click="ButtonYDown" Grid.Column="1" Grid.Row="2" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="CaretDown24" Content="Y-"/>
-                                    <ui:Button Click="ButtonXRight" Grid.Column="2" Grid.Row="1" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="CaretRight24" Content="X+"/>
-                                    <ui:Button Click="ButtonZUp" Grid.Column="3" Grid.Row="0" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="CaretUp24" Content="Z+"/>
-                                    <ui:Button Click="ButtonZHome" Grid.Column="3" Grid.Row="1" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="Home32" />
-                                    <ui:Button Click="ButtonZDown" Grid.Column="3" Grid.Row="2" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="CaretDown24" Content="Z-"/>
-                                    <ui:Button Click="ButtonAUp" Grid.Column="4" Grid.Row="0" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="RotateLeft24" Content="A+"/>
-                                    <ui:Button Click="ButtonAHome" Grid.Column="4" Grid.Row="1" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="Home32" />
-                                    <ui:Button Click="ButtonADown" Grid.Column="4" Grid.Row="2" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="RotateRight24" Content="A-"/>
-                                    <ui:Button Click="ButtonBUp" Grid.Column="5" Grid.Row="0" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="StreamInput20" Content="B+"/>
-                                    <ui:Button Click="ButtonBHome" Grid.Column="5" Grid.Row="1" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="Home32" />
-                                    <ui:Button Click="ButtonBDown" Grid.Column="5" Grid.Row="2" CornerRadius="4" Width="45" Height="45" Margin="3" Padding="0" Icon="StreamOutput20" Content="B-"/>
-                                </Grid>
-                                <Grid Grid.Row="1" Margin="0 20 0 20" HorizontalAlignment="Stretch">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <RadioButton GroupName="Distance" IsChecked="{Binding distToAdv[0]}" Style="{StaticResource {x:Type ToggleButton}}" Grid.Column="0" Height="45" Content="0.10mm"/>
-                                    <RadioButton GroupName="Distance" IsChecked="{Binding distToAdv[1]}" Style="{StaticResource {x:Type ToggleButton}}" Grid.Column="1" Height="45" Content="1.00mm"/>
-                                    <RadioButton GroupName="Distance" IsChecked="{Binding distToAdv[2]}" Style="{StaticResource {x:Type ToggleButton}}" Grid.Column="2" Height="45" Content="10.0mm"/>
-                                    <RadioButton GroupName="Distance" IsChecked="{Binding distToAdv[3]}" Style="{StaticResource {x:Type ToggleButton}}" Grid.Column="3" Height="45" Content="100 mm"/>
-                                </Grid>
-                                <Grid Grid.Row="2" Margin="0 10 0 10" HorizontalAlignment="Stretch">
-                                    <!-- Live X, Y, Z Positions -->
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="auto"/>
-                                        <RowDefinition Height="auto"/>
-                                    </Grid.RowDefinitions>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="auto"/>
-                                        <ColumnDefinition Width="auto"/>
-                                        <ColumnDefinition Width="auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Stretch" Margin="2">
-                                        <Label Content="X:" VerticalAlignment="Center" FontSize="12" Padding="3 0 10 0"/>
-                                        <TextBox  Height="auto" Width="74" FontSize="12" Name="PositionXText" Text="{Binding currentX, StringFormat={}{0:0.00}}"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Stretch" Margin="2">
-                                        <Label Content="Y:" VerticalAlignment="Center" FontSize="12" Padding="3 0 10 0"/>
-                                        <TextBox  Height="auto" Width="74" FontSize="12" Name="PositionYText" Text="{Binding currentY, StringFormat={}{0:0.00}}"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Stretch" Margin="2">
-                                        <Label Content="Z:" VerticalAlignment="Center" FontSize="12" Padding="3 0 10 0"/>
-                                        <TextBox  Height="auto" Width="74" FontSize="12" Name="PositionZText" Text="{Binding currentZ, StringFormat={}{0:0.00}}"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Stretch" Margin="2">
-                                        <Label Content="A:" VerticalAlignment="Center" FontSize="12" Padding="3 0 10 0"/>
-                                        <TextBox  Height="auto" Width="74" FontSize="12" Name="PositionAText" Text="{Binding currentA, StringFormat={}{0:0.00}}"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Stretch" Margin="2">
-                                        <Label Content="B:" VerticalAlignment="Center" FontSize="12" Padding="3 0 10 0"/>
-                                        <TextBox  Height="auto" Width="74" FontSize="12" Name="PositionBText" Text="{Binding currentB, StringFormat={}{0:0.00}}"/>
-                                    </StackPanel>
-                                </Grid>
-                                <Grid Grid.Row="3" Margin="0 10 0 10" HorizontalAlignment="Stretch">
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                        <ui:ToggleSwitch Click="ToggleLEDEvent" Name="toggleLED" Height="45" Width="100" Content="Light" Margin="0 0 10 0"/>
-                                        <ui:ToggleSwitch Click="TogglePumpEvent" Name="togglePump" Height="45" Width="100" Content="Vacuum" Margin="0 0 10 0"/>
-                                        <ui:ToggleSwitch Height="45" Width="100" Content="Aux" Margin="0 0 10 0"/>
-                                    </StackPanel>
-                                </Grid>
-                            </Grid>
-                        </Expander>
-                    </Grid>
+                <!-- Center Settings Expander -->
                 </Grid>
                 <Grid Grid.Column="1" Margin="10">
                     <Expander Header="Camera" Width="auto" IsExpanded="True" VerticalAlignment="Top">
@@ -207,7 +121,7 @@
                                     <DataGrid.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem Header="Go to Location"  />
-                                            <MenuItem Header="Add to Cassette" Click="addPartToCassette" />
+                                            <MenuItem Header="Add to Cassette" />
                                         </ContextMenu>
                                     </DataGrid.ContextMenu>
                                 </ui:DataGrid>
@@ -218,53 +132,21 @@
                                     <RowDefinition Height="45" />
                                     <RowDefinition Height="auto"/>
                                 </Grid.RowDefinitions>
-                                <Grid Grid.Row="0" Margin="10 0 10 0" HorizontalAlignment="Stretch">
+                                <Grid Grid.Row="0" Margin="10 0 10 0" HorizontalAlignment="Stretch" DataContext="{Binding Cassettes}">
                                     <!-- Cassette 1 Row - Title and Basic Controls -->
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="Cassette Contents" Margin="5,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"  TextAlignment="Left" />
-                                    <ui:Button Grid.Column="1" Content="Add..." Icon="Folder32" Click="OnLoadPickFile" Height="30" Margin="0,0,0,0" HorizontalAlignment="Right"/>
+                                    <ui:Button Grid.Column="1" Content="Add..." Icon="Folder32" Height="30" Margin="0,0,0,0" HorizontalAlignment="Right"/>
                                 </Grid>
-                                <TabControl Grid.Row="1">
-                                    <TabItem >
-                                        <TabItem.ContextMenu>
-                                            <ContextMenu>
-                                                <MenuItem Header="Save..."/>
-                                                <MenuItem Header="Remove"/>
-                                                <MenuItem Header="Rename..."/>
-                                            </ContextMenu>
-                                        </TabItem.ContextMenu>
-                                        <TabItem.Header>
-                                            <TextBlock  Height="auto" Text="No Name"/>
-                                        </TabItem.Header>
-                                        <ui:DataGrid Margin="5" HorizontalAlignment="Stretch" Name="cassetteView" AutoGenerateColumns="False" CanUserSortColumns="False" HorizontalContentAlignment="Stretch" MaxHeight="250" VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="True" >
-                                            <!-- Cassette 2nd Row - Data Grid -->
-                                            <DataGrid.Columns>
-                                                <DataGridTextColumn Binding="{Binding part.Description}" Header="Description" Width="auto"/>
-                                                <DataGridTextColumn Binding="{Binding width}" Header="Slot Width" Width="90"/>
-                                                <DataGridTextColumn Binding="{Binding thickness}" Header="Thickness" Width="80"/>
-                                                <DataGridTextColumn Binding="{Binding interval}" Header="Interval" Width="70"/>
-                                            </DataGrid.Columns>
-                                            <ui:DataGrid.RowStyle>
-                                                <Style TargetType="DataGridRow">
-                                                    <Style.Triggers>
-                                                        <Trigger Property="IsSelected" Value="True">
-                                                            <Setter Property="Background" Value="#80B9EE"/>
-                                                            <Setter Property="Foreground" Value="Black"/>
-                                                        </Trigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </ui:DataGrid.RowStyle>
-                                            <DataGrid.ContextMenu>
-                                                <ContextMenu>
-                                                    <MenuItem Header="Go to Location"  />
-                                                    <MenuItem Header="Remove" />
-                                                </ContextMenu>
-                                            </DataGrid.ContextMenu>
-                                        </ui:DataGrid>
-                                    </TabItem>
+                                <TabControl Grid.Row="1" ItemsSource="{Binding Cassettes}">
+                                    <TabControl.ItemTemplate>
+                                         <DataTemplate>
+                                             <TextBlock  Height="auto" Text="{Binding name}"/> 
+                                         </DataTemplate>
+                                    </TabControl.ItemTemplate>
                                 </TabControl>
                             </Grid>
                         </Grid>

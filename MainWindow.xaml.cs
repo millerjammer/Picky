@@ -10,6 +10,7 @@ using static Picky.MachineMessage;
 using System.Windows.Media;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
 
 /********************************************************************
  * Notes:
@@ -28,18 +29,12 @@ namespace Picky
     {
         private readonly VideoCapture capture;
         private readonly BackgroundWorker bkgWorker;
-        private readonly RelayInterface relayInterface;
-        private readonly Machine machine;
+               
         private List<Part> pickList;
-        private List<Cassette> cassetteList;
-
+        
         public MainWindow()
         {
             InitializeComponent();
-            
-            relayInterface = new RelayInterface();
-            machine = new Machine();
-            this.DataContext = machine;
 
             capture = new VideoCapture();
             
@@ -49,11 +44,6 @@ namespace Picky
             Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
 
-            /* Fix this later */
-            cassetteList = new List<Cassette>();
-            Cassette cassette = new Cassette();
-            cassetteList.Add(cassette);
-            cassetteView.ItemsSource = cassette.feeders;
         }
         private void MainWindow_Loaded(object sender, System.Windows.RoutedEventArgs e)
         {
@@ -101,108 +91,7 @@ namespace Picky
             }
         }
 
-        void ToggleLEDEvent(object sender, EventArgs e)
-        {
-            if ((bool)toggleLED.IsChecked)
-                relayInterface.SetIlluminatorOn(true);
-            else
-                relayInterface.SetIlluminatorOn(false);
-
-        }
-
-        void TogglePumpEvent(object sender, EventArgs e)
-        {
-            if ((bool)togglePump.IsChecked)
-                relayInterface.SetPumpOn(true);
-            else
-                relayInterface.SetPumpOn(false);
-
-        }
-
-        void ButtonXLeft(object sender, EventArgs e)
-        {
-            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeXYPosition(-machine.distanceToAdvance, 0));
-            machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
-        }
-
-        void ButtonXRight(object sender, EventArgs e)
-        {
-            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeXYPosition(machine.distanceToAdvance, 0));
-            machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
-        }
-
-        void ButtonYUp(object sender, EventArgs e)
-        {
-            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeXYPosition(0, machine.distanceToAdvance));
-            machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
-        }
-        
-        void ButtonYDown(object sender, EventArgs e)
-        {
-            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeXYPosition(0, -machine.distanceToAdvance));
-            machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
-        }
-
-        void ButtonXYHome(object sender, EventArgs e)
-        {
-            machine.messages.Enqueue(MachineCommands.S3G_Initialize());
-            machine.messages.Enqueue(MachineCommands.S3G_FindXYMaximums());
-            machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
-        }
-
-        
-
-        void ButtonZUp(object sender, EventArgs e)
-        {
-            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeZPosition(-machine.distanceToAdvance));
-            machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
-        }
-
-        void ButtonZHome(object sender, EventArgs e)
-        {
-            machine.messages.Enqueue(MachineCommands.S3G_FindZMinimum());
-            machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
-        }
-
-        void ButtonZDown(object sender, EventArgs e)
-        {
-            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeZPosition(machine.distanceToAdvance));
-            machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
-        }
-
-        void ButtonAUp(object sender, EventArgs e)
-        {
-            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeAngle(machine.distanceToAdvance));
-            machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
-        }
-
-        void ButtonAHome(object sender, EventArgs e)
-        {
-
-        }
-
-        void ButtonADown(object sender, EventArgs e)
-        {
-            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeAngle(-machine.distanceToAdvance));
-            machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
-        }
-
-        void ButtonBUp(object sender, EventArgs e)
-        {
-            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeBPosition(machine.distanceToAdvance));
-            machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
-        }
-
-        void ButtonBHome(object sender, EventArgs e)
-        {
-
-        }
-
-        void ButtonBDown(object sender, EventArgs e)
-        {
-            machine.messages.Enqueue(MachineCommands.S3G_SetRelativeBPosition(-machine.distanceToAdvance));
-            machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
-        }
+        /*
 
         void OnButtonStop(object sender, EventArgs e)
         {
@@ -220,7 +109,7 @@ namespace Picky
             machine.messages.Enqueue(MachineCommands.S3G_SetAbsoluteAngle(0));
             machine.messages.Enqueue(MachineCommands.S3G_SetAbsoluteXYPosition(-50, -50));
             machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
-        }
+        }*/
 
         void OnLoadPickFile(object sender, EventArgs e)
         {
@@ -276,21 +165,6 @@ namespace Picky
                 pickListView.ItemsSource = pickList;
                 return;
             }
-        }
-
-        private void addPartToCassette(object sender, System.Windows.RoutedEventArgs e)
-        {
-            Part part = (Part)pickListView.SelectedItem;
-            Console.WriteLine("Object: " + part.Description);
-            /* Put the part in a feeder the current cassette */
-            Cassette currentCassette = cassetteList.First();
-            Feeder feeder = new Feeder();
-            feeder.part = part;
-            currentCassette.feeders.Add(feeder);
-            Console.WriteLine("Count: " + currentCassette.feeders.Count());
-            cassetteView.Items.Refresh();   // Yes, use observable collection instead
-            
-
         }
     }
 }
