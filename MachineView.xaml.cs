@@ -22,7 +22,7 @@ namespace Picky
     {
         private readonly RelayInterface relayInterface;
         private readonly MachineViewModel machine;
-
+        
         public MachineView()
         {
             InitializeComponent();

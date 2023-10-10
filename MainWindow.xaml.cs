@@ -29,7 +29,7 @@ namespace Picky
     {
         private readonly VideoCapture capture;
         private readonly BackgroundWorker bkgWorker;
-               
+                      
         private List<Part> pickList;
         
         public MainWindow()

@@ -57,6 +57,10 @@
                         </Expander>
                     </Grid>
                 <!-- Center Settings Expander -->
+                    <Grid Grid.Column="1">
+                        <!-- Adding the User Control -->
+                        <local:MachineView/>
+                    </Grid>
                 </Grid>
                 <Grid Grid.Column="1" Margin="10">
                     <Expander Header="Camera" Width="auto" IsExpanded="True" VerticalAlignment="Top">
