@@ -138,18 +138,25 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Cassette.cs" />
+    <Compile Include="CassetteView.xaml.cs">
+      <DependentUpon>CassetteView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="CassetteViewModel.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Feeder.cs" />
-    <Compile Include="MachineCommands.cs" />
-    <Compile Include="MachineMessage.cs" />
-    <Compile Include="MachineView.xaml.cs">
+    <Compile Include="Machine\MachineCommands.cs" />
+    <Compile Include="Machine\MachineMessage.cs" />
+    <Compile Include="Machine\MachineView.xaml.cs">
       <DependentUpon>MachineView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MachineViewModel.cs" />
+    <Compile Include="Machine\MachineViewModel.cs" />
     <Compile Include="Part.cs" />
-    <Compile Include="RelayInterface.cs" />
-    <Page Include="MachineView.xaml">
+    <Compile Include="Machine\RelayInterface.cs" />
+    <Page Include="CassetteView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Machine\MachineView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -16,6 +16,9 @@
         <DataTemplate DataType="{x:Type local:MachineViewModel}">
             <local:MachineView/>
         </DataTemplate>
+        <DataTemplate DataType="{x:Type local:CassetteViewModel}">
+            <local:CassetteView/>
+        </DataTemplate>
     </Window.Resources>
 
     <Border CornerRadius="10" Background="#151f2d" Margin="0 0 0 0">
@@ -71,91 +74,7 @@
                 </Grid>
             </Grid>
             <Grid Grid.Row="1" Grid.Column="1" Margin="10 10 10 10">
-                <Expander IsExpanded="True">
-                    <Expander.Header>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Component Placement" Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"  TextAlignment="Left" />
-                        </Grid>
-                    </Expander.Header>
-                    <Expander.Content>
-                        <Grid Margin="0 0 0 0" HorizontalAlignment="Stretch">
-                            <!-- Placement and Cassettte 2 Cols -->
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid Grid.Column="0" Margin="5 -10 5 5" HorizontalAlignment="Stretch">
-                                <!-- Placement 2 Rows -->
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="45" />
-                                    <RowDefinition Height="auto"/>
-                                </Grid.RowDefinitions>
-                                <Grid Grid.Row="0" Margin="10 0 10 0" HorizontalAlignment="Stretch" VerticalAlignment="Center">
-                                    <!-- Placement 1 Row - Title and Basic Controls -->
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="Part Pick List" Margin="10,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"  TextAlignment="Left" />
-                                    <ui:Button Grid.Column="1" Content="Open..." Icon="Folder32" Click="OnLoadPickFile" Height="30" Margin="0,0,0,0" HorizontalAlignment="Right"/>
-                                </Grid>
-                                <ui:DataGrid  Grid.Row="1" HorizontalAlignment="Stretch" Name="pickListView" AutoGenerateColumns="False" CanUserSortColumns="False" HorizontalContentAlignment="Stretch" MaxHeight="299" VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="True" >
-                                    <!-- Placement 2nd Row - Data Grid -->
-                                    <DataGrid.Columns>
-                                        <DataGridTextColumn Binding="{Binding Designator}" Header="Designator" Width="80"/>
-                                        <DataGridTextColumn Binding="{Binding Description}" Header="Description" Width="auto"/>
-                                        <DataGridTextColumn Binding="{Binding CenterX}" Header="Center-X" Width="70"/>
-                                        <DataGridTextColumn Binding="{Binding CenterY}" Header="Center-Y" Width="70"/>
-                                        <DataGridTextColumn Binding="{Binding Rotation}" Header="Rotation" Width="70"/>
-                                    </DataGrid.Columns>
-                                    <ui:DataGrid.RowStyle>
-                                        <Style TargetType="DataGridRow">
-                                            <Style.Triggers>
-                                                <Trigger Property="IsSelected" Value="True">
-                                                    <Setter Property="Background" Value="#80B9EE"/>
-                                                    <Setter Property="Foreground" Value="Black"/>
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </ui:DataGrid.RowStyle>
-                                    <DataGrid.ContextMenu>
-                                        <ContextMenu>
-                                            <MenuItem Header="Go to Location"  />
-                                            <MenuItem Header="Add to Cassette" />
-                                        </ContextMenu>
-                                    </DataGrid.ContextMenu>
-                                </ui:DataGrid>
-                            </Grid>
-                            <Grid Grid.Column="1" Margin="5 -10 5 5" HorizontalAlignment="Stretch">
-                                <!-- Cassette 2 Rows -->
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="45" />
-                                    <RowDefinition Height="auto"/>
-                                </Grid.RowDefinitions>
-                                <Grid Grid.Row="0" Margin="10 0 10 0" HorizontalAlignment="Stretch" DataContext="{Binding Cassettes}">
-                                    <!-- Cassette 1 Row - Title and Basic Controls -->
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="Cassette Contents" Margin="5,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"  TextAlignment="Left" />
-                                    <ui:Button Grid.Column="1" Content="Add..." Icon="Folder32" Height="30" Margin="0,0,0,0" HorizontalAlignment="Right"/>
-                                </Grid>
-                                <TabControl Grid.Row="1" ItemsSource="{Binding Cassettes}">
-                                    <TabControl.ItemTemplate>
-                                         <DataTemplate>
-                                             <TextBlock  Height="auto" Text="{Binding name}"/> 
-                                         </DataTemplate>
-                                    </TabControl.ItemTemplate>
-                                </TabControl>
-                            </Grid>
-                        </Grid>
-                    </Expander.Content>
-                </Expander>
+                <local:CassetteView/>
             </Grid>
         </Grid>
     </Border>
