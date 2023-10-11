@@ -14,6 +14,9 @@ namespace Picky
     internal class CassetteViewModel : INotifyPropertyChanged
     {
         public string myname { get; set; }
+        public Part selectedPickListPart { get; set; }
+        public Cassette selectedCassette { get; set; }
+
         private ObservableCollection<Cassette> cassettes;
         public ObservableCollection<Cassette> Cassettes
         {
@@ -21,30 +24,34 @@ namespace Picky
             set
             {
                 cassettes = value;
-                //PropertyChanged(this, new PropertyChangedEventArgs("Cassettes"));
+                PropertyChanged(this, new PropertyChangedEventArgs("Cassettes"));
+            }
+        }
+
+        private ObservableCollection<Part> pickList;
+        public ObservableCollection<Part> PickList
+        {
+            get { return pickList; }
+            set
+            {
+                pickList = value;
+                PropertyChanged(this, new PropertyChangedEventArgs("PickList"));
             }
         }
 
         public CassetteViewModel()
         {
-            
+            pickList = new ObservableCollection<Part>();
             cassettes = new ObservableCollection<Cassette>();
-            myname = "vm";
-
-            AddCommand = new Command<string>((key) =>
-            {
-                myname += key;
-                Console.WriteLine("constructor for create command: ");
-            });
+  
         }
-
-        public ICommand AddCommand { protected set; get; }
-
 
         public void Add()
         {
-            Cassettes.Add(new Cassette());
-            Console.WriteLine("Here");
+            Cassette cs = new Cassette();
+            cs.name = "Untitled";
+           Cassettes.Add(cs);
+        
         }
              
         public event PropertyChangedEventHandler PropertyChanged;

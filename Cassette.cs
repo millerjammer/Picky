@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 
 namespace Picky
 {
@@ -15,6 +17,8 @@ namespace Picky
         public double y_origin { get; set; } = 0;
         public double z_origin { get; set; } = 0;
 
+        public Feeder selectedFeeder { get; set; }
+
         private ObservableCollection<Feeder> feeders;
         public ObservableCollection<Feeder> Feeders
         {
@@ -22,14 +26,14 @@ namespace Picky
             set
             {
                 feeders = value;
-                //PropertyChanged(this, new PropertyChangedEventArgs("Feeders"));
+                PropertyChanged(this, new PropertyChangedEventArgs("Feeders"));
             }
         }
 
         public Cassette()
         {
             feeders = new ObservableCollection<Feeder>();
-           // name = "hhheehhe";
+                      
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
