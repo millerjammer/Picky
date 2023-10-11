@@ -50,6 +50,7 @@
                                 <DataGridTextColumn Binding="{Binding CenterX}" Header="Center-X" Width="70"/>
                                 <DataGridTextColumn Binding="{Binding CenterY}" Header="Center-Y" Width="70"/>
                                 <DataGridTextColumn Binding="{Binding Rotation}" Header="Rotation" Width="70"/>
+                                <DataGridTextColumn Binding="{Binding }" Header="Cassette" Width="70"/>
                             </DataGrid.Columns>
                             <ui:DataGrid.RowStyle>
                                 <Style TargetType="DataGridRow">

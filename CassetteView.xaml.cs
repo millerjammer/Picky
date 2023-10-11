@@ -1,4 +1,6 @@
-﻿using Microsoft.Win32;
+﻿using EnvDTE;
+using Microsoft.Win32;
+using Newtonsoft.Json;
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -30,6 +32,7 @@ namespace Picky
         void NewCassette(object sender, EventArgs e)
         {
             cassette.Add();
+          
         }
 
         private void RemovePartFromCassette(object sender, RoutedEventArgs e)
@@ -41,6 +44,7 @@ namespace Picky
         {
             Feeder fdr = new Feeder();
             fdr.part = cassette.selectedPickListPart;
+            fdr.part.CassetteName = cassette.selectedCassette.name;
             cassette.selectedCassette.Feeders.Add(fdr);
         }
 
@@ -51,12 +55,30 @@ namespace Picky
 
         private void SaveCassette(object sender, RoutedEventArgs e)
         {
-
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.DefaultExt = ".cst";
+            saveFileDialog.RestoreDirectory = true;
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                cassette.selectedCassette.name = saveFileDialog.SafeFileName;
+                File.WriteAllText(saveFileDialog.FileName, Newtonsoft.Json.JsonConvert.SerializeObject(cassette.selectedCassette));
+            }
         }
 
         private void LoadCassette(object sender, RoutedEventArgs e)
         {
-
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Cassette Files (*.cst, *.json)|*.cst;*.json";
+            openFileDialog.FilterIndex = 0;
+            openFileDialog.RestoreDirectory = true;
+            if (openFileDialog.ShowDialog() == true)
+            {
+                using (StreamReader file = File.OpenText(openFileDialog.FileName))
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    cassette.Cassettes.Add((Cassette)serializer.Deserialize(file, typeof(Cassette)));
+                }
+            }
         }
 
         private void OpenPickList(object sender, RoutedEventArgs e)

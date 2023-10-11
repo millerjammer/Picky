@@ -9,7 +9,7 @@
         xmlns:cb1="clr-namespace:Microsoft.VisualStudio.CommandBars;assembly=Microsoft.VisualStudio.CommandBars"
         xmlns:controls="clr-namespace:Picky"
         mc:Ignorable="d" FontSize="12" 
-        Height="1040" Width="1300" ResizeMode="CanResize"
+        Height="1040" Width="1400" ResizeMode="CanResize"
         WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterScreen" Background="Transparent">
 
     <Window.Resources>
@@ -37,7 +37,7 @@
                 <!--Top Row - Toolbar + Commands/Settings-->
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="570"/>
                 </Grid.ColumnDefinitions>
                 <!--Commands/Settings-->
                 <Grid Grid.Column="0" >

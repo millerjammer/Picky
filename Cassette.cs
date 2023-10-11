@@ -12,7 +12,15 @@ namespace Picky
 {
     internal class Cassette : INotifyPropertyChanged
     {
-        public string name { get; set; }
+        private string _name = "untitled";
+        public string name
+        {
+            get { return _name; }
+            set { _name = value; Console.WriteLine("namechange " + value);
+                if (PropertyChanged != null)
+                    PropertyChanged(this, new PropertyChangedEventArgs("name"));
+            }
+        }
         public double x_origin { get; set; } = 0;
         public double y_origin { get; set; } = 0;
         public double z_origin { get; set; } = 0;
@@ -33,7 +41,6 @@ namespace Picky
         public Cassette()
         {
             feeders = new ObservableCollection<Feeder>();
-                      
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

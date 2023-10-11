@@ -15,7 +15,13 @@ namespace Picky
     {
         public string myname { get; set; }
         public Part selectedPickListPart { get; set; }
-        public Cassette selectedCassette { get; set; }
+
+        private Cassette _selectedCassette;
+        public Cassette selectedCassette
+        {
+            get { return _selectedCassette; }
+            set { _selectedCassette = value; PropertyChanged(this, new PropertyChangedEventArgs("selectedCassette")); }
+        }
 
         private ObservableCollection<Cassette> cassettes;
         public ObservableCollection<Cassette> Cassettes
@@ -49,9 +55,8 @@ namespace Picky
         public void Add()
         {
             Cassette cs = new Cassette();
-            cs.name = "Untitled";
-           Cassettes.Add(cs);
-        
+            Cassettes.Add(cs);
+            selectedCassette = cs;
         }
              
         public event PropertyChangedEventHandler PropertyChanged;
