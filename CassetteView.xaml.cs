@@ -5,6 +5,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -14,18 +15,17 @@ namespace Picky
     /// <summary>
     /// Interaction logic for CassetteView.xaml
     /// </summary>
-    public partial class CassetteView : UserControl, INotifyCollectionChanged
+    public partial class CassetteView : UserControl
     {
         private readonly CassetteViewModel cassette;
 
-        public CassetteView()
+        public CassetteView(MachineModel mModel)
         {
             InitializeComponent();
-
-            cassette = new CassetteViewModel();
+            cassette = new CassetteViewModel(mModel);
             this.DataContext = cassette;
-            
-        }
+
+        }       
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
@@ -37,19 +37,57 @@ namespace Picky
 
         private void RemovePartFromCassette(object sender, RoutedEventArgs e)
         {
+            foreach (Part part in cassette.PickList)
+            {
+                if (part.Equals(cassette.selectedCassette.selectedFeeder.part))
+                   part.cassette = null;
+            }
             cassette.selectedCassette.Feeders.Remove(cassette.selectedCassette.selectedFeeder);
+
         }
 
         private void AddPartToCassette(object sender, RoutedEventArgs e)
         {
+            if(cassette.selectedPickListPart.cassette != null)
+            {
+                Console.WriteLine("Error, part already assigned");
+                return;
+            }
+            if (cassette.selectedCassette == null)
+            {
+                Console.WriteLine("Error, no cassette selected");
+                return;
+            }
             Feeder fdr = new Feeder();
             fdr.part = cassette.selectedPickListPart;
-            fdr.part.CassetteName = cassette.selectedCassette.name;
             cassette.selectedCassette.Feeders.Add(fdr);
+            cassette.selectedPickListPart.cassette = cassette.selectedCassette;
+            /* Update the references in the pickList */
+            foreach (Part part in cassette.PickList)
+            {
+                if (part.cassette == null)
+                {
+                    foreach (Feeder feeder in cassette.selectedCassette.Feeders)
+                    {
+                        if (part.Description == feeder.part.Description && part.Footprint == feeder.part.Footprint)
+                        {
+                            part.cassette = cassette.selectedCassette;
+                        }
+                    }
+                }
+            }
         }
 
-        private void CloseCassette(object sender, RoutedEventArgs e) 
+        private void CloseCassette(object sender, RoutedEventArgs e)
         {
+            foreach (Part part in cassette.PickList)
+            {
+                if (part.cassette != null)
+                {
+                    if (part.cassette.Equals(cassette.selectedCassette))
+                        part.cassette = null;
+                }
+            }
             cassette.Cassettes.Remove(cassette.selectedCassette);
         }
 
@@ -61,7 +99,13 @@ namespace Picky
             if (saveFileDialog.ShowDialog() == true)
             {
                 cassette.selectedCassette.name = saveFileDialog.SafeFileName;
-                File.WriteAllText(saveFileDialog.FileName, Newtonsoft.Json.JsonConvert.SerializeObject(cassette.selectedCassette));
+                /* Ignore a Parts reference to it's cassette */
+                File.WriteAllText(saveFileDialog.FileName, JsonConvert.SerializeObject(cassette.selectedCassette, Formatting.Indented,
+                    new JsonSerializerSettings()
+                    {
+                        ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+                    }
+                ));
             }
         }
 
@@ -77,6 +121,21 @@ namespace Picky
                 {
                     JsonSerializer serializer = new JsonSerializer();
                     cassette.Cassettes.Add((Cassette)serializer.Deserialize(file, typeof(Cassette)));
+                }
+            }
+            cassette.selectedCassette = cassette.Cassettes.Last();
+            /* Update the references in the pickList */
+            foreach (Part part in cassette.PickList)
+            {
+                if (part.cassette == null)
+                {
+                    foreach (Feeder feeder in cassette.selectedCassette.Feeders)
+                    {
+                        if (part.Description == feeder.part.Description && part.Footprint == feeder.part.Footprint)
+                        {
+                            part.cassette = cassette.selectedCassette;
+                        }
+                    }
                 }
             }
         }

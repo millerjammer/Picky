@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Picky
 {
-    internal class Feeder : INotifyPropertyChanged
+    public class Feeder : INotifyPropertyChanged
     {
         public Part part { get; set; }
         public int index { get; set; }

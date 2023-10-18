@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Picky
 {
-    internal class Part : INotifyPropertyChanged
+    public class Part : INotifyPropertyChanged
     {
         public string Designator { get; set; }
         public string Comment { get; set; }
@@ -18,16 +18,18 @@ namespace Picky
         public string Rotation { get; set; }
         public string Description { get; set; }
 
-        private string cassetteName;
-        public string CassetteName 
+        private Cassette _cassette;
+        public Cassette cassette
         {
-            get { return cassetteName; }
-            set { cassetteName = value;
+            get { return _cassette; }
+            set
+            {
+                _cassette = value;
                 if (PropertyChanged != null)
-                    PropertyChanged(this, new PropertyChangedEventArgs("cassetteName")); }
-        }    
+                    PropertyChanged(this, new PropertyChangedEventArgs("cassette"));
+            }
+        }
 
-       
         public event PropertyChangedEventHandler PropertyChanged;
 
         

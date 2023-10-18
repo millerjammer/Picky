@@ -1,9 +1,5 @@
-﻿using System;
-using System.IO;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Threading;
-using System.Windows.Data;
-using Microsoft.Win32;
 using OpenCvSharp;
 using OpenCvSharp.WpfExtensions;
 using static Picky.MachineMessage;
@@ -29,13 +25,26 @@ namespace Picky
     {
         private readonly VideoCapture capture;
         private readonly BackgroundWorker bkgWorker;
-                      
+
+        public MachineModel machineModel;
+        private readonly CassetteView cassetteView;
+        private readonly MachineView machineView;
+
+
         public MainWindow()
         {
-            InitializeComponent();
-
-            capture = new VideoCapture();
             
+            InitializeComponent();
+            capture = new VideoCapture();
+           
+            machineModel = new MachineModel();
+            
+            cassetteView = new CassetteView(machineModel);
+            cView.Children.Add(cassetteView);
+
+            machineView = new MachineView(machineModel);
+            mView.Children.Add(machineView);
+
             bkgWorker = new BackgroundWorker { WorkerSupportsCancellation = true };
             bkgWorker.DoWork += Worker_DoWork;
 
@@ -89,7 +98,30 @@ namespace Picky
             }
         }
 
-        /*
+        private void MachineView_Loaded(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+    /*    void ToggleLEDEvent(object sender, EventArgs e)
+        {
+            if ((bool)toggleLED.IsChecked)
+                relayInterface.SetIlluminatorOn(true);
+            else
+                relayInterface.SetIlluminatorOn(false);
+
+        }
+
+        void TogglePumpEvent(object sender, EventArgs e)
+        {
+            if ((bool)togglePump.IsChecked)
+                relayInterface.SetPumpOn(true);
+            else
+                relayInterface.SetPumpOn(false);
+
+        }
+
+        
 
         void OnButtonStop(object sender, EventArgs e)
         {
@@ -107,7 +139,7 @@ namespace Picky
             machine.messages.Enqueue(MachineCommands.S3G_SetAbsoluteAngle(0));
             machine.messages.Enqueue(MachineCommands.S3G_SetAbsoluteXYPosition(-50, -50));
             machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
-        }*/
-      
+        }
+    */
     }
 }

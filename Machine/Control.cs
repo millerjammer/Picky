@@ -11,14 +11,14 @@ using FTD2XX_NET;
 
 namespace Picky
 {
-    public class RelayInterface
+    internal class Control
     {
         static FTDI myFtdiDevice = new FTDI();
         static FTDI.FT_STATUS ftStatus;
         static byte[] sentBytes = new byte[2];
         static uint receivedBytes;
 
-        public RelayInterface()
+        static Control()
         {
             //Get serial number of device with index 0
             ftStatus = myFtdiDevice.OpenByIndex(0);

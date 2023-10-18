@@ -13,7 +13,7 @@ namespace Picky
 {
     internal class CassetteViewModel : INotifyPropertyChanged
     {
-        public string myname { get; set; }
+        private MachineModel model;
         public Part selectedPickListPart { get; set; }
 
         private Cassette _selectedCassette;
@@ -23,13 +23,12 @@ namespace Picky
             set { _selectedCassette = value; PropertyChanged(this, new PropertyChangedEventArgs("selectedCassette")); }
         }
 
-        private ObservableCollection<Cassette> cassettes;
         public ObservableCollection<Cassette> Cassettes
         {
-            get { return cassettes; }
+            get { return model.Cassettes; }
             set
             {
-                cassettes = value;
+                model.Cassettes = value;
                 PropertyChanged(this, new PropertyChangedEventArgs("Cassettes"));
             }
         }
@@ -45,11 +44,11 @@ namespace Picky
             }
         }
 
-        public CassetteViewModel()
+        public CassetteViewModel(MachineModel mModel)
         {
+            model = mModel;
             pickList = new ObservableCollection<Part>();
-            cassettes = new ObservableCollection<Cassette>();
-  
+
         }
 
         public void Add()

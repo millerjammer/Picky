@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Picky
 {
-    internal class MachineMessage
+    public class MachineMessage
     {
         public struct Pos{
             public double x;

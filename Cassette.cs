@@ -10,7 +10,7 @@ using System.Windows.Controls;
 
 namespace Picky
 {
-    internal class Cassette : INotifyPropertyChanged
+    public class Cassette : INotifyPropertyChanged
     {
         private string _name = "untitled";
         public string name

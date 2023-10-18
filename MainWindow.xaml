@@ -23,59 +23,50 @@
 
     <Border CornerRadius="10" Background="#151f2d" Margin="0 0 0 0">
         <Grid VerticalAlignment="Top">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto" x:Name="mainUpperRow"/>
+                <RowDefinition Height="auto" x:Name="mainLowerRow"/>
             </Grid.RowDefinitions>
-                  
             <!--Top Row - Toolbar + Commands/Settings + Camera-->
-            <Grid Grid.Row="0" Grid.Column="1">
+            <Grid Grid.Row="0" >
                 <!--Top Row - Toolbar + Commands/Settings-->
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="570"/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
                 <!--Commands/Settings-->
-                <Grid Grid.Column="0" >
-                    <Grid.ColumnDefinitions>
-                        <!-- Action Buttons, Jog Buttons, Jog Values -->
-                        <ColumnDefinition Width="auto"/>
-                        <ColumnDefinition Width="auto"/>
-                    </Grid.ColumnDefinitions>
-                    <!-- Action Buttons -->
-                    <Grid Grid.Column="0" Margin="10" VerticalAlignment="Top">
-                        <Expander Header="Commands" Width="180" IsExpanded="True">
-                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="2">
-                                <ui:Button Content="Initialize" HorizontalAlignment="Stretch" Margin="2" Icon="Run20"/>
-                                <ui:Button Content="Home"  HorizontalAlignment="Stretch" Margin="2" Icon="Home20"/>
-                                <ui:Button Content="Self Check" HorizontalAlignment="Stretch" Margin="2" Icon="Check20"/>
-                                <ui:Button Content="Start" HorizontalAlignment="Stretch" Margin="2" Icon="Play20"/>
-                                <ui:Button Content="Pause" HorizontalAlignment="Stretch" Margin="2" Icon="Pause20"/>
-                                <ui:Button Content="Stop"  HorizontalAlignment="Stretch" Margin="2" Icon="Stop20"/>
+                <Grid Grid.Column="0" Margin="10" VerticalAlignment="Top">
+                    <Expander Header="Commands" Width="180" IsExpanded="True">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="2">
+                            <ui:Button Content="Initialize" HorizontalAlignment="Stretch" Margin="2" Icon="Run20"/>
+                            <ui:Button Content="Home"  HorizontalAlignment="Stretch" Margin="2" Icon="Home20"/>
+                            <ui:Button Content="Self Check" HorizontalAlignment="Stretch" Margin="2" Icon="Check20"/>
+                            <ui:Button Content="Start" HorizontalAlignment="Stretch" Margin="2" Icon="Play20"/>
+                            <ui:Button Content="Pause" HorizontalAlignment="Stretch" Margin="2" Icon="Pause20"/>
+                            <ui:Button Content="Stop"  HorizontalAlignment="Stretch" Margin="2" Icon="Stop20"/>
+                            <Separator Margin="5">
+                                
+                            </Separator>
+                            <ToggleButton HorizontalAlignment="Stretch"  Margin="2" Name="toggleLED" Content="Light"/>
+                            <ToggleButton HorizontalAlignment="Stretch" Margin="2" Name="togglePump" Content="Vacuum"/>
+                            <ToggleButton HorizontalAlignment="Stretch" Margin="2" Content="Aux"/>
                             </StackPanel>
-                        </Expander>
-                    </Grid>
-                <!-- Center Settings Expander -->
-                    <Grid Grid.Column="1">
-                        <!-- Adding the User Control -->
-                        <local:MachineView/>
-                    </Grid>
+                        
+                    </Expander>
                 </Grid>
-                <Grid Grid.Column="1" Margin="10">
+                <!-- Adding MachineView -->
+                <Grid Grid.Column="1" Name="mView"/>
+                <Grid Grid.Column="2" Margin="10">
                     <Expander Header="Camera" Width="auto" IsExpanded="True" VerticalAlignment="Top">
                         <Expander.Content>
-                            <Image Grid.Column="1" x:Name="FrameImage" HorizontalAlignment="Stretch"></Image>
+                            <Image x:Name="FrameImage" HorizontalAlignment="Stretch"></Image>
                         </Expander.Content>
                     </Expander>
                 </Grid>
             </Grid>
-            <Grid Grid.Row="1" Grid.Column="1" Margin="10 10 10 10">
-                <local:CassetteView/>
-            </Grid>
+            <!-- Adding CassetteView -->
+            <Grid Name="cView" Grid.Row="1"  Grid.Column="1" Margin="10 10 10 10" />
         </Grid>
     </Border>
 </Window>
