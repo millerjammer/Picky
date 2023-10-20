@@ -18,11 +18,11 @@ namespace Picky
     public partial class CassetteView : UserControl
     {
         private readonly CassetteViewModel cassette;
-
-        public CassetteView(MachineModel mModel)
+               
+        public CassetteView()
         {
             InitializeComponent();
-            cassette = new CassetteViewModel(mModel);
+            cassette = new CassetteViewModel();
             this.DataContext = cassette;
 
         }       
@@ -60,6 +60,7 @@ namespace Picky
             }
             Feeder fdr = new Feeder();
             fdr.part = cassette.selectedPickListPart;
+            Console.WriteLine("Adding part to feeder... ");
             cassette.selectedCassette.Feeders.Add(fdr);
             cassette.selectedPickListPart.cassette = cassette.selectedCassette;
             /* Update the references in the pickList */

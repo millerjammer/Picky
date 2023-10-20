@@ -1,5 +1,4 @@
-﻿using System;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 
 namespace Picky
 {
@@ -10,10 +9,10 @@ namespace Picky
     {
         private readonly MachineViewModel machine;
         
-        public MachineView(MachineModel mModel)
+        public MachineView()
         {
             InitializeComponent();
-            machine = new MachineViewModel(mModel);
+            machine = new MachineViewModel();
             this.DataContext = machine;
         }
     }

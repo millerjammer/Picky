@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO.Ports;
 using System.Linq;
 using System.Management.Instrumentation;
 using System.Text;
@@ -13,7 +14,9 @@ namespace Picky
 {
     internal class CassetteViewModel : INotifyPropertyChanged
     {
-        private MachineModel model;
+
+        MachineModel machine = MachineModel.Instance; 
+        
         public Part selectedPickListPart { get; set; }
 
         private Cassette _selectedCassette;
@@ -25,10 +28,10 @@ namespace Picky
 
         public ObservableCollection<Cassette> Cassettes
         {
-            get { return model.Cassettes; }
+            get { return machine.Cassettes; }
             set
             {
-                model.Cassettes = value;
+                machine.Cassettes = value;
                 PropertyChanged(this, new PropertyChangedEventArgs("Cassettes"));
             }
         }
@@ -42,11 +45,12 @@ namespace Picky
                 pickList = value;
                 PropertyChanged(this, new PropertyChangedEventArgs("PickList"));
             }
-        }
+        } 
+        
+        public event PropertyChangedEventHandler PropertyChanged;
 
-        public CassetteViewModel(MachineModel mModel)
+        public CassetteViewModel()
         {
-            model = mModel;
             pickList = new ObservableCollection<Part>();
 
         }
@@ -58,7 +62,7 @@ namespace Picky
             selectedCassette = cs;
         }
              
-        public event PropertyChangedEventHandler PropertyChanged;
+       
     }
    
 }

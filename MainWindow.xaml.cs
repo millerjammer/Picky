@@ -25,10 +25,11 @@ namespace Picky
     {
         private readonly VideoCapture capture;
         private readonly BackgroundWorker bkgWorker;
-
-        public MachineModel machineModel;
+        
         private readonly CassetteView cassetteView;
         private readonly MachineView machineView;
+        private readonly ControlView controlsView;
+        private readonly SerialInterface serialInterface;
 
 
         public MainWindow()
@@ -36,14 +37,16 @@ namespace Picky
             
             InitializeComponent();
             capture = new VideoCapture();
+            serialInterface = new SerialInterface();
            
-            machineModel = new MachineModel();
+            machineView = new MachineView();
+            mView.Children.Add(machineView);
             
-            cassetteView = new CassetteView(machineModel);
+            cassetteView = new CassetteView();
             cView.Children.Add(cassetteView);
 
-            machineView = new MachineView(machineModel);
-            mView.Children.Add(machineView);
+            controlsView = new ControlView();
+            ctrlView.Children.Add(controlsView);
 
             bkgWorker = new BackgroundWorker { WorkerSupportsCancellation = true };
             bkgWorker.DoWork += Worker_DoWork;
@@ -102,44 +105,5 @@ namespace Picky
         {
 
         }
-
-    /*    void ToggleLEDEvent(object sender, EventArgs e)
-        {
-            if ((bool)toggleLED.IsChecked)
-                relayInterface.SetIlluminatorOn(true);
-            else
-                relayInterface.SetIlluminatorOn(false);
-
-        }
-
-        void TogglePumpEvent(object sender, EventArgs e)
-        {
-            if ((bool)togglePump.IsChecked)
-                relayInterface.SetPumpOn(true);
-            else
-                relayInterface.SetPumpOn(false);
-
-        }
-
-        
-
-        void OnButtonStop(object sender, EventArgs e)
-        {
-            machine.messages.Enqueue(MachineCommands.S3G_EnableSteppers((byte)(Constants.A_AXIS | Constants.B_AXIS | Constants.X_AXIS | Constants.Y_AXIS | Constants.Z_AXIS), false));
-        }
-
-        void OnHome(object sender, EventArgs e)
-        {
-            machine.messages.Enqueue(MachineCommands.S3G_Initialize());
-            machine.messages.Enqueue(MachineCommands.S3G_FindXYMaximums());
-            machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
-            machine.messages.Enqueue(MachineCommands.S3G_FindZMinimum());
-            machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
-            machine.messages.Enqueue(MachineCommands.S3G_SetPositionAs(0, 0, 0, 0, 0));
-            machine.messages.Enqueue(MachineCommands.S3G_SetAbsoluteAngle(0));
-            machine.messages.Enqueue(MachineCommands.S3G_SetAbsoluteXYPosition(-50, -50));
-            machine.messages.Enqueue(MachineCommands.S3G_GetPosition());
-        }
-    */
     }
 }

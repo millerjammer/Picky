@@ -15,19 +15,16 @@ namespace Picky
         private static byte[] serial_buffer = new byte[Constants.MAX_BUFFER_SIZE];
         private static int s_in = 0;
 
-        public MachineViewModel machineVM;
-        /* Command Queue */
-        public ObservableCollection<MachineMessage> Messages;
+        MachineModel machine = MachineModel.Instance;
+
         private static MachineMessage.Pos lastPos = new MachineMessage.Pos();
         public int rx_msgCount { get; set; }
         public int tx_msgCount { get; set; }
         
         static SerialPort serialPort;
 
-        public SerialInterface(MachineViewModel machineM) {
-           
-            machineVM = machineM;
-            
+        public SerialInterface() {
+
             /* Open Port */
             serialPort = new SerialPort();
             serialPort.PortName = "COM4";
@@ -44,8 +41,7 @@ namespace Picky
             {
                 Console.WriteLine("Machine Serial Port Opened.");
             }
-            /* Command Queue */
-            Messages = new ObservableCollection<MachineMessage>();
+                     
             /* Start a Timer to Handle Message Queue */
             System.Timers.Timer msgTimer = new System.Timers.Timer();
             msgTimer.Elapsed += new ElapsedEventHandler(OnTimer);
@@ -118,11 +114,11 @@ namespace Picky
                                 serial_buffer[k] = serial_buffer[i + length];
                             }
                             s_in -= i + length;
-                            if (isPositionGood == true && Messages.Count > 0)
+                            if (isPositionGood == true && machine.Messages.Count > 0)
                             {
                                 Console.WriteLine("RX Count: " + rx_msgCount.ToString());
                                 Console.WriteLine("RX Data: " + rawString);
-                                Messages.RemoveAt(0);
+                                machine.Messages.RemoveAt(0);
                             }
                             return true;
                         }
@@ -139,22 +135,39 @@ namespace Picky
         *
         *********************************************************************/
         {
-            if (Messages.Count() > 0)
+            if (machine.Messages.Count() > 0)
             {
-                MachineMessage msg = Messages.First();
-                serialPort.Write(msg.cmd, 0, msg.cmd[1] + 3);
-                if (msg.target.axis != 0)
+                MachineMessage msg = machine.Messages.First();
+                if (msg.cmd[0] == Constants.JRM_CALIBRATION_CHECK)
                 {
-                    //dlg.SetActivePickLocation(messages.front().target);
+                    Console.WriteLine("Calibration Check: " + machine.LastEndStopState);
+                    if(machine.LastEndStopState == 26)
+                    {
+                        machine.CalibrationStatusString = "Calibration: Successful";
+                        machine.Messages.RemoveAt(0);
+                    }
+                    else
+                    {
+                        machine.CalibrationStatusString = "Calibration: Failed";
+                        machine.Messages.Clear();
+                    }
                 }
-                tx_msgCount++;
+                else
+                {
+                    serialPort.Write(msg.cmd, 0, msg.cmd[1] + 3);
+                    if (msg.target.axis != 0)
+                    {
+                        //dlg.SetActivePickLocation(messages.front().target);
+                    }
+                    tx_msgCount++;
+                }
             }
             return true;
         }
 
         private bool getPositionFromMessage()
         /********************************************************************
-         * Helper - Updates current position
+         * Helper - Updates current position (from message 21)
          *
          *********************************************************************/
         {
@@ -162,27 +175,28 @@ namespace Picky
             * Return true if position is good (close to target position)
             */
             bool isGood = false;
-            if (Messages.Count == 0)
+            if (machine.Messages.Count == 0)
             {
                 //If the queue is empty
                 //dlg.m_messageBox.AddString(L"Get Position Request: Queue Empty.");
                 return true;
             }
-            MachineMessage.Pos target = Messages.First().target;
+            MachineMessage.Pos target = machine.Messages.First().target;
             int xx, yy, zz, aa, bb;
 
             xx = (((int)serial_buffer[3]) | (((int)serial_buffer[4]) << 8) | (((int)serial_buffer[5]) << 16) | (((int)serial_buffer[6]) << 24));
-            machineVM.CurrentX = xx / Constants.XY_STEPS_PER_MM;
+            machine.CurrentX = xx / Constants.XY_STEPS_PER_MM;
             yy = (((int)serial_buffer[7]) | (((int)serial_buffer[8]) << 8) | (((int)serial_buffer[9]) << 16) | (((int)serial_buffer[10]) << 24));
-            machineVM.CurrentY = yy / Constants.XY_STEPS_PER_MM;
+            machine.CurrentY = yy / Constants.XY_STEPS_PER_MM;
             zz = (((int)serial_buffer[11]) | (((int)serial_buffer[12]) << 8) | (((int)serial_buffer[13]) << 16) | (((int)serial_buffer[14]) << 24));
-            machineVM.CurrentZ = zz / Constants.Z_STEPS_PER_MM;
+            machine.CurrentZ = zz / Constants.Z_STEPS_PER_MM;
             aa = (((int)serial_buffer[15]) | (((int)serial_buffer[16]) << 8) | (((int)serial_buffer[17]) << 16) | (((int)serial_buffer[18]) << 24));
-            machineVM.CurrentA = aa / Constants.XY_STEPS_PER_MM;
+            machine.CurrentA = aa / Constants.XY_STEPS_PER_MM;
             bb = (((int)serial_buffer[19]) | (((int)serial_buffer[20]) << 8) | (((int)serial_buffer[21]) << 16) | (((int)serial_buffer[22]) << 24));
-            machineVM.CurrentB = bb / Constants.XY_STEPS_PER_MM;
+            machine.CurrentB = bb / Constants.XY_STEPS_PER_MM;
+            machine.LastEndStopState = ((int)serial_buffer[23]) | ((int)serial_buffer[24] << 8);
 
-            if ((machineVM.CurrentX == lastPos.x) && (machineVM.CurrentY == lastPos.y) && (machineVM.CurrentZ == lastPos.z) && (machineVM.CurrentA == lastPos.a) && (machineVM.CurrentB == lastPos.b))
+            if ((machine.CurrentX == lastPos.x) && (machine.CurrentY == lastPos.y) && (machine.CurrentZ == lastPos.z) && (machine.CurrentA == lastPos.a) && (machine.CurrentB == lastPos.b))
             {
                 if ((Math.Abs(lastPos.x - target.x) < 1) || (target.axis & Constants.X_AXIS) == 0)
                 {
@@ -202,9 +216,8 @@ namespace Picky
                 }
             }
 
-            lastPos.x = machineVM.CurrentX; lastPos.y = machineVM.CurrentY; lastPos.z = machineVM.CurrentZ; lastPos.a = machineVM.CurrentA; lastPos.b = machineVM.CurrentB;
-            Console.WriteLine("Pos: " + lastPos.x);
-            
+            lastPos.x = machine.CurrentX; lastPos.y = machine.CurrentY; lastPos.z = machine.CurrentZ; lastPos.a = machine.CurrentA; lastPos.b = machine.CurrentB;
+                       
             return isGood;
         }
 

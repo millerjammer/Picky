@@ -65,7 +65,15 @@ namespace Picky
             else
                 ClearRelay(5);
         }
-                    
+
+        public void SetValveOn(bool state)
+        {
+            if (state == true)
+                SetRelay(6);
+            else
+                ClearRelay(6);
+        }
+
         public void SetRelay(int Relay_Number)
         {
             byte mask = (byte) (0x01 << Relay_Number);

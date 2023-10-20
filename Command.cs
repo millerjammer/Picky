@@ -44,6 +44,12 @@ namespace Picky
         {
             return S3G_SetAbsolutePosition((byte)(0x1F), 0, 0, 0, a, 0);
         }
+        public static MachineMessage JRM_CalibrationCheck()
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.cmd[0] = Constants.JRM_CALIBRATION_CHECK;
+            return msg;
+        }
 
 
         public static MachineMessage S3G_SetAbsolutePosition(byte axis, double x, double y, double z, double b, double a)
@@ -222,7 +228,7 @@ namespace Picky
 
             MachineMessage msg = new MachineMessage();
             uint rate = 1000;
-            uint time = 8;
+            uint time = 20;
             msg.target.axis = 0x00;
 
             msg.cmd[0] = Constants.SS_MIGHTBOARD_HEADER;

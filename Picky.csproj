@@ -146,15 +146,19 @@
     </Compile>
     <Compile Include="CassetteViewModel.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="ControlView.xaml.cs">
+      <DependentUpon>ControlView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ControlViewModel.cs" />
     <Compile Include="Feeder.cs" />
     <Compile Include="MachineModel.cs" />
-    <Compile Include="Machine\Command.cs" />
-    <Compile Include="Machine\MachineMessage.cs" />
-    <Compile Include="Machine\MachineView.xaml.cs">
+    <Compile Include="Command.cs" />
+    <Compile Include="MachineMessage.cs" />
+    <Compile Include="MachineView.xaml.cs">
       <DependentUpon>MachineView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Machine\MachineViewModel.cs" />
-    <Compile Include="Machine\RelayInterface.cs" />
+    <Compile Include="MachineViewModel.cs" />
+    <Compile Include="RelayInterface.cs" />
     <Compile Include="Part.cs" />
     <Compile Include="RelayCommand.cs" />
     <Compile Include="SerialInterface.cs" />
@@ -162,7 +166,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Machine\MachineView.xaml">
+    <Page Include="ControlView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="MachineView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -218,6 +226,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

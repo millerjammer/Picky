@@ -1,0 +1,29 @@
+﻿<UserControl x:Class="Picky.ControlView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:local="clr-namespace:Picky"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Expander Header="Commands" Width="180" IsExpanded="True">
+            <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="2">
+                <ui:Button Command="{Binding InitializeCommand}" Content="Initialize" HorizontalAlignment="Stretch" Margin="2" Icon="Run20"/>
+                <ui:Button Command="{Binding HomeCommand}" Content="Home"  HorizontalAlignment="Stretch" Margin="2" Icon="Home20"/>
+                <ui:Button Command="{Binding SelfCheckCommand}" Content="Self Check" HorizontalAlignment="Stretch" Margin="2" Icon="Check20"/>
+                <ui:Button Command="{Binding StartCommand}" Content="Start" HorizontalAlignment="Stretch" Margin="2" Icon="Play20"/>
+                <ui:Button Command="{Binding PauseCommand}" Content="Pause" HorizontalAlignment="Stretch" Margin="2" Icon="Pause20"/>
+                <ui:Button Command="{Binding StopCommand}" Content="Stop"  HorizontalAlignment="Stretch" Margin="2" Icon="Stop20"/>
+                <Separator Margin="5">
+
+                </Separator>
+                <ToggleButton Command="{Binding IlluminatorToggleCommand}" IsChecked="{Binding isIlluminatorOn}" HorizontalAlignment="Stretch"  Margin="2" Content="Light"/>
+                <ToggleButton Command="{Binding PumpToggleCommand}" IsChecked="{Binding isPumpOn}" HorizontalAlignment="Stretch" Margin="2" Content="Vacuum"/>
+                <ToggleButton Command="{Binding ValveToggleCommand}" IsChecked="{Binding isValveOn}" HorizontalAlignment="Stretch" Margin="2" Content="Valve"/>
+            </StackPanel>
+
+        </Expander>
+    </Grid>
+</UserControl>

@@ -5,9 +5,6 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:local="clr-namespace:Picky" 
-        xmlns:cb="clr-namespace:Microsoft.VisualStudio.CommandBars;assembly=Microsoft.VisualStudio.Interop" 
-        xmlns:cb1="clr-namespace:Microsoft.VisualStudio.CommandBars;assembly=Microsoft.VisualStudio.CommandBars"
-        xmlns:controls="clr-namespace:Picky"
         mc:Ignorable="d" FontSize="12" 
         Height="1040" Width="1400" ResizeMode="CanResize"
         WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterScreen" Background="Transparent">
@@ -18,6 +15,9 @@
         </DataTemplate>
         <DataTemplate DataType="{x:Type local:CassetteViewModel}">
             <local:CassetteView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type local:ControlViewModel}">
+            <local:ControlView/>
         </DataTemplate>
     </Window.Resources>
 
@@ -36,29 +36,26 @@
                     <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
                 <!--Commands/Settings-->
-                <Grid Grid.Column="0" Margin="10" VerticalAlignment="Top">
-                    <Expander Header="Commands" Width="180" IsExpanded="True">
-                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="2">
-                            <ui:Button Content="Initialize" HorizontalAlignment="Stretch" Margin="2" Icon="Run20"/>
-                            <ui:Button Content="Home"  HorizontalAlignment="Stretch" Margin="2" Icon="Home20"/>
-                            <ui:Button Content="Self Check" HorizontalAlignment="Stretch" Margin="2" Icon="Check20"/>
-                            <ui:Button Content="Start" HorizontalAlignment="Stretch" Margin="2" Icon="Play20"/>
-                            <ui:Button Content="Pause" HorizontalAlignment="Stretch" Margin="2" Icon="Pause20"/>
-                            <ui:Button Content="Stop"  HorizontalAlignment="Stretch" Margin="2" Icon="Stop20"/>
-                            <Separator Margin="5">
-                                
-                            </Separator>
-                            <ToggleButton HorizontalAlignment="Stretch"  Margin="2" Name="toggleLED" Content="Light"/>
-                            <ToggleButton HorizontalAlignment="Stretch" Margin="2" Name="togglePump" Content="Vacuum"/>
-                            <ToggleButton HorizontalAlignment="Stretch" Margin="2" Content="Aux"/>
-                            </StackPanel>
-                        
-                    </Expander>
-                </Grid>
+                <Grid Grid.Column="0" Name="ctrlView" Margin="10" VerticalAlignment="Top"/>
                 <!-- Adding MachineView -->
                 <Grid Grid.Column="1" Name="mView"/>
+                <!--Adding Camera View-->
                 <Grid Grid.Column="2" Margin="10">
-                    <Expander Header="Camera" Width="auto" IsExpanded="True" VerticalAlignment="Top">
+                    <Expander Width="auto" IsExpanded="True" VerticalAlignment="Top">
+                        <Expander.Header>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <!-- Expander header content -->
+                                    <ColumnDefinition Width="Auto" />
+                                    <!-- Button -->
+                                </Grid.ColumnDefinitions>
+                                <!-- Left column for Expander header content -->
+                                <TextBlock Grid.Column="0" Text="Camera" VerticalAlignment="Center" />
+                                <!-- Right column for the button -->
+                                <ui:Button Grid.Column="1" Icon="FullScreenMaximize24" Margin="20 0 10 0" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                            </Grid>
+                        </Expander.Header>
                         <Expander.Content>
                             <Image x:Name="FrameImage" HorizontalAlignment="Stretch"></Image>
                         </Expander.Content>
