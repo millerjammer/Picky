@@ -10,6 +10,12 @@ namespace Picky
 {
     internal class Constants
     {
+        public static double FEEDER_INITIAL_XOFFSET = 18.0;
+        public static double FEEDER_ORIGIN_TO_DRIVE_YOFFSET = 42.0;
+        public static double FEEDER_THICKNESS = 12.7;
+
+        public static byte JRM_CALIBRATION_CHECK = 0x99;
+
         public static int SYSTEM_BAR_HEIGHT = 50;
         public static int HEAD_CAMERA = 0;
         public static int INSPECTION_CAMERA = 2;
