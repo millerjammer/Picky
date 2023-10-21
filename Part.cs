@@ -1,14 +1,23 @@
 ﻿using System;
+using OpenCvSharp;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Picky
 {
     public class Part : INotifyPropertyChanged
     {
+        
+        private string template;
+        public string TemplateFileName
+        {
+            get { return template; }
+            set { template = value; Console.WriteLine("part template name changed "); OnPropertyChanged(nameof(TemplateFileName)); }
+        }
         public string Designator { get; set; }
         public string Comment { get; set; }
         public string Layer { get; set; }
@@ -22,17 +31,19 @@ namespace Picky
         public Cassette cassette
         {
             get { return _cassette; }
-            set
-            {
-                _cassette = value;
-                if (PropertyChanged != null)
-                    PropertyChanged(this, new PropertyChangedEventArgs("cassette"));
-            }
+            set { _cassette = value; OnPropertyChanged(nameof(cassette));  }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        [JsonIgnore]
+        public Mat Template { get; set; }
 
-        
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+
         public Part() { 
         }
     }

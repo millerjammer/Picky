@@ -29,6 +29,7 @@ namespace Picky
         private readonly CassetteView cassetteView;
         private readonly MachineView machineView;
         private readonly ControlView controlsView;
+        private readonly CameraView cameraView;
         private readonly SerialInterface serialInterface;
 
 
@@ -36,7 +37,6 @@ namespace Picky
         {
             
             InitializeComponent();
-            capture = new VideoCapture();
             serialInterface = new SerialInterface();
            
             machineView = new MachineView();
@@ -48,62 +48,8 @@ namespace Picky
             controlsView = new ControlView();
             ctrlView.Children.Add(controlsView);
 
-            bkgWorker = new BackgroundWorker { WorkerSupportsCancellation = true };
-            bkgWorker.DoWork += Worker_DoWork;
-
-            Loaded += MainWindow_Loaded;
-            Closing += MainWindow_Closing;
-
-        }
-        private void MainWindow_Loaded(object sender, System.Windows.RoutedEventArgs e)
-        {
-
-            //capture.Set(VideoCaptureProperties.FrameWidth, 1920);
-            //capture.Set(VideoCaptureProperties.FrameHeight, 1080);
-            // 5Mpix Settings
-            capture.Set(VideoCaptureProperties.FrameWidth, 2592);
-            capture.Set(VideoCaptureProperties.FrameHeight, 1944);
-
-            capture.Open(0);
-            if (!capture.IsOpened())
-            {
-                Close();
-                return;
-            }
-            //double maxHeight = capture.Get(VideoCaptureProperties.FrameHeight);
-            //double maxWidth = capture.Get(VideoCaptureProperties.FrameWidth);
-            //Console.Write("here: " + maxHeight + " " +maxWidth + "\n");
-
-            bkgWorker.RunWorkerAsync();
-        }
-
-        private void MainWindow_Closing(object sender, CancelEventArgs e)
-        {
-            bkgWorker.CancelAsync();
-            capture.Dispose();
-            
-        }
-
-        private void Worker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            var worker = (BackgroundWorker)sender;
-            while (!worker.CancellationPending)
-            {
-                using (var frameMat = capture.RetrieveMat())
-                {
-                    // Must create and use WriteableBitmap in the same thread(UI Thread).
-                    Dispatcher.Invoke(() =>
-                    {
-                        FrameImage.Source = frameMat.ToWriteableBitmap();
-                    });
-                }
-                Thread.Sleep(30);
-            }
-        }
-
-        private void MachineView_Loaded(object sender, RoutedEventArgs e)
-        {
-
+            cameraView = new CameraView();
+            camView.Children.Add(cameraView);
         }
     }
 }

@@ -40,7 +40,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Part Pick List" Margin="10,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"  TextAlignment="Left" />
-                        <ui:Button Grid.Column="1" Content="Open..." Click="OpenPickList" Icon="Folder32"  Height="30" Margin="0,0,0,0" HorizontalAlignment="Right"/>
+                        <ui:Button Grid.Column="1" Content="Open..." Command="{Binding OpenPickListCommand}" Icon="Folder32"  Height="30" Margin="0,0,0,0" HorizontalAlignment="Right"/>
                     </Grid>
                     <ui:DataGrid  Grid.Row="1" HorizontalAlignment="Stretch" SelectedItem="{Binding selectedPickListPart}" 
                                       ItemsSource="{Binding PickList}" AutoGenerateColumns="False" CanUserSortColumns="False"
@@ -68,7 +68,7 @@
                         <DataGrid.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Go to Location"  />
-                                <MenuItem Header="Add to Cassette" Click="AddPartToCassette"/>
+                                <MenuItem Header="Add to Cassette" Command="{Binding AddPartToCassetteCommand}" />
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                     </ui:DataGrid>
@@ -87,8 +87,8 @@
                             <ColumnDefinition Width="auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Cassette Contents" Margin="5,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"  TextAlignment="Left" />
-                        <ui:Button Grid.Column="1" Content="Load..." Icon="Folder32" Height="30" Margin="0,0,5,0" Click="LoadCassette" HorizontalAlignment="Right"/>
-                        <ui:Button Grid.Column="2" Content="New..." Icon="New24" Height="30" Margin="0,0,0,0" Click="NewCassette" HorizontalAlignment="Right"/>
+                        <ui:Button Grid.Column="1" Content="Load..." Icon="Folder32" Height="30" Margin="0,0,5,0" Command="{Binding LoadCassetteCommand}" HorizontalAlignment="Right"/>
+                        <ui:Button Grid.Column="2" Content="New..." Icon="New24" Height="30" Margin="0,0,0,0" Command="{Binding AddCassetteCommand}" HorizontalAlignment="Right"/>
                     </Grid>
                     <TabControl Grid.Row="1" SelectedItem="{Binding selectedCassette}" ItemsSource="{Binding Cassettes}">
                         <TabControl.ItemTemplate>
@@ -96,8 +96,8 @@
                                 <TextBlock Text="{Binding name}">
                                     <TextBlock.ContextMenu>
                                         <ContextMenu>
-                                            <MenuItem Header="Save..." Click="SaveCassette"/>
-                                            <MenuItem Header="Close" Click="CloseCassette"/>
+                                            <MenuItem Header="Save..." Command="{Binding SaveCassetteCommand}" />
+                                            <MenuItem Header="Close" Command="{Binding CloseCassetteCommand}" />
                                             <Separator Margin="2"/> 
                                             <MenuItem Header="Go to Cassette" Command="{Binding GoToCassetteCommand}" />
                                             <MenuItem Header="Set As Cassete Home" Command="{Binding SetCassetteHomeCommand}" />
@@ -113,7 +113,8 @@
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Binding="{Binding index}" Header="Index" Width="70"/>
                                         <DataGridTextColumn Binding="{Binding part.Description}" Header="Description" Width="auto"/>
-                                        <DataGridTextColumn Binding="{Binding part.Footprint}" Header="Footprint" Width="70"/>
+                                        <DataGridTextColumn Binding="{Binding part.Footprint}" Header="Footprint" Width="160"/>
+                                        <DataGridTextColumn Binding="{Binding part.TemplateFileName}" Header="Template" Width="90"/>
                                     </DataGrid.Columns>
                                     <ui:DataGrid.RowStyle>
                                         <Style TargetType="DataGridRow">
@@ -127,13 +128,15 @@
                                     </ui:DataGrid.RowStyle>
                                     <DataGrid.ContextMenu>
                                         <ContextMenu>
-                                            <MenuItem Header="Remove from Cassette"  Click="RemovePartFromCassette"/>
+                                            <MenuItem Header="Remove from Cassette"  Command="{Binding selectedFeeder.RemoveFeederFromCassetteCommand}"/>
                                             <Separator Margin="2"></Separator>
                                             <MenuItem Header="Go to Feeder Location" Command="{Binding selectedFeeder.GoToFeederCommand}"  />
                                             <MenuItem Header="Go to Feeder Drive Location" Command="{Binding selectedFeeder.GoToFeederDriveCommand}" />
                                             <MenuItem Header="Go to Component Pick"  />
                                             <Separator Margin="2"></Separator>
                                             <MenuItem Header="Pick Component"  />
+                                            <Separator Margin="2"></Separator>
+                                            <MenuItem Header="Set Part Template" Command="{Binding selectedFeeder.SetPartTemplateCommand}" />
                                         </ContextMenu>
                                     </DataGrid.ContextMenu>
                                 </ui:DataGrid>
