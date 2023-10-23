@@ -7,6 +7,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Web.UI.WebControls.WebParts;
 using System.Windows.Input;
 
 namespace Picky
@@ -71,8 +72,10 @@ namespace Picky
         public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void OnPropertyChanged(string propertyName)
         {
+            Console.WriteLine("cassette prop changed - " + propertyName);
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
         private void UpdateFeederLocationsWithinCassette()
         {
             for (int i = 0; i < feeders.Count; i++)
@@ -93,6 +96,7 @@ namespace Picky
         {
             feeders = new ObservableCollection<Feeder>();
             feeders.CollectionChanged += OnCollectionChanged;
+  
         }
 
         public ICommand GoToCassetteCommand { get { return new RelayCommand(GoToCassette); } }

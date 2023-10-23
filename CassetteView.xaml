@@ -90,7 +90,7 @@
                         <ui:Button Grid.Column="1" Content="Load..." Icon="Folder32" Height="30" Margin="0,0,5,0" Command="{Binding LoadCassetteCommand}" HorizontalAlignment="Right"/>
                         <ui:Button Grid.Column="2" Content="New..." Icon="New24" Height="30" Margin="0,0,0,0" Command="{Binding AddCassetteCommand}" HorizontalAlignment="Right"/>
                     </Grid>
-                    <TabControl Grid.Row="1" SelectedItem="{Binding selectedCassette}" ItemsSource="{Binding Cassettes}">
+                    <TabControl Grid.Row="1" SelectedIndex="0" SelectedItem="{Binding selectedCassette}" ItemsSource="{Binding Cassettes}">
                         <TabControl.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding name}">
@@ -108,7 +108,39 @@
                         </TabControl.ItemTemplate>
                         <TabControl.ContentTemplate>
                             <DataTemplate>
-                                <ui:DataGrid SelectedItem="{Binding selectedFeeder}" ItemsSource="{Binding Feeders}" Grid.Row="1" HorizontalAlignment="Stretch" AutoGenerateColumns="False" CanUserSortColumns="False" HorizontalContentAlignment="Stretch" MaxHeight="299" VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="True" >
+                                <ui:DataGrid RowDetailsVisibilityMode="VisibleWhenSelected" SelectedItem="{Binding selectedFeeder}" 
+                                             ItemsSource="{Binding Feeders}" Grid.Row="1" HorizontalAlignment="Stretch" 
+                                             AutoGenerateColumns="False" CanUserSortColumns="False" HorizontalContentAlignment="Stretch"
+                                             MaxHeight="299" VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow"
+                                             IsReadOnly="True" >
+                                    <!-- Define Details -->
+                                    <ui:DataGrid.RowDetailsTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="10,10 " >
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="300"/>
+                                                    <ColumnDefinition Width="auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <DockPanel Grid.Column="0">
+                                                   <StackPanel Orientation="Vertical" Margin="0 0 0 0">
+                                                        <DockPanel>
+                                                            <TextBlock DockPanel.Dock="Left"  Text="File: "/>
+                                                            <TextBlock TextAlignment="Right"  ToolTip="{Binding part.TemplateFileName}"  Text="{Binding part.TemplateFileName}"/>
+                                                        </DockPanel>
+                                                        <DockPanel>
+                                                            <TextBlock DockPanel.Dock="Left"  Text="Abs. Feeder X:"/>
+                                                            <TextBlock TextAlignment="Right" Text="{Binding x_origin}"/>
+                                                        </DockPanel>
+                                                        <DockPanel>
+                                                            <TextBlock DockPanel.Dock="Left" Text="Abs. Feeder Y:"/>
+                                                            <TextBlock TextAlignment="Right" Text="{Binding y_origin}"/>
+                                                        </DockPanel>
+                                                    </StackPanel>
+                                                </DockPanel>
+                                                <Image Margin="10 0 20 0" Grid.Column="1" Source="{Binding part.TemplateFileName}" MaxHeight="100" MaxWidth="200" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ui:DataGrid.RowDetailsTemplate>
                                     <!-- Placement Data Grid -->
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Binding="{Binding index}" Header="Index" Width="70"/>
@@ -116,6 +148,7 @@
                                         <DataGridTextColumn Binding="{Binding part.Footprint}" Header="Footprint" Width="160"/>
                                         <DataGridTextColumn Binding="{Binding part.TemplateFileName}" Header="Template" Width="90"/>
                                     </DataGrid.Columns>
+                                    
                                     <ui:DataGrid.RowStyle>
                                         <Style TargetType="DataGridRow">
                                             <Style.Triggers>

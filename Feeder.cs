@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.IO;
 
 namespace Picky
 {
@@ -27,9 +28,24 @@ namespace Picky
         public double thickness { get; set; }
         public double interval { get; set; }
 
-        public double x_origin { get; set; }
-        public double y_origin { get; set; }
-        public double z_origin { get; set; }
+        private double _x_origin; 
+        public double x_origin
+        {
+            get { return _x_origin; }
+            set { _x_origin = value; OnPropertyChanged(nameof(x_origin)); }
+        }
+        private double _y_origin;
+        public double y_origin
+        {
+            get { return _y_origin; }
+            set { _y_origin = value; OnPropertyChanged(nameof(y_origin)); }
+        }
+        private double _z_origin;
+        public double z_origin
+        {
+            get { return _z_origin; }
+            set { _z_origin = value; OnPropertyChanged(nameof(z_origin)); }
+        }
 
         public double x_drive { get; set; }
         public double y_drive { get; set; }
@@ -56,8 +72,8 @@ namespace Picky
         public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void OnPropertyChanged(string e)
         {
-            //Console.WriteLine("part in feeder changed");
-            //PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            Console.WriteLine("part in feeder changed: " + e);
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(e));
         }
 
         public ICommand GoToFeederCommand { get { return new RelayCommand(GoToFeeder); } }
@@ -101,13 +117,14 @@ namespace Picky
                 // Capture the selected ROI
                 part.Template = new Mat(machine.currentRawImage, roi);
 
-                // Display the selected ROI
-                // Cv2.ImShow("Selected ROI", part.Template);
-
                 // Write part template to file
                 DateTime now = DateTime.Now;
-                part.TemplateFileName = part.Footprint + "-" + now.ToString("MMddHHmmss") + ".png";
-                Cv2.ImWrite(part.TemplateFileName, part.Template);
+                String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                String filename = path + "\\" + part.Footprint + "-" + now.ToString("MMddHHmmss") + ".png";
+                Cv2.ImWrite(filename, part.Template);
+                while (File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read) == null) { }
+                part.TemplateFileName = filename;
+
             }
         }
     }

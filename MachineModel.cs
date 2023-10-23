@@ -16,18 +16,18 @@ namespace Picky
         private static readonly Lazy<MachineModel> lazy = new Lazy<MachineModel>(() => new MachineModel());
 
         public RelayInterface relayInterface;
-        
+
         /* Serial Message Queue */
         public ObservableCollection<MachineMessage> Messages { get; set; }
 
         public Mat currentRawImage;
-        
+
         /* Current PickList */
-        public Part selectedPickListPart;
-        public ObservableCollection<Part> PickList { get; set; } 
-             
+        public Part selectedPickListPart { get; set; }
+        public ObservableCollection<Part> PickList { get; set; }
+
         /* Cassettes that are installed */
-        public Cassette selectedCassette;
+        public Cassette selectedCassette  { get; set; }
         public ObservableCollection<Cassette> Cassettes { get; set; } 
 
         public int LastEndStopState { get; set; } = 0;

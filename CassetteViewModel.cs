@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.IO;
 using System.IO.Ports;
 using System.Linq;
+using System.Web.UI.WebControls.WebParts;
 using System.Windows.Input;
 using Xamarin.Forms;
 
@@ -43,16 +44,18 @@ namespace Picky
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged(string propertyName)
         {
-            Console.WriteLine("property change");
+            Console.WriteLine("property change: " + propertyName);
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private void OnCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+      
+    private void OnCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            Console.WriteLine("collection change");
+            Console.WriteLine("collection change"); 
             // Handle collection changes here
             // This method will be called when MyCollection changes
             // You can perform any necessary actions or notify other components about the changes.
+
         }
 
         public CassetteViewModel()
@@ -66,8 +69,8 @@ namespace Picky
         private void AddCassette()
         {
             Cassette cs = new Cassette();
-            Machine.Cassettes.Add(cs);
-            Machine.selectedCassette = cs;
+            Cassettes.Add(cs);
+            selectedCassette = cs;
         }
 
         public ICommand AddPartToCassetteCommand { get { return new RelayCommand(AddPartToCassette); } }

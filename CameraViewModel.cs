@@ -12,7 +12,6 @@ namespace Picky
         private readonly VideoCapture capture;
 
         public bool IsManualFocus { get; set; }
-
         public int Zoom { get; set; } = 1;
 
         private int focus;
