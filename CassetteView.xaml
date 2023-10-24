@@ -127,14 +127,34 @@
                                                             <TextBlock DockPanel.Dock="Left"  Text="File: "/>
                                                             <TextBlock TextAlignment="Right"  ToolTip="{Binding part.TemplateFileName}"  Text="{Binding part.TemplateFileName}"/>
                                                         </DockPanel>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="auto" />
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="auto" />
+                                                                <ColumnDefinition Width="auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock  Grid.Column="0" Text="Feeder: (X,Y):"/>
+                                                            <TextBlock  Grid.Column="1" TextAlignment="Right" Text="{Binding x_origin , StringFormat={}{0:0.000}}"/>
+                                                            <TextBlock  Grid.Column="2" Text=","/>
+                                                            <TextBlock  Grid.Column="3" Text="{Binding y_origin , StringFormat={}{0:0.000}}"/>
+                                                        </Grid>
                                                         <DockPanel>
-                                                            <TextBlock DockPanel.Dock="Left"  Text="Abs. Feeder X:"/>
-                                                            <TextBlock TextAlignment="Right" Text="{Binding x_origin}"/>
+                                                            <TextBlock DockPanel.Dock="Left" Text="Part Detection Threshold:"/>
+                                                            <TextBlock TextAlignment="Right" Text="{Binding part.PartDetectionThreshold}"/>
                                                         </DockPanel>
-                                                        <DockPanel>
-                                                            <TextBlock DockPanel.Dock="Left" Text="Abs. Feeder Y:"/>
-                                                            <TextBlock TextAlignment="Right" Text="{Binding y_origin}"/>
-                                                        </DockPanel>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="auto" />
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="auto" />
+                                                                <ColumnDefinition Width="auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock  Grid.Column="0" Text="Next Part: (X,Y):"/>
+                                                            <TextBlock  Grid.Column="1" TextAlignment="Right" Text="{Binding x_next_part, StringFormat={}{0:0.000}}"/>
+                                                            <TextBlock  Grid.Column="2" Text=","/>
+                                                            <TextBlock  Grid.Column="3" Text="{Binding y_next_part, StringFormat={}{0:0.000}}"/>
+                                                        </Grid>
                                                     </StackPanel>
                                                 </DockPanel>
                                                 <Image Margin="10 0 20 0" Grid.Column="1" Source="{Binding part.TemplateFileName}" MaxHeight="100" MaxWidth="200" />
@@ -170,6 +190,7 @@
                                             <MenuItem Header="Pick Component"  />
                                             <Separator Margin="2"></Separator>
                                             <MenuItem Header="Set Part Template" Command="{Binding selectedFeeder.SetPartTemplateCommand}" />
+                                            <MenuItem Header="Find Part" Command="{Binding selectedFeeder.part.FindPartCommand}" />
                                         </ContextMenu>
                                     </DataGrid.ContextMenu>
                                 </ui:DataGrid>

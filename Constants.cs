@@ -10,11 +10,21 @@ namespace Picky
 {
     internal class Constants
     {
+        public static int CAMERA_FRAME_WIDTH = 1280;
+        public static int CAMERA_FRAME_HEIGHT = 960;
+
+        public static int SAFE_TRANSIT_Z = 20;
+
+        public static int    DEFAULT_PART_DETECTION_THRESHOLD = 160;
+        public static double CASSETTE_ORIGIN_X = -265.56;
+        public static double CASSETTE_ORIGIN_Y = -118.24;
+
         public static double FEEDER_INITIAL_XOFFSET = 18.0;
         public static double FEEDER_ORIGIN_TO_DRIVE_YOFFSET = 42.0;
         public static double FEEDER_THICKNESS = 12.7;
 
-        public static byte JRM_CALIBRATION_CHECK = 0x99;
+        public static byte JRM_CALIBRATION_CHECK_XY = 0x99;
+        public static byte JRM_CALIBRATION_CHECK_Z = 0x98;
 
         public static int SYSTEM_BAR_HEIGHT = 50;
         public static int HEAD_CAMERA = 0;
@@ -41,6 +51,10 @@ namespace Picky
         public static byte Z_AXIS = 0x04;
         public static byte Y_AXIS = 0x02;
         public static byte X_AXIS = 0x01;
+
+        public static byte X_AXIS_LIMIT = 0x02;
+        public static byte Y_AXIS_LIMIT = 0x08;
+        public static byte Z_AXIS_LIMIT = 0x10;
 
         public static double XY_STEPS_PER_MM = 94.139704;
         public static int XY_MAX_FEED_RATE = 18000;

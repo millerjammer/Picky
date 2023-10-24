@@ -32,9 +32,12 @@
                     <Image Grid.Column="0" x:Name="FrameImage" HorizontalAlignment="Stretch"></Image>
                     <StackPanel Grid.Column="2">
                         <ToggleButton x:Name="mftb" Content="Manual Focus" IsChecked="{Binding IsManualFocus}" Command="{Binding AutoFocusCommand}" Margin="20 0 10 0" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
-                        <Slider IsEnabled="{Binding IsChecked, ElementName=mftb}" Thumb.DragCompleted="FocusDragCompleted"  Minimum="0" Maximum="600" HorizontalAlignment="Stretch" Margin="20 10 15 10" />
+                        <Slider IsEnabled="{Binding IsChecked, ElementName=mftb}" Value="{Binding Focus}"  Minimum="0" Maximum="600" HorizontalAlignment="Stretch" Margin="20 10 15 10" />
                         <Label Content="Zoom" Margin="20 0 0 0"/>
-                        <Slider Thumb.DragCompleted="ZoomDragCompleted" Minimum="1" Maximum="10" HorizontalAlignment="Stretch" Margin="20 10 15 10" />
+                        <Slider Value="{Binding Zoom}" Minimum="1" Maximum="10" HorizontalAlignment="Stretch" Margin="20 10 15 10" />
+                        <Label Content="Detection Threshold" Margin="20 0 0 0"/>
+                        <Slider Value="{Binding DetectionThreshold, Mode=TwoWay}"  Minimum="-255" Maximum="0" HorizontalAlignment="Stretch" Margin="20 10 15 10" />
+
                     </StackPanel>
                 </Grid>
                 

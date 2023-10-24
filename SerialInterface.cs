@@ -138,17 +138,31 @@ namespace Picky
             if (machine.Messages.Count() > 0)
             {
                 MachineMessage msg = machine.Messages.First();
-                if (msg.cmd[0] == Constants.JRM_CALIBRATION_CHECK)
+                if (msg.cmd[0] == Constants.JRM_CALIBRATION_CHECK_XY)
                 {
-                    Console.WriteLine("Calibration Check: " + machine.LastEndStopState);
-                    if(machine.LastEndStopState == 26)
+                    Console.WriteLine("Calibration XY Check: " + machine.LastEndStopState);
+                    if((machine.LastEndStopState & (Constants.X_AXIS_LIMIT & Constants.Y_AXIS_LIMIT)) == (Constants.X_AXIS_LIMIT & Constants.Y_AXIS_LIMIT))
                     {
-                        machine.CalibrationStatusString = "Calibration: Successful";
+                        machine.CalibrationStatusString = "Calibration XY: Successful";
                         machine.Messages.RemoveAt(0);
                     }
                     else
                     {
-                        machine.CalibrationStatusString = "Calibration: Failed";
+                        machine.CalibrationStatusString = "Calibration XY: Failed (Timeout?)";
+                        machine.Messages.Clear();
+                    }
+                }
+                else if (msg.cmd[0] == Constants.JRM_CALIBRATION_CHECK_Z)
+                {
+                    Console.WriteLine("Calibration Z Check: " + machine.LastEndStopState);
+                    if ((machine.LastEndStopState & (Constants.Z_AXIS_LIMIT)) == (Constants.Z_AXIS_LIMIT))
+                    {
+                        machine.CalibrationStatusString = "Calibration Z: Successful";
+                        machine.Messages.RemoveAt(0);
+                    }
+                    else
+                    {
+                        machine.CalibrationStatusString = "Calibration Z: Failed (Timeout?)";
                         machine.Messages.Clear();
                     }
                 }

@@ -23,13 +23,13 @@ namespace Picky
             set { _name = value; OnPropertyChanged(nameof(name)); }
         }
 
-        private double _x_origin = -265.56;
+        private double _x_origin = Constants.CASSETTE_ORIGIN_X;
         public double x_origin
         {
             get { return _x_origin; }
             set { _x_origin = value; OnPropertyChanged(nameof(x_origin)); }
         }
-        private double _y_origin = -118.24;
+        private double _y_origin = Constants.CASSETTE_ORIGIN_Y;
         public double y_origin
         {
             get { return _y_origin; }

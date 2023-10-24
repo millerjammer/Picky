@@ -2,6 +2,7 @@
 using OpenCvSharp;
 using System;
 using System.ComponentModel;
+using System.Web.UI.WebControls.WebParts;
 using System.Windows.Input;
 
 namespace Picky
@@ -12,20 +13,47 @@ namespace Picky
         private readonly VideoCapture capture;
 
         public bool IsManualFocus { get; set; }
-        public int Zoom { get; set; } = 1;
-
+       
         private int focus;
         public int Focus
         {
             get { return focus; }
-            set { focus = value; setCameraFocus(); PropertyChanged(this, new PropertyChangedEventArgs("Focus")); }
+            set { focus = value; setCameraFocus(); OnPropertyChanged(nameof(Focus)); }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        private int zoom = 1;
+        public int Zoom
+        {
+            get { return zoom; }
+            set { zoom = value; OnPropertyChanged(nameof(Zoom)); }
+        }
 
+        public int DetectionThreshold
+        {
+            get
+            {
+                if (machine.selectedCassette != null && machine.selectedCassette.selectedFeeder != null)
+                    return (int)machine.selectedCassette.selectedFeeder.part.PartDetectionThreshold; return 0;
+            }
+            set { machine.selectedCassette.selectedFeeder.part.PartDetectionThreshold = (double)value; OnPropertyChanged(nameof(DetectionThreshold)); }
+        }
+         
         public CameraViewModel(VideoCapture cap)
         {
             this.capture = cap;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            machine.selectedCassette.PropertyChanged += OnCassettePropertyChanged;
+        }
+
+        private void OnCassettePropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+           // Something changed on a Cassette, force a get on the newly selected Feeder property
+            OnPropertyChanged("DetectionThreshold");
         }
 
         public void setCameraFocus()
@@ -53,7 +81,6 @@ namespace Picky
         private void AutoFocus()
         {
             setCameraFocus(); 
-
         }
     }
 }

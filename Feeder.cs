@@ -28,6 +28,26 @@ namespace Picky
         public double thickness { get; set; }
         public double interval { get; set; }
 
+        private double _x_next_part;
+        public double x_next_part
+        {
+            get { return _x_next_part; }
+            set { _x_next_part = value; OnPropertyChanged(nameof(x_next_part)); }
+        }
+        private double _y_next_part;
+        public double y_next_part
+        {
+            get { return _y_next_part; }
+            set { _y_next_part = value; OnPropertyChanged(nameof(y_next_part)); }
+        }
+        private double _z_next_part;
+        public double z_next_part
+        {
+            get { return _z_next_part; }
+            set { _z_next_part = value; OnPropertyChanged(nameof(z_next_part)); }
+        }
+
+
         private double _x_origin; 
         public double x_origin
         {
@@ -47,6 +67,8 @@ namespace Picky
             set { _z_origin = value; OnPropertyChanged(nameof(z_origin)); }
         }
 
+
+
         public double x_drive { get; set; }
         public double y_drive { get; set; }
         public double z_drive { get; set; }
@@ -60,10 +82,7 @@ namespace Picky
 
         private void OnPartPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            // Handle the property change notification
-            Console.WriteLine("Part property changed: ");
-
-            // Notify the Grandparent by invoking a method or event
+            // Something changed on a _part, force a get on the new _part property
             OnPropertyChanged("part");
         }
 

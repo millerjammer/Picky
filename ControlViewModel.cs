@@ -30,12 +30,18 @@ namespace Picky
         public ICommand HomeCommand { get { return new RelayCommand(Home); } }
         private void Home()
         {
+            // First, ensure the needle is safe
+            machine.Messages.Add(Command.S3G_SetRelativeZPosition(30));
+            machine.Messages.Add(Command.S3G_GetPosition());
             machine.Messages.Add(Command.S3G_FindXYMaximums());
             machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(Command.JRM_CalibrationCheckXY());
             machine.Messages.Add(Command.S3G_FindZMinimum());
             machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.JRM_CalibrationCheck());
             machine.Messages.Add(Command.S3G_SetPositionAs(0, 0, 0, 0, 0));
+            machine.Messages.Add(Command.JRM_CalibrationCheckZ());
+            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
+            machine.Messages.Add(Command.S3G_GetPosition());
             machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0));
             machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(-50, -50));
             machine.Messages.Add(Command.S3G_GetPosition());
