@@ -1,9 +1,13 @@
 ﻿using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.Win32;
+using Newtonsoft.Json;
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Web.UI.WebControls.WebParts;
 using System.Windows.Input;
 
 namespace Picky
@@ -16,19 +20,16 @@ namespace Picky
         public string name
         {
             get { return _name; }
-            set { _name = value; Console.WriteLine("namechange " + value);
-                if (PropertyChanged != null)
-                    OnPropertyChanged(nameof(name));
-            }
+            set { _name = value; OnPropertyChanged(nameof(name)); }
         }
 
-        private double _x_origin = -265.56;
+        private double _x_origin = Constants.CASSETTE_ORIGIN_X;
         public double x_origin
         {
             get { return _x_origin; }
             set { _x_origin = value; OnPropertyChanged(nameof(x_origin)); }
         }
-        private double _y_origin = -118.24;
+        private double _y_origin = Constants.CASSETTE_ORIGIN_Y;
         public double y_origin
         {
             get { return _y_origin; }
@@ -46,7 +47,7 @@ namespace Picky
         public Feeder selectedFeeder
         {
             get { return _selectedFeeder; }
-            set { _selectedFeeder = value; OnPropertyChanged(nameof(selectedFeeder)); }
+            set { _selectedFeeder = value; Console.WriteLine("sel cassette feeder changed"); OnPropertyChanged(nameof(selectedFeeder)); }
         }
 
         private ObservableCollection<Feeder> feeders;
@@ -56,6 +57,7 @@ namespace Picky
             set
             {
                 feeders = value;
+                Console.WriteLine("sel cassette feeder changed");
                 OnPropertyChanged(nameof(Feeders));
             }
         }
@@ -63,14 +65,17 @@ namespace Picky
         private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             UpdateFeederLocationsWithinCassette();
+            Console.WriteLine("feeder collection changed");
             OnPropertyChanged(nameof(feeders)); // Notify that the collection has changed
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void OnPropertyChanged(string propertyName)
         {
+            Console.WriteLine("cassette prop changed - " + propertyName);
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
         private void UpdateFeederLocationsWithinCassette()
         {
             for (int i = 0; i < feeders.Count; i++)
@@ -83,7 +88,6 @@ namespace Picky
                 feeders.ElementAt(i).y_drive = y_origin - Constants.FEEDER_ORIGIN_TO_DRIVE_YOFFSET;
                 feeders.ElementAt(i).x_drive = x_origin + ((Constants.FEEDER_THICKNESS * i) + Constants.FEEDER_INITIAL_XOFFSET);
             }
-            Console.WriteLine("Updated " + feeders.Count + " feeders");
         }
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;
@@ -92,6 +96,7 @@ namespace Picky
         {
             feeders = new ObservableCollection<Feeder>();
             feeders.CollectionChanged += OnCollectionChanged;
+  
         }
 
         public ICommand GoToCassetteCommand { get { return new RelayCommand(GoToCassette); } }
@@ -109,6 +114,39 @@ namespace Picky
             y_origin = machine.CurrentY;
             Console.WriteLine("Cassette Home: " + x_origin + " mm " + y_origin + " mm");
             UpdateFeederLocationsWithinCassette();
+        }
+
+        public ICommand SaveCassetteCommand { get { return new RelayCommand(SaveCassette); } }
+        private void SaveCassette()
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.DefaultExt = ".cst";
+            saveFileDialog.RestoreDirectory = true;
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                name = saveFileDialog.SafeFileName;
+                /* Ignore a Parts reference to it's cassette */
+                File.WriteAllText(saveFileDialog.FileName, JsonConvert.SerializeObject(this, Formatting.Indented,
+                    new JsonSerializerSettings()
+                    {
+                        ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+                    }
+                ));
+            }
+        }
+
+        public ICommand CloseCassetteCommand { get { return new RelayCommand(CloseCassette); } }
+        private void CloseCassette()
+        {
+            foreach (Part part in machine.PickList)
+            {
+                if (part.cassette != null)
+                {
+                    if (part.cassette.Equals(this))
+                        part.cassette = null;
+                }
+            }
+            machine.Cassettes.Remove(this);
         }
     }
 }

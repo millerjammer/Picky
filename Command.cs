@@ -44,10 +44,16 @@ namespace Picky
         {
             return S3G_SetAbsolutePosition((byte)(0x1F), 0, 0, 0, a, 0);
         }
-        public static MachineMessage JRM_CalibrationCheck()
+        public static MachineMessage JRM_CalibrationCheckXY()
         {
             MachineMessage msg = new MachineMessage();
-            msg.cmd[0] = Constants.JRM_CALIBRATION_CHECK;
+            msg.cmd[0] = Constants.JRM_CALIBRATION_CHECK_XY;
+            return msg;
+        }
+        public static MachineMessage JRM_CalibrationCheckZ()
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.cmd[0] = Constants.JRM_CALIBRATION_CHECK_Z;
             return msg;
         }
 

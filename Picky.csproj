@@ -140,6 +140,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CameraView.xaml.cs">
+      <DependentUpon>CameraView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CameraViewModel.cs" />
     <Compile Include="Cassette.cs" />
     <Compile Include="CassetteView.xaml.cs">
       <DependentUpon>CassetteView.xaml</DependentUpon>
@@ -162,6 +166,10 @@
     <Compile Include="Part.cs" />
     <Compile Include="RelayCommand.cs" />
     <Compile Include="SerialInterface.cs" />
+    <Page Include="CameraView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="CassetteView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

@@ -6,7 +6,7 @@
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:local="clr-namespace:Picky" 
         mc:Ignorable="d" FontSize="12" 
-        Height="1040" Width="1400" ResizeMode="CanResize"
+        Height="1040" Width="1700" ResizeMode="CanResize"
         WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterScreen" Background="Transparent">
 
     <Window.Resources>
@@ -18,6 +18,9 @@
         </DataTemplate>
         <DataTemplate DataType="{x:Type local:ControlViewModel}">
             <local:ControlView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type local:CameraViewModel}">
+            <local:CameraView/>
         </DataTemplate>
     </Window.Resources>
 
@@ -40,27 +43,7 @@
                 <!-- Adding MachineView -->
                 <Grid Grid.Column="1" Name="mView"/>
                 <!--Adding Camera View-->
-                <Grid Grid.Column="2" Margin="10">
-                    <Expander Width="auto" IsExpanded="True" VerticalAlignment="Top">
-                        <Expander.Header>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <!-- Expander header content -->
-                                    <ColumnDefinition Width="Auto" />
-                                    <!-- Button -->
-                                </Grid.ColumnDefinitions>
-                                <!-- Left column for Expander header content -->
-                                <TextBlock Grid.Column="0" Text="Camera" VerticalAlignment="Center" />
-                                <!-- Right column for the button -->
-                                <ui:Button Grid.Column="1" Icon="FullScreenMaximize24" Margin="20 0 10 0" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                            </Grid>
-                        </Expander.Header>
-                        <Expander.Content>
-                            <Image x:Name="FrameImage" HorizontalAlignment="Stretch"></Image>
-                        </Expander.Content>
-                    </Expander>
-                </Grid>
+                <Grid Grid.Column="2" Name="camView" Margin="10"/>
             </Grid>
             <!-- Adding CassetteView -->
             <Grid Name="cView" Grid.Row="1"  Grid.Column="1" Margin="10 10 10 10" />
