@@ -39,6 +39,7 @@ namespace Picky
         private void MainWindow_Loaded(object sender, System.Windows.RoutedEventArgs e)
         {
             capture.Open(0);
+            capture.Set(VideoCaptureProperties.Fps, Constants.CAMERA_FPS);
             capture.Set(VideoCaptureProperties.FrameWidth, Constants.CAMERA_FRAME_WIDTH);
             capture.Set(VideoCaptureProperties.FrameHeight, Constants.CAMERA_FRAME_HEIGHT);
             bkgWorker.RunWorkerAsync();
@@ -158,8 +159,8 @@ namespace Picky
                 {
                     bestval = maxval;
                     bestloc = maxloc;
-                    machine.selectedCassette.selectedFeeder.x_next_part = bestloc.X;
-                    machine.selectedCassette.selectedFeeder.y_next_part = bestloc.Y;
+                    machine.selectedCassette.selectedFeeder.x_next_part = bestloc.X + template.Cols/2;
+                    machine.selectedCassette.selectedFeeder.y_next_part = bestloc.Y + template.Rows/2;
                 }
 
 
