@@ -35,7 +35,7 @@ namespace Picky
                 if (machine.selectedCassette != null && machine.selectedCassette.selectedFeeder != null)
                     return (int)machine.selectedCassette.selectedFeeder.part.PartDetectionThreshold; return 0;
             }
-            set { machine.selectedCassette.selectedFeeder.part.PartDetectionThreshold = (double)value; OnPropertyChanged(nameof(DetectionThreshold)); }
+            set { if (machine.selectedCassette == null || machine.selectedCassette.selectedFeeder == null) return; machine.selectedCassette.selectedFeeder.part.PartDetectionThreshold = (double)value; OnPropertyChanged(nameof(DetectionThreshold)); }
         }
          
         public CameraViewModel(VideoCapture cap)
