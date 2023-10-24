@@ -94,7 +94,6 @@ namespace Picky
                             {
                                 FindSelectedPartInImage(cameraImage);
                                 OpenCvSharp.Cv2.DrawMarker(cameraImage, new OpenCvSharp.Point(machine.selectedCassette.selectedFeeder.x_next_part, machine.selectedCassette.selectedFeeder.y_next_part), new OpenCvSharp.Scalar(0, 0, 0), OpenCvSharp.MarkerTypes.Cross, 100, 1);
-
                             }
                         }
                     }

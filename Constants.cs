@@ -10,9 +10,13 @@ namespace Picky
 {
     internal class Constants
     {
-        public static int CAMERA_FRAME_WIDTH = 2592;
-        public static int CAMERA_FRAME_HEIGHT = 1944;
-        public static int CAMERA_FPS = 15;
+        //public static int CAMERA_FRAME_WIDTH = 1920;
+        //public static int CAMERA_FRAME_HEIGHT = 1080;
+        //public static int CAMERA_FPS = 30;
+        public static int CAMERA_FRAME_WIDTH = 1280;
+        public static int CAMERA_FRAME_HEIGHT = 960;
+        public static int CAMERA_FPS = 45;
+
         public static int CAMERA_FOV = 60;
 
         public static int SAFE_TRANSIT_Z = 20;

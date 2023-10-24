@@ -32,19 +32,38 @@ namespace Picky
         public double x_next_part
         {
             get { return _x_next_part; }
-            set { _x_next_part = value; OnPropertyChanged(nameof(x_next_part)); }
+            set { 
+                if( _x_next_part != value)
+                {
+                    _x_next_part = value;
+                    OnPropertyChanged(nameof(x_next_part)); 
+                }
+            }
         }
         private double _y_next_part;
         public double y_next_part
         {
             get { return _y_next_part; }
-            set { _y_next_part = value; OnPropertyChanged(nameof(y_next_part)); }
+            set {
+                if (_y_next_part != value)
+                {
+                    _y_next_part = value;
+                    OnPropertyChanged(nameof(y_next_part));
+                }
+            }
         }
         private double _z_next_part;
         public double z_next_part
         {
             get { return _z_next_part; }
-            set { _z_next_part = value; OnPropertyChanged(nameof(z_next_part)); }
+            set
+            {
+                if (_z_next_part != value)
+                {
+                    _z_next_part = value;
+                    OnPropertyChanged(nameof(z_next_part));
+                }
+            }
         }
 
 
