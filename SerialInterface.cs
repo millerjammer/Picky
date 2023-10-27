@@ -1,16 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO.Ports;
 using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
+using System.Windows.Forms;
+
+/*For S3G Serial Commands See: https://github.com/makerbot/s3g/blob/master/doc/s3gProtocol.md */
 
 namespace Picky
 {
-    public class SerialInterface
+    public class SerialInterface 
     {
         private static byte[] serial_buffer = new byte[Constants.MAX_BUFFER_SIZE];
         private static int s_in = 0;
@@ -20,10 +24,10 @@ namespace Picky
         private static MachineMessage.Pos lastPos = new MachineMessage.Pos();
         public int rx_msgCount { get; set; }
         public int tx_msgCount { get; set; }
-        
+
         static SerialPort serialPort;
 
-        public SerialInterface() {
+       public SerialInterface() {
 
             /* Open Port */
             serialPort = new SerialPort();
@@ -58,7 +62,10 @@ namespace Picky
         {
             if (ServicePickPort() == true)
             {
-                ServiceMessageQueue();
+                if (machine.isMachinePaused == false)
+                {
+                    ServiceOutboundMessageQueue();
+                }
             }
         }
 
@@ -74,6 +81,7 @@ namespace Picky
             byte[] sbuf = new byte[64];
             string rawString = " ";
             bool isPositionGood = true;
+            bool isPositionFaulty = false;
 
             if (serialPort.IsOpen)
             {
@@ -107,6 +115,15 @@ namespace Picky
                             if (serial_buffer[i + 1] == (byte)Constants.S3G_GET_EXTENDED_POSITION_CURRENT_LEN)
                             {
                                 isPositionGood = getPositionFromMessage();
+                                isPositionFaulty = CheckPosition();
+                                if (isPositionFaulty)
+                                {
+                                    machine.Messages.Clear();
+                                    machine.Messages.Add(Command.S3G_AbortImmediately());
+                                    machine.CalibrationStatusString = "Abort due to bad position";
+                                    machine.IsXYCalibrated = false;
+                                    machine.IsZCalibrated = false;
+                                }
                             }
                             //Fixup the byte buffer by moving unread bytes and the pointer
                             for (k = 0; k < Constants.MAX_BUFFER_SIZE - length; k++)
@@ -129,7 +146,22 @@ namespace Picky
             return false;
         }
 
-        private bool ServiceMessageQueue()
+        private bool CheckPosition() {
+            /********************************************************************
+            * Checks position
+            *
+            *********************************************************************/
+
+            if (machine.CurrentX < Constants.LIMIT_ABSOLUTE_X)
+                return true;
+            if (machine.CurrentY < Constants.LIMIT_ABSOLUTE_Y)
+                return true;
+            if (machine.CurrentZ > Constants.LIMIT_ABSOLUTE_Z)
+                return true;
+            return false;
+        }
+
+            private bool ServiceOutboundMessageQueue()
         /********************************************************************
         * This is outbound messages to the machine
         *
@@ -141,13 +173,15 @@ namespace Picky
                 if (msg.cmd[0] == Constants.JRM_CALIBRATION_CHECK_XY)
                 {
                     Console.WriteLine("Calibration XY Check: " + machine.LastEndStopState);
-                    if((machine.LastEndStopState & (Constants.X_AXIS_LIMIT & Constants.Y_AXIS_LIMIT)) == (Constants.X_AXIS_LIMIT & Constants.Y_AXIS_LIMIT))
+                    if( ((machine.LastEndStopState & Constants.X_AXIS_MAX_SW) == Constants.X_AXIS_MAX_SW ) && ((machine.LastEndStopState & Constants.Y_AXIS_MAX_SW) == Constants.Y_AXIS_MAX_SW))
                     {
+                        machine.IsXYCalibrated = true;
                         machine.CalibrationStatusString = "Calibration XY: Successful";
                         machine.Messages.RemoveAt(0);
                     }
                     else
                     {
+                        machine.IsXYCalibrated = false;
                         machine.CalibrationStatusString = "Calibration XY: Failed (Timeout?)";
                         machine.Messages.Clear();
                     }
@@ -155,13 +189,15 @@ namespace Picky
                 else if (msg.cmd[0] == Constants.JRM_CALIBRATION_CHECK_Z)
                 {
                     Console.WriteLine("Calibration Z Check: " + machine.LastEndStopState);
-                    if ((machine.LastEndStopState & (Constants.Z_AXIS_LIMIT)) == (Constants.Z_AXIS_LIMIT))
+                    if ( (machine.LastEndStopState & (Constants.Z_AXIS_MIN_SW)) == (Constants.Z_AXIS_MIN_SW) )
                     {
+                        machine.IsZCalibrated = true;
                         machine.CalibrationStatusString = "Calibration Z: Successful";
                         machine.Messages.RemoveAt(0);
                     }
                     else
                     {
+                        machine.IsZCalibrated = false;
                         machine.CalibrationStatusString = "Calibration Z: Failed (Timeout?)";
                         machine.Messages.Clear();
                     }

@@ -2,6 +2,7 @@
 using OpenCvSharp;
 using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Web.UI.WebControls.WebParts;
 using System.Windows.Input;
 
@@ -28,31 +29,48 @@ namespace Picky
             set { zoom = value; OnPropertyChanged(nameof(Zoom)); }
         }
 
+        private bool isCassetteFeederSelected = false;
+        public bool IsCassetteFeederSelected 
+        {  
+            get { return isCassetteFeederSelected;  }
+        }
+
+        private int detectionThreshold;
         public int DetectionThreshold
         {
-            get
-            {
-                if (machine.selectedCassette != null && machine.selectedCassette.selectedFeeder != null)
-                    return (int)machine.selectedCassette.selectedFeeder.part.PartDetectionThreshold; return 0;
-            }
-            set { if (machine.selectedCassette == null || machine.selectedCassette.selectedFeeder == null) return; machine.selectedCassette.selectedFeeder.part.PartDetectionThreshold = (double)value; OnPropertyChanged(nameof(DetectionThreshold)); }
+            get { return detectionThreshold;  }
+            set { detectionThreshold = value; machine.selectedCassette.selectedFeeder.part.PartDetectionThreshold = (double)detectionThreshold;  OnPropertyChanged(nameof(DetectionThreshold)); }
         }
-         
+
         public CameraViewModel(VideoCapture cap)
         {
             this.capture = cap;
+            /* Listen for selectedCassette to change, then we can listen for selectedFeeder */ 
+            machine.PropertyChanged += OnMachinePropertyChanged;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            machine.selectedCassette.PropertyChanged += OnCassettePropertyChanged;
         }
-
-        private void OnCassettePropertyChanged(object sender, PropertyChangedEventArgs e)
+               
+        private void OnMachinePropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-           // Something changed on a Cassette, force a get on the newly selected Feeder property
+            // Something changed on the machine, notify the view to update itself
+            if (machine.selectedCassette == null || machine.selectedCassette.selectedFeeder == null)
+            {
+                isCassetteFeederSelected = false;
+            }
+            else
+            {
+                /* Machine changed, listen to cassett property changes */
+                machine.selectedCassette.PropertyChanged += OnMachinePropertyChanged;
+                /* TODO, get rid of this, do in setter/getter */
+                detectionThreshold = (int)machine.selectedCassette.selectedFeeder.part.PartDetectionThreshold;
+                isCassetteFeederSelected = true;
+            }
+            OnPropertyChanged("IsCassetteFeederSelected");
             OnPropertyChanged("DetectionThreshold");
         }
 

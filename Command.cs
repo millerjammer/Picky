@@ -189,7 +189,37 @@ namespace Picky
             return msg;
         }
 
-       
+        public static MachineMessage S3G_PauseResumeImmediately()
+        {
+
+            MachineMessage msg = new MachineMessage();
+            msg.target.axis = 0x00;
+
+            msg.cmd[0] = Constants.SS_MIGHTBOARD_HEADER;
+            msg.cmd[1] = 0x01;
+            msg.cmd[2] = Constants.S3G_PAUSE_RESUME_IMMEDIATELY;
+            msg.cmd[3] = crc8(msg.cmd, 2, 1);
+            msg.delay = 1000;
+            msg.timeout = 5000;
+            return msg;
+        }
+
+        public static MachineMessage S3G_AbortImmediately()
+        {
+
+            MachineMessage msg = new MachineMessage();
+            msg.target.axis = 0x00;
+
+            msg.cmd[0] = Constants.SS_MIGHTBOARD_HEADER;
+            msg.cmd[1] = 0x01;
+            msg.cmd[2] = Constants.S3G_ABORT_IMMEDIATELY;
+            msg.cmd[3] = crc8(msg.cmd, 2, 1);
+            msg.delay = 1000;
+            msg.timeout = 5000;
+            return msg;
+        }
+
+
         public static MachineMessage S3G_GetPosition()
         {
 
@@ -210,7 +240,7 @@ namespace Picky
 
             MachineMessage msg = new MachineMessage();
             uint rate = 400;
-            uint time = 8;
+            uint time = 15;
             msg.target.axis = 0x00;
 
             msg.cmd[0] = Constants.SS_MIGHTBOARD_HEADER;
@@ -234,7 +264,7 @@ namespace Picky
 
             MachineMessage msg = new MachineMessage();
             uint rate = 1000;
-            uint time = 20;
+            uint time = 25;
             msg.target.axis = 0x00;
 
             msg.cmd[0] = Constants.SS_MIGHTBOARD_HEADER;

@@ -96,7 +96,9 @@
                                 <TextBlock Text="{Binding name}">
                                     <TextBlock.ContextMenu>
                                         <ContextMenu>
-                                            <MenuItem Header="Save..." Command="{Binding SaveCassetteCommand}" />
+                                            <MenuItem Header="Save" Command="{Binding SaveCassetteCommand}" />
+                                            <MenuItem Header="Save As..." Command="{Binding SaveAsCassetteCommand}" />
+                                            <Separator Margin="2"/>
                                             <MenuItem Header="Close" Command="{Binding CloseCassetteCommand}" />
                                             <Separator Margin="2"/> 
                                             <MenuItem Header="Go to Cassette" Command="{Binding GoToCassetteCommand}" />
@@ -112,7 +114,7 @@
                                              ItemsSource="{Binding Feeders}" Grid.Row="1" HorizontalAlignment="Stretch" 
                                              AutoGenerateColumns="False" CanUserSortColumns="False" HorizontalContentAlignment="Stretch"
                                              MaxHeight="299" VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow"
-                                             IsReadOnly="True" >
+                                             IsReadOnly="True" SelectedIndex="0">
                                     <!-- Define Details -->
                                     <ui:DataGrid.RowDetailsTemplate>
                                         <DataTemplate>
@@ -185,12 +187,12 @@
                                             <Separator Margin="2"></Separator>
                                             <MenuItem Header="Go to Feeder Location" Command="{Binding selectedFeeder.GoToFeederCommand}"  />
                                             <MenuItem Header="Go to Feeder Drive Location" Command="{Binding selectedFeeder.GoToFeederDriveCommand}" />
-                                            <MenuItem Header="Go to Component Pick"  />
+                                            <MenuItem Header="Go to Next Component" Command="{Binding selectedFeeder.GoToNextComponentCommand}" />
                                             <Separator Margin="2"></Separator>
-                                            <MenuItem Header="Pick Component"  />
+                                            <MenuItem Header="Pick Next Component" Command="{Binding selectedFeeder.PickNextComponentCommand}"  />
                                             <Separator Margin="2"></Separator>
                                             <MenuItem Header="Set Part Template" Command="{Binding selectedFeeder.SetPartTemplateCommand}" />
-                                            <MenuItem Header="Find Part" Command="{Binding selectedFeeder.part.FindPartCommand}" />
+                            
                                         </ContextMenu>
                                     </DataGrid.ContextMenu>
                                 </ui:DataGrid>

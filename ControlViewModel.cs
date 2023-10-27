@@ -6,28 +6,68 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace Picky
 {
     public class ControlViewModel : INotifyPropertyChanged
     {
-        MachineModel machine = MachineModel.Instance;
+        MachineModel machine;
+
+        public bool IsMachinePaused
+        {
+            get { return machine.isMachinePaused; }
+            set { machine.isMachinePaused = value; OnPropertyChanged(nameof(IsMachinePaused)); }
+        }
+
+        public SolidColorBrush CalPositionStatusColor
+        {
+            get {
+                if (machine.IsXYCalibrated == true && machine.IsZCalibrated == true)
+                    return (new SolidColorBrush(Color.FromArgb(50, 0, 255, 0)));
+                else
+                    return (new SolidColorBrush(Color.FromArgb(50, 255, 0, 0)));
+            } 
+        }
+
+        public SolidColorBrush CalCameraStatusColor
+        {
+            get
+            {
+                if (machine.IsCameraCalibrated == true)
+                    return (new SolidColorBrush(Color.FromArgb(50, 0, 255, 0)));
+                else
+                    return (new SolidColorBrush(Color.FromArgb(50, 255, 0, 0)));
+            }
+        }
 
         public bool isIlluminatorOn { get; set; }
         public bool isPumpOn { get; set; }
         public bool isValveOn { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
-        
-        public ControlViewModel() {
-            machine.Messages.Add(Command.S3G_GetPosition());
+        private void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-        public ICommand InitializeCommand { get { return new RelayCommand(Initialize); } }
-        private void Initialize()
+        private void OnMachinePropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            /* Pass notification to View so it gets the right brush */
+            OnPropertyChanged(nameof(CalPositionStatusColor));
+            OnPropertyChanged(nameof(CalCameraStatusColor));
+            OnPropertyChanged(nameof(IsMachinePaused));
+        }
+
+        public ControlViewModel() {
+            machine = MachineModel.Instance;
+            machine.PropertyChanged += OnMachinePropertyChanged;
+        }
+        public ICommand CalibrateCameraCommand { get { return new RelayCommand(CalibrateCamera); } }
+        private void CalibrateCamera()
         {
             Console.WriteLine("init"); 
         }
-        public ICommand HomeCommand { get { return new RelayCommand(Home); } }
+        public ICommand CalibratePositionCommand { get { return new RelayCommand(Home); } }
         private void Home()
         {
             // First, ensure the needle is safe

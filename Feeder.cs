@@ -85,9 +85,7 @@ namespace Picky
             get { return _z_origin; }
             set { _z_origin = value; OnPropertyChanged(nameof(z_origin)); }
         }
-
-
-
+        
         public double x_drive { get; set; }
         public double y_drive { get; set; }
         public double z_drive { get; set; }
@@ -105,19 +103,17 @@ namespace Picky
             OnPropertyChanged("part");
         }
 
-
-
         public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void OnPropertyChanged(string e)
         {
-            Console.WriteLine("part in feeder changed: " + e);
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(e));
         }
 
         public ICommand GoToFeederCommand { get { return new RelayCommand(GoToFeeder); } }
         private void GoToFeeder()
         {
-            Console.WriteLine("Go To Feeder Position: " + x_origin + " mm " + y_origin + " mm  Part: " + part.Description);
+            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
+            machine.Messages.Add(Command.S3G_GetPosition());
             machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(x_origin, y_origin));
             machine.Messages.Add(Command.S3G_GetPosition());
         }
@@ -139,6 +135,27 @@ namespace Picky
                     part.cassette = null;
             }
             machine.selectedCassette.Feeders.Remove(machine.selectedCassette.selectedFeeder);
+        }
+
+        public ICommand GoToNextComponentCommand { get { return new RelayCommand(GoToNextComponent); } }
+        private void GoToNextComponent()
+        {
+            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
+            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(x_next_part, y_next_part));
+            machine.Messages.Add(Command.S3G_GetPosition());
+        }
+
+        public ICommand PickNextComponentCommand { get { return new RelayCommand(PickNextComponent); } }
+        private void PickNextComponent()
+        {
+            double pickX, pickY;
+            pickX = x_next_part + Constants.PART_TO_PICKUP_XOFFSET;
+            pickY = y_next_part + Constants.PART_TO_PICKUP_YOFFSET;
+            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(pickX, pickY));
+            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.PART_TO_PICKUP_Z));
+            machine.Messages.Add(Command.S3G_GetPosition());
         }
 
         public ICommand SetPartTemplateCommand { get { return new RelayCommand(SetPartTemplate); } }

@@ -25,7 +25,7 @@ namespace Picky
 
         public Cassette selectedCassette
         {
-            get { return Machine.selectedCassette; }
+            get { return Machine.selectedCassette; } 
             set { Machine.selectedCassette = value; OnPropertyChanged(nameof(selectedCassette)); }
         }
 

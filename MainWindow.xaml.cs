@@ -50,6 +50,7 @@ namespace Picky
 
             cameraView = new CameraView();
             camView.Children.Add(cameraView);
+
         }
     }
 }

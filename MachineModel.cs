@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 
 namespace Picky
 {
@@ -22,12 +23,19 @@ namespace Picky
 
         public Mat currentRawImage;
 
+        public bool isMachinePaused { get; set; }
+
         /* Current PickList */
         public Part selectedPickListPart { get; set; }
         public ObservableCollection<Part> PickList { get; set; }
 
         /* Cassettes that are installed */
-        public Cassette selectedCassette  { get; set; }
+        private Cassette _selectedCassette;
+        public Cassette selectedCassette
+        {
+            get { return _selectedCassette; }
+            set { _selectedCassette = value; OnPropertyChanged(nameof(selectedCassette)); }
+        }
         public ObservableCollection<Cassette> Cassettes { get; set; } 
 
         public int LastEndStopState { get; set; } = 0;
@@ -39,38 +47,66 @@ namespace Picky
         }
 
         /* Current machine position - needed because serial port makes changes here */
-        private double currentX;
+        private double currentX = 0;
         public double CurrentX
         {
             get { return currentX; }
             set { currentX = value; OnPropertyChanged(nameof(CurrentX)); }
         }
-        private double currentY;
+        private double currentY = 0;
         public double CurrentY
         {
             get { return currentY; }
             set { currentY = value; OnPropertyChanged(nameof(CurrentY)); }
         }
-        private double currentZ;
+        private double currentZ =0;
         public double CurrentZ
         {
             get { return currentZ; }
-            set { currentZ = value; OnPropertyChanged(nameof(CurrentZ)); }
+            set { 
+                currentZ = value;
+                CurrentFrameXDimension = (7.73 * (Constants.CAMERA_OFFSET_Z + currentZ)) / (Constants.CAMERA_OFFSET_Z + 25.0);
+                CurrentFrameYDimension = (5.71 * (Constants.CAMERA_OFFSET_Z + currentZ)) / (Constants.CAMERA_OFFSET_Z + 25.0);
+                Console.WriteLine("Frame Dims: " + CurrentFrameXDimension + "mm " + CurrentFrameYDimension + "mm");
+                OnPropertyChanged(nameof(CurrentZ)); 
+            }
         }
-        private double currentA;
+        private double currentA = 0;
         public double CurrentA
         {
             get { return currentA; }
             set { currentA = value; OnPropertyChanged(nameof(CurrentA)); }
         }
-        private double currentB;
+        private double currentB = 0;
         public double CurrentB
         {
             get { return currentB; }
             set { currentB = value; OnPropertyChanged(nameof(CurrentB)); }
         }
 
-        
+        private bool isCameraCalibrated;
+        public bool IsCameraCalibrated
+        {
+            get { return isCameraCalibrated; }
+            set { isCameraCalibrated = value; OnPropertyChanged(nameof(IsCameraCalibrated)); }
+        }
+
+        private bool isXYCalibrated;
+        public bool IsXYCalibrated
+        {
+            get { return isXYCalibrated; }
+            set { isXYCalibrated = value; OnPropertyChanged(nameof(IsXYCalibrated)); }
+        }
+        private bool isZCalibrated;
+        public bool IsZCalibrated
+        {
+            get { return isZCalibrated; }
+            set { isZCalibrated = value; OnPropertyChanged(nameof(IsZCalibrated)); }
+        }
+
+        public double CurrentFrameXDimension { get; set; }
+        public double CurrentFrameYDimension { get; set; }
+
         public event NotifyCollectionChangedEventHandler CollectionChanged;
         private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {

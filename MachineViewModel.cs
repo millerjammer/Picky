@@ -44,6 +44,10 @@ namespace Picky
 
         public MachineViewModel()
         {
+            machine.Messages.Add(Command.S3G_Initialize());
+            machine.Messages.Add(Command.S3G_Initialize());
+            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(Command.S3G_GetPosition());
         }
 
         public ICommand ButtonXLeftCommand { get { return new RelayCommand(ButtonXLeft); } }
