@@ -17,9 +17,15 @@ namespace Picky
         public static int CAMERA_FRAME_HEIGHT = 960;
         public static int CAMERA_FPS = 45;
 
+        public static double CAMERA_OFFSET_Z = 50.8;
+
         /* Using 3.29mm focal length lens and 3.6736mm x 2.7384mm sensor */
-        
-        public static double CAMERA_OFFSET_Z = 64.0; //slightly over: 35.6;// way over: 45.6;
+        /* In mm */
+        public static double CALIBRATION_TARGET_WIDTH_MM = 69.85;
+        public static double CALIBRATION_TARGET_WIDTH_PIX = 950;
+        public static double CALIBRATION_TARGET_HEIGHT_MM = 44.45;
+        public static double CALIBRATION_TARGET_HEIGHT_PIX = 609;
+        public static double CALIBRATION_TARGET_DIST_MM = CAMERA_OFFSET_Z + 45.0;
 
         public static int SAFE_TRANSIT_Z = 45;
 
@@ -93,5 +99,23 @@ namespace Picky
 
         public static double MIL_TO_MM = 0.0254;
         public static int PICK_OFFSET_MIL = 1000;
+
+        public static double GetImageScaleAtDistanceX(double distance)
+        {
+            /*******************************************************************************/
+            /* Returns mm/pix given distance (as reported by Machine i.e. machine.CurrentX */
+
+            double imageScale = ((Constants.CALIBRATION_TARGET_WIDTH_MM / Constants.CALIBRATION_TARGET_WIDTH_PIX) * (distance + Constants.CAMERA_OFFSET_Z)) / Constants.CALIBRATION_TARGET_DIST_MM;
+            return (imageScale);
+        }
+
+        public static double GetImageScaleAtDistanceY(double distance)
+        {
+            /*******************************************************************************/
+            /* Returns mm/pix given distance (as reported by Machine i.e. machine.CurrentX */
+
+            double imageScale = ((Constants.CALIBRATION_TARGET_HEIGHT_MM / Constants.CALIBRATION_TARGET_HEIGHT_PIX) * (distance + Constants.CAMERA_OFFSET_Z)) / Constants.CALIBRATION_TARGET_DIST_MM;
+            return (imageScale);
+        }
     }
 }

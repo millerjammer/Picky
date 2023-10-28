@@ -20,6 +20,20 @@ using TransformGroup = System.Windows.Media.TransformGroup;
 using ScaleTransform = System.Windows.Media.ScaleTransform;
 using Point = System.Windows.Point;
 using System.Drawing.Imaging;
+using EnvDTE;
+using Microsoft.VisualStudio.OLE.Interop;
+using static OpenCvSharp.ML.DTrees;
+
+using Wpf.Ui.Appearance;
+using Xamarin.Forms.PlatformConfiguration;
+using Thread = System.Threading.Thread;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using Wpf.Ui.Controls;
+using System.Windows.Forms.VisualStyles;
+using Xamarin.Forms;
+using Slider = Xamarin.Forms.Slider;
+using System.Security.Cryptography;
 
 /* https://stackoverflow.com/questions/62573753/pan-and-zoom-but-contain-image-inside-parent-container */
 /* https://stackoverflow.com/questions/741956/pan-zoom-image/6782715#6782715 */
@@ -29,6 +43,9 @@ namespace Picky
     /// <summary>
     /// Interaction logic for CameraView.xaml
     /// </summary>
+    /// 
+    
+
     public partial class CameraView : UserControl
     {
         private readonly CameraViewModel camera;
@@ -40,7 +57,6 @@ namespace Picky
         System.Windows.Media.TransformGroup group;
         System.Windows.Media.ScaleTransform xform;
         System.Windows.Media.TranslateTransform tt;
-
 
         private Point start, origin;
 
@@ -60,7 +76,7 @@ namespace Picky
         {
             InitializeComponent();
             capture = new VideoCapture();
-            
+
             camera = new CameraViewModel(capture);
             this.DataContext = camera;
 
@@ -208,42 +224,35 @@ namespace Picky
         private void Worker_DoWork(object sender, DoWorkEventArgs e)
         {
             var worker = (BackgroundWorker)sender;
-            Mat cameraImage = new Mat();
             while (!worker.CancellationPending)
             {
-                int imgWidth = (int)capture.Get(VideoCaptureProperties.FrameWidth);
-                int imgHeight = (int)capture.Get(VideoCaptureProperties.FrameHeight);
-
-                int width = imgWidth / camera.Zoom;
-                int height = imgHeight / camera.Zoom;
-                int x = (imgWidth - width) / 2;
-                int y = (imgHeight - height) / 2;
-                OpenCvSharp.Rect ROI = new OpenCvSharp.Rect(x, y, width, height);
-                OpenCvSharp.Size Size = new OpenCvSharp.Size(imgWidth, imgHeight);
-
-                 
-                using (cameraImage = capture.RetrieveMat())
+                using (camera.cameraImage = capture.RetrieveMat())
                 {
-                    machine.currentRawImage = cameraImage.Clone();
-                    if (machine.selectedCassette != null)
+                    machine.currentRawImage = camera.cameraImage.Clone();
+                    if (machine?.selectedCassette?.selectedFeeder?.part?.TemplateFileName != null)
                     {
-                        if (machine.selectedCassette.selectedFeeder != null)
-                        {
-                            if (machine.selectedCassette.selectedFeeder.part.TemplateFileName != null)
-                            {
-                                FindSelectedPartInImage(cameraImage);
-                                OpenCvSharp.Cv2.DrawMarker(cameraImage, new OpenCvSharp.Point(x_next, y_next), new OpenCvSharp.Scalar(0, 0, 0), OpenCvSharp.MarkerTypes.Cross, 100, 1);
-                            }
-                        }
+                        FindSelectedPartInImage(camera.cameraImage);
+                        OpenCvSharp.Cv2.DrawMarker(camera.cameraImage, new OpenCvSharp.Point(x_next, y_next), new OpenCvSharp.Scalar(0, 0, 255), OpenCvSharp.MarkerTypes.Cross, 100, 1);
                     }
-                    OpenCvSharp.Cv2.DrawMarker(cameraImage, new OpenCvSharp.Point(cameraImage.Cols/2, cameraImage.Rows/2), new OpenCvSharp.Scalar(0, 0, 255), OpenCvSharp.MarkerTypes.Cross, 100, 1);
-               
-                    Mat croppedImage = new Mat(cameraImage, ROI);
-                    OpenCvSharp.Cv2.Resize(croppedImage, croppedImage, Size);
-                    // Must create and use WriteableBitmap in the same thread(UI Thread).
+                    else
+                    {
+                        OpenCvSharp.Rect rect = new OpenCvSharp.Rect();
+                        rect = FindRectangleInImage(camera.cameraImage);
+                        
+                        
+                        Cv2.Rectangle(camera.cameraImage, rect, new OpenCvSharp.Scalar(255, 0, 255),2);
+                    }
+                    OpenCvSharp.Cv2.DrawMarker(camera.cameraImage, new OpenCvSharp.Point(camera.cameraImage.Cols/2, camera.cameraImage.Rows/2), new OpenCvSharp.Scalar(0, 0, 255), OpenCvSharp.MarkerTypes.Cross, 100, 1);
                     Dispatcher.Invoke(() =>
                     {
-                        FrameImage.Source = croppedImage.ToWriteableBitmap();
+                        if(camera.SelectedVisualizationViewItem.viewName.Equals("Normal View"))
+                            FrameImage.Source = camera.cameraImage.ToWriteableBitmap();
+                        else if (camera.SelectedVisualizationViewItem.viewName.Equals("Grayscale"))
+                            FrameImage.Source = camera.grayImage.ToWriteableBitmap();
+                        else if (camera.SelectedVisualizationViewItem.viewName.Equals("Threshold"))
+                            FrameImage.Source = camera.thresImage.ToWriteableBitmap();
+                        else if (camera.SelectedVisualizationViewItem.viewName.Equals("Edge Image"))
+                            FrameImage.Source = camera.edgeImage.ToWriteableBitmap();
                     });
 
                 }
@@ -251,11 +260,53 @@ namespace Picky
             }
         }
 
+        private OpenCvSharp.Rect FindRectangleInImage(Mat srcImage) {
+
+            OpenCvSharp.Rect calRect = new OpenCvSharp.Rect();
+                                   
+            // Convert the image to grayscale
+            Cv2.CvtColor(srcImage, camera.grayImage, ColorConversionCodes.BGR2GRAY);
+
+            // Apply Gaussian blur to reduce noise
+            Cv2.GaussianBlur(camera.grayImage, camera.grayImage, new OpenCvSharp.Size(5, 5), 0);
+
+            // Binary threshold
+            Cv2.Threshold(camera.grayImage, camera.thresImage, 100, 255, ThresholdTypes.Binary);
+            
+            // Use Canny edge detection to find edges in the image
+            Cv2.Canny(camera.thresImage, camera.edgeImage, 50, 150, 3);
+            
+            // Dilate the edges to fill gaps in between object edges
+            Cv2.Dilate(camera.edgeImage, camera.dilatedImage, null, iterations: 2);
+
+            // Find contours in the image
+            HierarchyIndex[] hierarchy;
+            Cv2.FindContours(camera.dilatedImage, out OpenCvSharp.Point[][] contours, out hierarchy, RetrievalModes.List, ContourApproximationModes.ApproxNone);
+            
+            double largestArea = 0;
+            OpenCvSharp.Rect largestRect = new OpenCvSharp.Rect(0,0,0,0);
+           
+            foreach (var contour in contours)
+            {
+                double area = Cv2.ContourArea(contour);
+                if (area > 10000 && area > largestArea)
+                {
+                    largestArea = area;
+                    largestRect = Cv2.BoundingRect(contour);
+                }
+            }
+
+            Console.WriteLine("resolution-x: " + Constants.GetImageScaleAtDistanceX(machine.CurrentZ) + "mm/pix  Rect: " + largestRect.Width + " " + largestRect.Height);
+            return largestRect;
+        }
+
+        
+        
+
         private void FindSelectedPartInImage(Mat image)
         {
-            Mat gref = new Mat();
-            Mat gtpl = new Mat();
-            Mat mres = new Mat();
+            Mat grayTemplateImage = new Mat();
+            Mat matchResultImage = new Mat();
             Mat res_32f;
 
             if(machine.selectedCassette.selectedFeeder.part.Template == null)
@@ -264,26 +315,26 @@ namespace Picky
             }
             Mat template = machine.selectedCassette.selectedFeeder.part.Template;
 
-            Cv2.CvtColor(image, gref, OpenCvSharp.ColorConversionCodes.BGR2GRAY);
-            Cv2.CvtColor(template, gtpl, OpenCvSharp.ColorConversionCodes.BGR2GRAY);
+            Cv2.CvtColor(image, camera.grayImage, OpenCvSharp.ColorConversionCodes.BGR2GRAY);
+            Cv2.CvtColor(template, grayTemplateImage, OpenCvSharp.ColorConversionCodes.BGR2GRAY);
 
             //const int low_canny = 12;  /* Lower Values capture more edges, default is 110*/
-//Cv2.Canny(gref, gref, low_canny, low_canny * 3);
-//Cv2.Canny(gtpl, gtpl, low_canny, low_canny * 3);
+            //Cv2.Canny(gref, gref, low_canny, low_canny * 3);
+            //Cv2.Canny(gtpl, gtpl, low_canny, low_canny * 3);
 
-/* Show gray images in window */
-//Cv2.ImShow("file", gref);
-//Cv2.ImShow("template", gtpl);
+            /* Show gray images in window */
+            //Cv2.ImShow("file", gref);
+            //Cv2.ImShow("template", gtpl);
 
-res_32f = new Mat(image.Rows - template.Rows + 1, image.Cols - template.Cols + 1, MatType.CV_32FC1);
-            Cv2.MatchTemplate(gref, gtpl, res_32f, TemplateMatchModes.CCoeffNormed);
+            res_32f = new Mat(image.Rows - template.Rows + 1, image.Cols - template.Cols + 1, MatType.CV_32FC1);
+            Cv2.MatchTemplate(camera.grayImage, grayTemplateImage, res_32f, TemplateMatchModes.CCoeffNormed);
 
             /* Show Result */
-            res_32f.ConvertTo(mres, MatType.CV_8U, 255.0);
+            res_32f.ConvertTo(matchResultImage, MatType.CV_8U, 255.0);
             //Cv2.ImShow("result", mres);
 
             int size = ((template.Cols + template.Rows) / 4) * 2 + 1; //force size to be odd
-            Cv2.AdaptiveThreshold(mres, mres, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.Binary, size, machine.selectedCassette.selectedFeeder.part.PartDetectionThreshold);
+            Cv2.AdaptiveThreshold(matchResultImage, camera.thresImage, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.Binary, size, machine.selectedCassette.selectedFeeder.part.PartDetectionThreshold);
             //Cv2.ImShow("result_thresh", mres);
 
             y_last = Constants.CAMERA_FRAME_HEIGHT;
@@ -292,7 +343,7 @@ res_32f = new Mat(image.Rows - template.Rows + 1, image.Cols - template.Cols + 1
             {
                 double minval, maxval;
                 OpenCvSharp.Point minloc, maxloc;
-                Cv2.MinMaxLoc(mres, out minval, out maxval, out minloc, out maxloc);
+                Cv2.MinMaxLoc(camera.thresImage, out minval, out maxval, out minloc, out maxloc);
                 if (maxloc.Y > 0 && maxloc.X > 0 && maxloc.Y < y_last)
                 {
                     y_last = maxloc.Y;
@@ -303,17 +354,14 @@ res_32f = new Mat(image.Rows - template.Rows + 1, image.Cols - template.Cols + 1
                 if (maxval > 0)
                 {
                     Cv2.Rectangle(image, maxloc, new OpenCvSharp.Point(maxloc.X + template.Cols, maxloc.Y + template.Rows), new OpenCvSharp.Scalar(0, 255, 0), 2);
-                    Cv2.FloodFill(mres, maxloc, 0); //mark drawn blob
+                    Cv2.FloodFill(camera.thresImage, maxloc, 0); //mark drawn blob
                 }
                 else
                 {
-                    double feeder_frame_x = 70.0;
-                    double feeder_frame_y = 50.1;
-
                     double x_offset_pixels = x_next - (0.5 * Constants.CAMERA_FRAME_WIDTH);
                     double y_offset_pixels = -(y_next - (0.5 * Constants.CAMERA_FRAME_HEIGHT));
-                    machine.selectedCassette.selectedFeeder.x_next_part = machine.CurrentX + (x_offset_pixels * (feeder_frame_x / Constants.CAMERA_FRAME_WIDTH));
-                    machine.selectedCassette.selectedFeeder.y_next_part = machine.CurrentY + (y_offset_pixels * (feeder_frame_y / Constants.CAMERA_FRAME_HEIGHT));
+                    machine.selectedCassette.selectedFeeder.x_next_part = machine.CurrentX + (x_offset_pixels * Constants.GetImageScaleAtDistanceX(machine.CurrentZ));
+                    machine.selectedCassette.selectedFeeder.y_next_part = machine.CurrentY + (y_offset_pixels * Constants.GetImageScaleAtDistanceY(machine.CurrentZ));
                     break;
                 }
             }

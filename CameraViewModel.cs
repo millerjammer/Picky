@@ -1,6 +1,9 @@
 ﻿using Newtonsoft.Json.Linq;
 using OpenCvSharp;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.UI.WebControls.WebParts;
@@ -8,25 +11,37 @@ using System.Windows.Input;
 
 namespace Picky
 {
+    public class VisualizationStyle
+    {
+        public string viewName { get; set; }
+        public Mat viewMat { get; set; }
+        public VisualizationStyle(string name, Mat mati)
+        {
+            viewName = name;
+            viewMat = mati;
+        }
+    }
+
     public class CameraViewModel : INotifyPropertyChanged
     {
         MachineModel machine = MachineModel.Instance;
-        private readonly VideoCapture capture;
+        VideoCapture capture;
+
+        public Mat cameraImage = new Mat();
+        public Mat grayImage = new Mat();
+        public Mat thresImage = new Mat();
+        public Mat edgeImage = new Mat();
+        public Mat dilatedImage = new Mat();
 
         public bool IsManualFocus { get; set; }
-       
+        public List<VisualizationStyle> VisualizationView { get; set; }
+        public VisualizationStyle SelectedVisualizationViewItem {  get; set; }
+
         private int focus;
         public int Focus
         {
             get { return focus; }
             set { focus = value; setCameraFocus(); OnPropertyChanged(nameof(Focus)); }
-        }
-
-        private int zoom = 1;
-        public int Zoom
-        {
-            get { return zoom; }
-            set { zoom = value; OnPropertyChanged(nameof(Zoom)); }
         }
 
         private bool isCassetteFeederSelected = false;
@@ -47,6 +62,15 @@ namespace Picky
             this.capture = cap;
             /* Listen for selectedCassette to change, then we can listen for selectedFeeder */ 
             machine.PropertyChanged += OnMachinePropertyChanged;
+
+            VisualizationView = new List<VisualizationStyle>
+            {
+                new VisualizationStyle("Normal View", cameraImage),
+                new VisualizationStyle("Grayscale", grayImage),
+                new VisualizationStyle("Threshold", thresImage),
+                new VisualizationStyle("Edge Image", edgeImage),
+            };
+            SelectedVisualizationViewItem = VisualizationView.FirstOrDefault();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
