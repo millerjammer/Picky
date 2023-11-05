@@ -1,43 +1,22 @@
 ﻿using OpenCvSharp;
 using OpenCvSharp.WpfExtensions;
 using System.ComponentModel;
-using System.Text.RegularExpressions;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System;
 using System.Linq;
-using System.Windows.Media.Imaging;
-using EnvDTE90;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Reflection;
-using Xamarin.Forms.Shapes;
-using System.Windows.Media.Media3D;
 using TranslateTransform = System.Windows.Media.TranslateTransform;
 using TransformGroup = System.Windows.Media.TransformGroup;
 using ScaleTransform = System.Windows.Media.ScaleTransform;
 using Point = System.Windows.Point;
-using System.Drawing.Imaging;
-using EnvDTE;
-using Microsoft.VisualStudio.OLE.Interop;
-using static OpenCvSharp.ML.DTrees;
-
-using Wpf.Ui.Appearance;
-using Xamarin.Forms.PlatformConfiguration;
-using Thread = System.Threading.Thread;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using Wpf.Ui.Controls;
-using System.Windows.Forms.VisualStyles;
-using Xamarin.Forms;
 using Slider = Xamarin.Forms.Slider;
-using System.Security.Cryptography;
+
 
 /* https://stackoverflow.com/questions/62573753/pan-and-zoom-but-contain-image-inside-parent-container */
 /* https://stackoverflow.com/questions/741956/pan-zoom-image/6782715#6782715 */
-
+/* https://www.kurokesu.com/main/2020/07/12/pulling-full-resolution-from-a-webcam-with-opencv-windows/ */
 namespace Picky
 {
     /// <summary>
@@ -45,6 +24,7 @@ namespace Picky
     /// </summary>
     /// 
     
+
 
     public partial class CameraView : UserControl
     {
@@ -59,7 +39,7 @@ namespace Picky
         System.Windows.Media.TranslateTransform tt;
 
         private Point start, origin;
-
+                       
         private TranslateTransform GetTranslateTransform(UIElement element)
         {
             return (TranslateTransform)((TransformGroup)element.RenderTransform)
@@ -101,7 +81,6 @@ namespace Picky
             Loaded += MainWindow_Loaded;
         }
    
-
 
         private void Image_MouseUp(object sender, MouseButtonEventArgs e)
         {
@@ -198,9 +177,13 @@ namespace Picky
         {
             capture.Open(0);
             capture.Set(VideoCaptureProperties.Fps, Constants.CAMERA_FPS);
+            capture.Set(VideoCaptureProperties.FourCC, OpenCvSharp.VideoWriter.FourCC('m', 'j', 'p', 'g'));
+            capture.Set(VideoCaptureProperties.FourCC, OpenCvSharp.VideoWriter.FourCC('M', 'J', 'P', 'G'));
+
             capture.Set(VideoCaptureProperties.FrameWidth, Constants.CAMERA_FRAME_WIDTH);
             capture.Set(VideoCaptureProperties.FrameHeight, Constants.CAMERA_FRAME_HEIGHT);
             capture.Set(VideoCaptureProperties.BufferSize, 200);
+            camera.IsManualFocus = false;
             bkgWorker.RunWorkerAsync();
         }
 
@@ -228,43 +211,163 @@ namespace Picky
             {
                 using (camera.cameraImage = capture.RetrieveMat())
                 {
-                    machine.currentRawImage = camera.cameraImage.Clone();
-                    if (machine?.selectedCassette?.selectedFeeder?.part?.TemplateFileName != null)
+                    try
+                    {
+                        machine.currentRawImage = camera.cameraImage.Clone();
+                    }catch (Exception ex)
+                    {
+                        Console.WriteLine("Ouchy - " + ex.ToString());
+                    }
+
+                    if(machine.CameraCalibrationState == MachineModel.CalibrationState.InProcess)
+                    {
+                        machine.CalRectangle = FindRectangleInImage(camera.cameraImage);
+                        Cv2.Rectangle(camera.cameraImage, machine.CalRectangle, new OpenCvSharp.Scalar(255, 0, 255),2);
+                    }
+                    else if(machine.PickCalibrationState == MachineModel.CalibrationState.InProcess)
+                    {
+                        camera.IsManualFocus = true;
+                        camera.Focus = Constants.CALIBRATION_PICK_FOCUS;
+                        machine.CalRectangle = FindPickInImage(camera.cameraImage);
+                        Cv2.Rectangle(camera.cameraImage, machine.CalRectangle, new OpenCvSharp.Scalar(0, 255, 0), 2);
+                        double x_center = (machine.CalRectangle.X + (machine.CalRectangle.Width / 2));
+                        double x_offset = x_center - (Constants.CAMERA_FRAME_WIDTH / 2);
+                        double y_end = machine.CalRectangle.Height;
+                        double y_offset = (Constants.CAMERA_FRAME_HEIGHT / 2) - y_end;
+                        /* x_offset and y_offset are measured from center of the frame, in pixels. x and y are generally positive. Actual location in quadrant 1  */
+                        OpenCvSharp.Cv2.DrawMarker(camera.cameraImage, new OpenCvSharp.Point(x_center, y_end), new OpenCvSharp.Scalar(0, 0, 255), OpenCvSharp.MarkerTypes.Cross, 100, 1);
+                        Console.WriteLine("Pick @ Angle: " + (machine.CurrentB * Constants.B_DEGREES_PER_MM) + "d " + x_offset + "px " + (x_offset * (machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z))) + "mm " + y_offset + "px " + (y_offset * (machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z))) + "mm ");
+                        if (machine.CalPick.x_min > x_offset)
+                        {
+                            machine.CalPick.x_min = x_offset;
+                            machine.CalPick.x_min_angle = (machine.CurrentB * Constants.B_DEGREES_PER_MM);
+                        }
+                        if (machine.CalPick.x_max < x_offset)
+                        {
+                            machine.CalPick.x_max = x_offset;
+                            machine.CalPick.x_max_angle = (machine.CurrentB * Constants.B_DEGREES_PER_MM);
+                        }
+
+                        if (machine.CalPick.h_min > y_offset)
+                        {
+                            machine.CalPick.h_min = y_offset;
+                            machine.CalPick.h_min_angle = (machine.CurrentB * Constants.B_DEGREES_PER_MM);
+                        }
+                        if (machine.CalPick.h_max < y_offset)
+                        {
+                            machine.CalPick.h_max = y_offset;
+                            machine.CalPick.h_max_angle = (machine.CurrentB * Constants.B_DEGREES_PER_MM);
+                        }
+                    }
+                    else if (machine?.selectedCassette?.selectedFeeder?.part?.TemplateFileName != null)
                     {
                         FindSelectedPartInImage(camera.cameraImage);
                         OpenCvSharp.Cv2.DrawMarker(camera.cameraImage, new OpenCvSharp.Point(x_next, y_next), new OpenCvSharp.Scalar(0, 0, 255), OpenCvSharp.MarkerTypes.Cross, 100, 1);
                     }
                     else
                     {
-                        OpenCvSharp.Rect rect = new OpenCvSharp.Rect();
-                        rect = FindRectangleInImage(camera.cameraImage);
-                        
-                        
-                        Cv2.Rectangle(camera.cameraImage, rect, new OpenCvSharp.Scalar(255, 0, 255),2);
+                        UpdateSecondaryVideoStream(camera.cameraImage);
                     }
+                                        
                     OpenCvSharp.Cv2.DrawMarker(camera.cameraImage, new OpenCvSharp.Point(camera.cameraImage.Cols/2, camera.cameraImage.Rows/2), new OpenCvSharp.Scalar(0, 0, 255), OpenCvSharp.MarkerTypes.Cross, 100, 1);
                     Dispatcher.Invoke(() =>
                     {
-                        if(camera.SelectedVisualizationViewItem.viewName.Equals("Normal View"))
-                            FrameImage.Source = camera.cameraImage.ToWriteableBitmap();
-                        else if (camera.SelectedVisualizationViewItem.viewName.Equals("Grayscale"))
-                            FrameImage.Source = camera.grayImage.ToWriteableBitmap();
-                        else if (camera.SelectedVisualizationViewItem.viewName.Equals("Threshold"))
-                            FrameImage.Source = camera.thresImage.ToWriteableBitmap();
-                        else if (camera.SelectedVisualizationViewItem.viewName.Equals("Edge Image"))
-                            FrameImage.Source = camera.edgeImage.ToWriteableBitmap();
+                        try
+                        {
+                            if (camera.SelectedVisualizationViewItem.viewName.Equals("Normal View"))
+                                FrameImage.Source = camera.cameraImage.ToWriteableBitmap();
+                            else if (camera.SelectedVisualizationViewItem.viewName.Equals("Grayscale"))
+                                FrameImage.Source = camera.grayImage.ToWriteableBitmap();
+                            else if (camera.SelectedVisualizationViewItem.viewName.Equals("Threshold"))
+                                FrameImage.Source = camera.thresImage.ToWriteableBitmap();
+                            else if (camera.SelectedVisualizationViewItem.viewName.Equals("Edge Image"))
+                                FrameImage.Source = camera.edgeImage.ToWriteableBitmap();
+                            else if (camera.SelectedVisualizationViewItem.viewName.Equals("Dilated Image"))
+                                FrameImage.Source = camera?.dilatedImage.ToWriteableBitmap();
+                        }catch(Exception ex)
+                        {
+                            Console.WriteLine("Ouch - Memory Exception: " + ex.ToString());
+                        }
                     });
 
                 }
-                Thread.Sleep(10);
+                camera.cameraImage.Release();
+                Cv2.WaitKey(10);
             }
+        }
+
+        private void UpdateSecondaryVideoStream(Mat srcImage)
+        {
+            /* Not sure what to do but this prevents memory leaks */
+            
+            // Convert the image to grayscale
+            Cv2.CvtColor(srcImage, camera.grayImage, ColorConversionCodes.BGR2GRAY);
+
+            // Apply Gaussian blur to reduce noise
+            Cv2.GaussianBlur(camera.grayImage, camera.grayImage, new OpenCvSharp.Size(5, 5), 0);
+
+            // Binary threshold
+            Cv2.Threshold(camera.grayImage, camera.thresImage, 80, 255, ThresholdTypes.Binary);
+
+            // Use Canny edge detection to find edges in the image
+            Cv2.Canny(camera.thresImage, camera.edgeImage, 50, 150, 3);
+
+            // Dilate the edges to fill gaps in between object edges
+            Cv2.Dilate(camera.edgeImage, camera.dilatedImage, null, iterations: 2);
+
+            return;
+        }
+
+        private OpenCvSharp.Rect FindPickInImage(Mat srcImage)
+        {
+            int x = (Constants.CAMERA_FRAME_WIDTH / 2) - (Constants.CAMERA_FRAME_WIDTH / 4);
+            int y = 0;
+            int width = (Constants.CAMERA_FRAME_WIDTH / 2);
+            int height = (Constants.CAMERA_FRAME_WIDTH / 18);
+            OpenCvSharp.Rect roi = new OpenCvSharp.Rect(x, y, width, height);
+
+            //OpenCvSharp.Rect roi = new OpenCvSharp.Rect(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
+            // ROI
+            camera.pickROI = new Mat(srcImage, roi); 
+
+            // Convert the image to grayscale
+            Cv2.CvtColor(camera.pickROI, camera.grayImage, ColorConversionCodes.BGR2GRAY);
+
+            // Apply Gaussian blur to reduce noise
+            Cv2.GaussianBlur(camera.grayImage, camera.grayImage, new OpenCvSharp.Size(5, 5), 0);
+
+            // Binary threshold
+            Cv2.Threshold(camera.grayImage, camera.thresImage, 80, 255, ThresholdTypes.Binary);
+
+            // Use Canny edge detection to find edges in the image
+            Cv2.Canny(camera.thresImage, camera.edgeImage, 50, 150, 3);
+
+            // Dilate the edges to fill gaps in between object edges
+            Cv2.Dilate(camera.edgeImage, camera.dilatedImage, null, iterations: 2);
+
+            // Find contours in the image
+            HierarchyIndex[] hierarchy;
+            Cv2.FindContours(camera.dilatedImage, out OpenCvSharp.Point[][] contours, out hierarchy, RetrievalModes.List, ContourApproximationModes.ApproxNone);
+
+            double longestLen = 0.0;
+            OpenCvSharp.Rect longestRect = new OpenCvSharp.Rect(0, 0, 0, 0);
+
+            foreach (var contour in contours)
+            {
+                double contourLength = Cv2.ArcLength(contour, true);
+                if (contourLength > longestLen)
+                {
+                    longestLen = contourLength;
+                    longestRect = Cv2.BoundingRect(contour);
+                }
+            }
+            longestRect.X += x; longestRect.Y += y;
+            return longestRect;
         }
 
         private OpenCvSharp.Rect FindRectangleInImage(Mat srcImage) {
 
-            OpenCvSharp.Rect calRect = new OpenCvSharp.Rect();
-                                   
-            // Convert the image to grayscale
+           // Convert the image to grayscale
             Cv2.CvtColor(srcImage, camera.grayImage, ColorConversionCodes.BGR2GRAY);
 
             // Apply Gaussian blur to reduce noise
@@ -295,13 +398,9 @@ namespace Picky
                     largestRect = Cv2.BoundingRect(contour);
                 }
             }
-
-            Console.WriteLine("resolution-x: " + Constants.GetImageScaleAtDistanceX(machine.CurrentZ) + "mm/pix  Rect: " + largestRect.Width + " " + largestRect.Height);
             return largestRect;
         }
-
-        
-        
+               
 
         private void FindSelectedPartInImage(Mat image)
         {
@@ -318,25 +417,15 @@ namespace Picky
             Cv2.CvtColor(image, camera.grayImage, OpenCvSharp.ColorConversionCodes.BGR2GRAY);
             Cv2.CvtColor(template, grayTemplateImage, OpenCvSharp.ColorConversionCodes.BGR2GRAY);
 
-            //const int low_canny = 12;  /* Lower Values capture more edges, default is 110*/
-            //Cv2.Canny(gref, gref, low_canny, low_canny * 3);
-            //Cv2.Canny(gtpl, gtpl, low_canny, low_canny * 3);
-
-            /* Show gray images in window */
-            //Cv2.ImShow("file", gref);
-            //Cv2.ImShow("template", gtpl);
-
             res_32f = new Mat(image.Rows - template.Rows + 1, image.Cols - template.Cols + 1, MatType.CV_32FC1);
             Cv2.MatchTemplate(camera.grayImage, grayTemplateImage, res_32f, TemplateMatchModes.CCoeffNormed);
 
             /* Show Result */
             res_32f.ConvertTo(matchResultImage, MatType.CV_8U, 255.0);
-            //Cv2.ImShow("result", mres);
-
+            
             int size = ((template.Cols + template.Rows) / 4) * 2 + 1; //force size to be odd
             Cv2.AdaptiveThreshold(matchResultImage, camera.thresImage, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.Binary, size, machine.selectedCassette.selectedFeeder.part.PartDetectionThreshold);
-            //Cv2.ImShow("result_thresh", mres);
-
+            
             y_last = Constants.CAMERA_FRAME_HEIGHT;
             /* Show all matches */
             while (true)
@@ -360,8 +449,9 @@ namespace Picky
                 {
                     double x_offset_pixels = x_next - (0.5 * Constants.CAMERA_FRAME_WIDTH);
                     double y_offset_pixels = -(y_next - (0.5 * Constants.CAMERA_FRAME_HEIGHT));
-                    machine.selectedCassette.selectedFeeder.x_next_part = machine.CurrentX + (x_offset_pixels * Constants.GetImageScaleAtDistanceX(machine.CurrentZ));
-                    machine.selectedCassette.selectedFeeder.y_next_part = machine.CurrentY + (y_offset_pixels * Constants.GetImageScaleAtDistanceY(machine.CurrentZ));
+                    double x_next_part = machine.CurrentX + (x_offset_pixels * machine.GetImageScaleAtDistanceX(machine.CurrentZ + Constants.FEEDER_TO_PLATFORM_ZOFFSET));
+                    double y_next_part = machine.CurrentY + (y_offset_pixels * machine.GetImageScaleAtDistanceY(machine.CurrentZ + Constants.FEEDER_TO_PLATFORM_ZOFFSET));
+                    machine.selectedCassette.selectedFeeder.SetCandidateNextPartLocation(x_next_part, y_next_part);
                     break;
                 }
             }

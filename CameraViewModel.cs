@@ -1,12 +1,9 @@
 ﻿using Newtonsoft.Json.Linq;
 using OpenCvSharp;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Web.UI.WebControls.WebParts;
 using System.Windows.Input;
 
 namespace Picky
@@ -30,10 +27,17 @@ namespace Picky
         public Mat cameraImage = new Mat();
         public Mat grayImage = new Mat();
         public Mat thresImage = new Mat();
-        public Mat edgeImage = new Mat();
-        public Mat dilatedImage = new Mat();
+        public Mat edgeImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
+        public Mat dilatedImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
+        public Mat pickROI = new Mat();
 
-        public bool IsManualFocus { get; set; }
+        private bool isManualFocus;
+        public bool IsManualFocus
+        {
+            get { return isManualFocus; }
+            set { isManualFocus = value; setCameraFocus(); OnPropertyChanged(nameof(IsManualFocus)); }
+        }
+
         public List<VisualizationStyle> VisualizationView { get; set; }
         public VisualizationStyle SelectedVisualizationViewItem {  get; set; }
 
@@ -69,6 +73,7 @@ namespace Picky
                 new VisualizationStyle("Grayscale", grayImage),
                 new VisualizationStyle("Threshold", thresImage),
                 new VisualizationStyle("Edge Image", edgeImage),
+                new VisualizationStyle("Dilated Image", dilatedImage),
             };
             SelectedVisualizationViewItem = VisualizationView.FirstOrDefault();
         }
@@ -105,7 +110,7 @@ namespace Picky
             {
                 int value = (int)capture.Get(VideoCaptureProperties.Focus);
                 capture.Set(VideoCaptureProperties.Focus, Focus);
-                Console.WriteLine("Manual Focus " + value + " -> " + Focus);
+                //Console.WriteLine("Manual Focus " + value + " -> " + Focus);
             }
             else
             {
@@ -118,11 +123,6 @@ namespace Picky
         {
             Console.WriteLine("Full Screen Clicked");
         }
-
-        public ICommand AutoFocusCommand { get { return new RelayCommand(AutoFocus); } }
-        private void AutoFocus()
-        {
-            setCameraFocus(); 
-        }
+    
     }
 }

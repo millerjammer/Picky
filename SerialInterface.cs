@@ -18,6 +18,7 @@ namespace Picky
     {
         private static byte[] serial_buffer = new byte[Constants.MAX_BUFFER_SIZE];
         private static int s_in = 0;
+        private int tick = 0;
 
         MachineModel machine = MachineModel.Instance;
 
@@ -115,14 +116,15 @@ namespace Picky
                             if (serial_buffer[i + 1] == (byte)Constants.S3G_GET_EXTENDED_POSITION_CURRENT_LEN)
                             {
                                 isPositionGood = getPositionFromMessage();
-                                isPositionFaulty = CheckPosition();
+                                isPositionFaulty = CheckPositionHardFailure();
                                 if (isPositionFaulty)
                                 {
                                     machine.Messages.Clear();
                                     machine.Messages.Add(Command.S3G_AbortImmediately());
+                                    machine.CameraCalibrationState = MachineModel.CalibrationState.Failed;
+                                    machine.PositionCalibrationState = MachineModel.CalibrationState.Failed;
                                     machine.CalibrationStatusString = "Abort due to bad position";
-                                    machine.IsXYCalibrated = false;
-                                    machine.IsZCalibrated = false;
+    
                                 }
                             }
                             //Fixup the byte buffer by moving unread bytes and the pointer
@@ -146,7 +148,7 @@ namespace Picky
             return false;
         }
 
-        private bool CheckPosition() {
+        private bool CheckPositionHardFailure() {
             /********************************************************************
             * Checks position
             *
@@ -173,34 +175,116 @@ namespace Picky
                 if (msg.cmd[0] == Constants.JRM_CALIBRATION_CHECK_XY)
                 {
                     Console.WriteLine("Calibration XY Check: " + machine.LastEndStopState);
-                    if( ((machine.LastEndStopState & Constants.X_AXIS_MAX_SW) == Constants.X_AXIS_MAX_SW ) && ((machine.LastEndStopState & Constants.Y_AXIS_MAX_SW) == Constants.Y_AXIS_MAX_SW))
+                    if (((machine.LastEndStopState & Constants.X_AXIS_MAX_SW) == Constants.X_AXIS_MAX_SW) && ((machine.LastEndStopState & Constants.Y_AXIS_MAX_SW) == Constants.Y_AXIS_MAX_SW))
                     {
-                        machine.IsXYCalibrated = true;
                         machine.CalibrationStatusString = "Calibration XY: Successful";
                         machine.Messages.RemoveAt(0);
                     }
                     else
                     {
-                        machine.IsXYCalibrated = false;
+                        machine.PositionCalibrationState = MachineModel.CalibrationState.Failed;
                         machine.CalibrationStatusString = "Calibration XY: Failed (Timeout?)";
                         machine.Messages.Clear();
                     }
                 }
+                
                 else if (msg.cmd[0] == Constants.JRM_CALIBRATION_CHECK_Z)
                 {
                     Console.WriteLine("Calibration Z Check: " + machine.LastEndStopState);
-                    if ( (machine.LastEndStopState & (Constants.Z_AXIS_MIN_SW)) == (Constants.Z_AXIS_MIN_SW) )
+                    if ((machine.LastEndStopState & (Constants.Z_AXIS_MIN_SW)) == (Constants.Z_AXIS_MIN_SW))
                     {
-                        machine.IsZCalibrated = true;
+                        machine.PositionCalibrationState = MachineModel.CalibrationState.Complete;
                         machine.CalibrationStatusString = "Calibration Z: Successful";
                         machine.Messages.RemoveAt(0);
                     }
                     else
                     {
-                        machine.IsZCalibrated = false;
+                        machine.PositionCalibrationState = MachineModel.CalibrationState.Failed;
                         machine.CalibrationStatusString = "Calibration Z: Failed (Timeout?)";
                         machine.Messages.Clear();
                     }
+                }
+                else if (msg.cmd[0] == Constants.JRM_CALIBRATION_ITEM_RESOLUTION)
+                {
+                    Console.WriteLine("In position, resolution cal started.");
+                    tick = 10;
+                    machine.Messages.Add(Command.JRM_CalibrationCalculateItemResolution1());
+                    machine.Messages.RemoveAt(0);
+
+                }
+                else if (msg.cmd[0] == Constants.JRM_CALIBRATION_ITEM_RESOLUTION1)
+                {
+                    if (--tick == 0)
+                    {
+                        if ((machine.CalRectangle.Width < Constants.CALIBRATION_TARGET_WIDTH_DEFAULT_PIX + 80) && (machine.CalRectangle.Width > Constants.CALIBRATION_TARGET_WIDTH_DEFAULT_PIX - 80))
+                        {
+                            if ((machine.CalRectangle.Height < Constants.CALIBRATION_TARGET_HEIGHT_DEFAULT_PIX + 80) && (machine.CalRectangle.Height > Constants.CALIBRATION_TARGET_HEIGHT_DEFAULT_PIX - 80))
+                            {
+                                
+                                Console.WriteLine("Final Target (w,h): " + machine.CalRectangle.Width + "px " + machine.CalRectangle.Height + "px");
+                                Console.WriteLine("Item Resolution: X: " + machine.GetImageScaleAtDistanceX(machine.CurrentZ) + "mm/px Y:" + machine.GetImageScaleAtDistanceY(machine.CurrentZ) + "mm/px");
+                                machine.CalibrationStatusString = "Item Resolution: Successful";
+                                machine.SetCalRectangle(machine.CalRectangle);
+                                machine.CameraCalibrationState = MachineModel.CalibrationState.Complete;
+                                machine.Messages.RemoveAt(0);
+                            }
+                            else
+                            {
+                                machine.CameraCalibrationState = MachineModel.CalibrationState.Failed;
+                                machine.CalibrationStatusString = "Item Resolution: Bad Height (Using default)";
+                                machine.Messages.Clear();
+                            }
+                        }
+                        else
+                        {
+                            machine.CameraCalibrationState = MachineModel.CalibrationState.Failed;
+                            machine.CalibrationStatusString = "Item Resolution: Bad Width (Using default)";
+                            machine.Messages.Clear();
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Target Rect (w,h) [" + tick + "]: " + machine.CalRectangle.Width + "px " + machine.CalRectangle.Height + "px");
+                    }
+                }
+                else if (msg.cmd[0] == Constants.JRM_CALIBRATION_CHECK_PICK)
+                {
+                    Console.WriteLine("Rotation Start");
+                    machine.CalPick.Initialize();
+                    machine.Messages.Add(Command.S3G_SetAbsoluteAngle(50));
+                    machine.Messages.Add(Command.S3G_GetPosition());
+                    machine.Messages.Add(Command.S3G_SetAbsoluteAngle(100));
+                    machine.Messages.Add(Command.S3G_GetPosition());
+                    machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0));
+                    machine.Messages.Add(Command.S3G_GetPosition());
+                    machine.Messages.Add(Command.JRM_CalibrationCalculatePick1());
+                    machine.Messages.RemoveAt(0);
+                }
+                else if (msg.cmd[0] == Constants.JRM_CALIBRATION_CHECK_PICK1)
+                {
+                    Tuple<double, double> temp;
+                    double radius_h, radius_x, offset_h, offset_x;
+                    Console.WriteLine("Calculate Correction xmin: " + machine.CalPick.x_min + "@" + machine.CalPick.x_min_angle + " max: " + machine.CalPick.x_max + "@" + machine.CalPick.x_max_angle + " hmin: " + machine.CalPick.h_min + "@" + machine.CalPick.h_min_angle + " hmax: " + machine.CalPick.h_max + "@" + machine.CalPick.h_max_angle);
+                    /* Show excentricity,from center of pick */
+                    radius_x = (machine.CalPick.x_max - machine.CalPick.x_min) / 2;
+                    radius_h = (machine.CalPick.h_max - machine.CalPick.h_min) / 2;
+                    Console.WriteLine("Max X Variance: " + radius_x + "px " + (radius_x * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z)) + "mm ");
+                    Console.WriteLine("Max H Variance: " + radius_x + "px " + (radius_x * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z)) + "mm ");
+                    /* Show offset from center of image to center of pick uncertaintly circle */
+                    offset_x = (radius_x + machine.CalPick.x_min);
+                    offset_h = (radius_h + machine.CalPick.h_min);
+                    Console.WriteLine("X Offset: " + offset_x + "px " + (offset_x * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z)) + "mm ");
+                    Console.WriteLine("H Offset: " + offset_h + "px " + (offset_h * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z)) + "mm ");
+                    Console.WriteLine("-- Angle -x-- Offset --y-- @ Z Park Pickup");
+                    for (int i = 0; i < 360; i += 10)
+                    {
+                        temp = machine.SelectedPickTool.GetPickOffsetAtRotation(i);
+                        Console.WriteLine("   " + i + "    " + (temp.Item1 * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z)) + " mm   " + (temp.Item2 * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z)) + " mm");
+                    }
+                    machine.CalibrationStatusString = "Pick Tool Cal: Successful";
+                    machine.SetCalPickTool(machine.CalPick);
+                    machine.PickCalibrationState = MachineModel.CalibrationState.Complete;
+                    machine.Messages.RemoveAt(0);
                 }
                 else
                 {
@@ -241,9 +325,9 @@ namespace Picky
             zz = (((int)serial_buffer[11]) | (((int)serial_buffer[12]) << 8) | (((int)serial_buffer[13]) << 16) | (((int)serial_buffer[14]) << 24));
             machine.CurrentZ = zz / Constants.Z_STEPS_PER_MM;
             aa = (((int)serial_buffer[15]) | (((int)serial_buffer[16]) << 8) | (((int)serial_buffer[17]) << 16) | (((int)serial_buffer[18]) << 24));
-            machine.CurrentA = aa / Constants.XY_STEPS_PER_MM;
+            machine.CurrentA = aa / Constants.AB_STEPS_PER_MM;
             bb = (((int)serial_buffer[19]) | (((int)serial_buffer[20]) << 8) | (((int)serial_buffer[21]) << 16) | (((int)serial_buffer[22]) << 24));
-            machine.CurrentB = bb / Constants.XY_STEPS_PER_MM;
+            machine.CurrentB = (bb / Constants.AB_STEPS_PER_MM);
             machine.LastEndStopState = ((int)serial_buffer[23]) | ((int)serial_buffer[24] << 8);
 
             if ((machine.CurrentX == lastPos.x) && (machine.CurrentY == lastPos.y) && (machine.CurrentZ == lastPos.z) && (machine.CurrentA == lastPos.a) && (machine.CurrentB == lastPos.b))

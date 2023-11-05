@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Remoting.Messaging;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Interop;
+﻿
 
+/*  For S3G Serial Commands See: https://github.com/makerbot/s3g/blob/master/doc/s3gProtocol.md */
 namespace Picky
 {
     public class Command
@@ -31,19 +26,20 @@ namespace Picky
             return S3G_SetAbsolutePosition((byte)(0x1F), 0, 0, z, 0, 0);
         }
 
-        public static MachineMessage S3G_SetRelativeBPosition(double b)
-        {
-            return S3G_SetAbsolutePosition((byte)(0x1F), 0, 0, 0, 0, b);
-        }
-
-        public static MachineMessage S3G_SetAbsoluteAngle(double a)
-        {
-            return S3G_SetAbsolutePosition((byte)~(Constants.A_AXIS), 0, 0, 0, a, 0);
-        }
-        public static MachineMessage S3G_SetRelativeAngle(double a)
+        public static MachineMessage S3G_SetRelativeAPosition(double a)
         {
             return S3G_SetAbsolutePosition((byte)(0x1F), 0, 0, 0, a, 0);
         }
+
+        public static MachineMessage S3G_SetAbsoluteAngle(double b)
+        {
+            return S3G_SetAbsolutePosition((byte)~(Constants.B_AXIS), 0, 0, 0, 0, b);
+        }
+        public static MachineMessage S3G_SetRelativeAngle(double b)
+        {
+            return S3G_SetAbsolutePosition((byte)(0x1F), 0, 0, 0, 0, b);
+        }
+        
         public static MachineMessage JRM_CalibrationCheckXY()
         {
             MachineMessage msg = new MachineMessage();
@@ -56,9 +52,39 @@ namespace Picky
             msg.cmd[0] = Constants.JRM_CALIBRATION_CHECK_Z;
             return msg;
         }
+        public static MachineMessage JRM_CalibrationCheckPick()
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.cmd[0] = Constants.JRM_CALIBRATION_CHECK_PICK;
+            return msg;
+        }
+        public static MachineMessage JRM_CalibrationCalculateItemResolution()
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.cmd[0] = Constants.JRM_CALIBRATION_ITEM_RESOLUTION;
+            return msg;
+        }
+        public static MachineMessage JRM_CalibrationCalculateItemResolution1()
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.cmd[0] = Constants.JRM_CALIBRATION_ITEM_RESOLUTION1;
+            return msg;
+        }
+        public static MachineMessage JRM_CalibrationCalculatePick()
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.cmd[0] = Constants.JRM_CALIBRATION_CHECK_PICK;
+            return msg;
+        }
+        public static MachineMessage JRM_CalibrationCalculatePick1()
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.cmd[0] = Constants.JRM_CALIBRATION_CHECK_PICK1;
+            return msg;
+        }
 
 
-        public static MachineMessage S3G_SetAbsolutePosition(byte axis, double x, double y, double z, double b, double a)
+        public static MachineMessage S3G_SetAbsolutePosition(byte axis, double x, double y, double z, double a, double b)
         {
             /******************************************************************
             * Units are mm
@@ -78,7 +104,7 @@ namespace Picky
             zz = (uint)(z * Constants.Z_STEPS_PER_MM);
             aa = (uint)(a * Constants.AB_STEPS_PER_MM);
             bb = (uint)(b * Constants.AB_STEPS_PER_MM);
-            duration = 4 * 1000000;
+            duration = 2 * 1000000;
 
             msg.cmd[0] = Constants.SS_MIGHTBOARD_HEADER;
             msg.cmd[1] = 26;

@@ -23,9 +23,7 @@ namespace Picky
     /// </summary>
     public partial class MainWindow : System.Windows.Window
     {
-        private readonly VideoCapture capture;
-        private readonly BackgroundWorker bkgWorker;
-        
+               
         private readonly CassetteView cassetteView;
         private readonly MachineView machineView;
         private readonly ControlView controlsView;

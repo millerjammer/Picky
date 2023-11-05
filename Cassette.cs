@@ -81,13 +81,13 @@ namespace Picky
         {
             for (int i = 0; i < feeders.Count; i++)
             {
-                feeders.ElementAt(i).z_origin = z_origin;
+                feeders.ElementAt(i).z_origin = Constants.SAFE_TRANSIT_Z;
                 feeders.ElementAt(i).y_origin = y_origin + Constants.CASSETTE_TO_INITIAL_FEEDER_YOFFSET;
                 feeders.ElementAt(i).x_origin = x_origin + ((Constants.FEEDER_THICKNESS * i) + Constants.CASSETTE_TO_INITIAL_FEEDER_XOFFSET);
 
-                feeders.ElementAt(i).z_drive = z_origin;
-                feeders.ElementAt(i).y_drive = y_origin + Constants.FEEDER_ORIGIN_TO_DRIVE_YOFFSET;
-                feeders.ElementAt(i).x_drive = x_origin + ((Constants.FEEDER_THICKNESS * i) + Constants.CASSETTE_TO_INITIAL_FEEDER_XOFFSET);
+                feeders.ElementAt(i).z_drive = Constants.FEEDER_DRIVE_ABSOLUTE_Z;
+                feeders.ElementAt(i).y_drive = feeders.ElementAt(i).y_origin + Constants.FEEDER_ORIGIN_TO_DRIVE_YOFFSET;
+                feeders.ElementAt(i).x_drive = feeders.ElementAt(i).x_origin + Constants.FEEDER_ORIGIN_TO_DRIVE_XOFFSET;
             }
         }
 
