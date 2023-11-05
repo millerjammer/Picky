@@ -1,19 +1,46 @@
 ﻿using Newtonsoft.Json.Linq;
 using OpenCvSharp;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
-using System.Web.UI.WebControls.WebParts;
+using System.Linq;
 using System.Windows.Input;
 
 namespace Picky
 {
+    public class VisualizationStyle
+    {
+        public string viewName { get; set; }
+        public Mat viewMat { get; set; }
+        public VisualizationStyle(string name, Mat mati)
+        {
+            viewName = name;
+            viewMat = mati;
+        }
+    }
+
     public class CameraViewModel : INotifyPropertyChanged
     {
         MachineModel machine = MachineModel.Instance;
-        private readonly VideoCapture capture;
+        VideoCapture capture;
 
-        public bool IsManualFocus { get; set; }
-       
+        public Mat cameraImage = new Mat();
+        public Mat grayImage = new Mat();
+        public Mat thresImage = new Mat();
+        public Mat edgeImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
+        public Mat dilatedImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
+        public Mat pickROI = new Mat();
+
+        private bool isManualFocus;
+        public bool IsManualFocus
+        {
+            get { return isManualFocus; }
+            set { isManualFocus = value; setCameraFocus(); OnPropertyChanged(nameof(IsManualFocus)); }
+        }
+
+        public List<VisualizationStyle> VisualizationView { get; set; }
+        public VisualizationStyle SelectedVisualizationViewItem {  get; set; }
+
         private int focus;
         public int Focus
         {
@@ -21,38 +48,58 @@ namespace Picky
             set { focus = value; setCameraFocus(); OnPropertyChanged(nameof(Focus)); }
         }
 
-        private int zoom = 1;
-        public int Zoom
-        {
-            get { return zoom; }
-            set { zoom = value; OnPropertyChanged(nameof(Zoom)); }
+        private bool isCassetteFeederSelected = false;
+        public bool IsCassetteFeederSelected 
+        {  
+            get { return isCassetteFeederSelected;  }
         }
 
+        private int detectionThreshold;
         public int DetectionThreshold
         {
-            get
-            {
-                if (machine.selectedCassette != null && machine.selectedCassette.selectedFeeder != null)
-                    return (int)machine.selectedCassette.selectedFeeder.part.PartDetectionThreshold; return 0;
-            }
-            set { machine.selectedCassette.selectedFeeder.part.PartDetectionThreshold = (double)value; OnPropertyChanged(nameof(DetectionThreshold)); }
+            get { return detectionThreshold;  }
+            set { detectionThreshold = value; machine.selectedCassette.selectedFeeder.part.PartDetectionThreshold = (double)detectionThreshold;  OnPropertyChanged(nameof(DetectionThreshold)); }
         }
-         
+
         public CameraViewModel(VideoCapture cap)
         {
             this.capture = cap;
+            /* Listen for selectedCassette to change, then we can listen for selectedFeeder */ 
+            machine.PropertyChanged += OnMachinePropertyChanged;
+
+            VisualizationView = new List<VisualizationStyle>
+            {
+                new VisualizationStyle("Normal View", cameraImage),
+                new VisualizationStyle("Grayscale", grayImage),
+                new VisualizationStyle("Threshold", thresImage),
+                new VisualizationStyle("Edge Image", edgeImage),
+                new VisualizationStyle("Dilated Image", dilatedImage),
+            };
+            SelectedVisualizationViewItem = VisualizationView.FirstOrDefault();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            machine.selectedCassette.PropertyChanged += OnCassettePropertyChanged;
         }
-
-        private void OnCassettePropertyChanged(object sender, PropertyChangedEventArgs e)
+               
+        private void OnMachinePropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-           // Something changed on a Cassette, force a get on the newly selected Feeder property
+            // Something changed on the machine, notify the view to update itself
+            if (machine.selectedCassette == null || machine.selectedCassette.selectedFeeder == null)
+            {
+                isCassetteFeederSelected = false;
+            }
+            else
+            {
+                /* Machine changed, listen to cassett property changes */
+                machine.selectedCassette.PropertyChanged += OnMachinePropertyChanged;
+                /* TODO, get rid of this, do in setter/getter */
+                detectionThreshold = (int)machine.selectedCassette.selectedFeeder.part.PartDetectionThreshold;
+                isCassetteFeederSelected = true;
+            }
+            OnPropertyChanged("IsCassetteFeederSelected");
             OnPropertyChanged("DetectionThreshold");
         }
 
@@ -63,7 +110,7 @@ namespace Picky
             {
                 int value = (int)capture.Get(VideoCaptureProperties.Focus);
                 capture.Set(VideoCaptureProperties.Focus, Focus);
-                Console.WriteLine("Manual Focus " + value + " -> " + Focus);
+                //Console.WriteLine("Manual Focus " + value + " -> " + Focus);
             }
             else
             {
@@ -76,11 +123,6 @@ namespace Picky
         {
             Console.WriteLine("Full Screen Clicked");
         }
-
-        public ICommand AutoFocusCommand { get { return new RelayCommand(AutoFocus); } }
-        private void AutoFocus()
-        {
-            setCameraFocus(); 
-        }
+    
     }
 }

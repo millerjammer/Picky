@@ -16,6 +16,8 @@ namespace Picky
     {
         MachineModel machine = MachineModel.Instance;
 
+        public string FullFileName;
+
         private string _name = "untitled";
         public string name
         {
@@ -42,7 +44,6 @@ namespace Picky
             set { _z_origin = value; OnPropertyChanged(nameof(z_origin)); }
         }
 
-
         private Feeder _selectedFeeder;
         public Feeder selectedFeeder
         {
@@ -66,7 +67,7 @@ namespace Picky
         {
             UpdateFeederLocationsWithinCassette();
             Console.WriteLine("feeder collection changed");
-            OnPropertyChanged(nameof(feeders)); // Notify that the collection has changed
+            OnPropertyChanged(nameof(Feeders)); // Notify that the collection has changed
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -80,13 +81,13 @@ namespace Picky
         {
             for (int i = 0; i < feeders.Count; i++)
             {
-                feeders.ElementAt(i).z_origin = z_origin;
-                feeders.ElementAt(i).y_origin = y_origin;
-                feeders.ElementAt(i).x_origin = x_origin + ((Constants.FEEDER_THICKNESS * i) + Constants.FEEDER_INITIAL_XOFFSET);
+                feeders.ElementAt(i).z_origin = Constants.SAFE_TRANSIT_Z;
+                feeders.ElementAt(i).y_origin = y_origin + Constants.CASSETTE_TO_INITIAL_FEEDER_YOFFSET;
+                feeders.ElementAt(i).x_origin = x_origin + ((Constants.FEEDER_THICKNESS * i) + Constants.CASSETTE_TO_INITIAL_FEEDER_XOFFSET);
 
-                feeders.ElementAt(i).z_drive = z_origin;
-                feeders.ElementAt(i).y_drive = y_origin - Constants.FEEDER_ORIGIN_TO_DRIVE_YOFFSET;
-                feeders.ElementAt(i).x_drive = x_origin + ((Constants.FEEDER_THICKNESS * i) + Constants.FEEDER_INITIAL_XOFFSET);
+                feeders.ElementAt(i).z_drive = Constants.FEEDER_DRIVE_ABSOLUTE_Z;
+                feeders.ElementAt(i).y_drive = feeders.ElementAt(i).y_origin + Constants.FEEDER_ORIGIN_TO_DRIVE_YOFFSET;
+                feeders.ElementAt(i).x_drive = feeders.ElementAt(i).x_origin + Constants.FEEDER_ORIGIN_TO_DRIVE_XOFFSET;
             }
         }
 
@@ -96,13 +97,14 @@ namespace Picky
         {
             feeders = new ObservableCollection<Feeder>();
             feeders.CollectionChanged += OnCollectionChanged;
-  
+
         }
 
         public ICommand GoToCassetteCommand { get { return new RelayCommand(GoToCassette); } }
         private void GoToCassette()
         {
-            Console.WriteLine("Go To Cassette Position: " + x_origin + " mm " + y_origin + " mm");
+            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
+            machine.Messages.Add(Command.S3G_GetPosition());
             machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(x_origin, y_origin));
             machine.Messages.Add(Command.S3G_GetPosition());
         }
@@ -116,23 +118,30 @@ namespace Picky
             UpdateFeederLocationsWithinCassette();
         }
 
-        public ICommand SaveCassetteCommand { get { return new RelayCommand(SaveCassette); } }
-        private void SaveCassette()
+        public ICommand SaveAsCassetteCommand { get { return new RelayCommand(SaveAsCassette); } }
+        private void SaveAsCassette()
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.DefaultExt = ".cst";
             saveFileDialog.RestoreDirectory = true;
             if (saveFileDialog.ShowDialog() == true)
             {
+                FullFileName = saveFileDialog.FileName;
                 name = saveFileDialog.SafeFileName;
-                /* Ignore a Parts reference to it's cassette */
-                File.WriteAllText(saveFileDialog.FileName, JsonConvert.SerializeObject(this, Formatting.Indented,
-                    new JsonSerializerSettings()
+                SaveCassette();
+            }
+        }
+
+        public ICommand SaveCassetteCommand { get { return new RelayCommand(SaveCassette); } }
+        private void SaveCassette()
+        {
+            /* Ignore a Parts reference to it's cassette */
+            File.WriteAllText(FullFileName, JsonConvert.SerializeObject(this, Formatting.Indented,
+               new JsonSerializerSettings()
                     {
                         ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
                     }
-                ));
-            }
+            ));
         }
 
         public ICommand CloseCassetteCommand { get { return new RelayCommand(CloseCassette); } }

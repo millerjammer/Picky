@@ -110,6 +110,7 @@
       <HintPath>packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
     </Reference>
     <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -140,6 +141,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CalibrationModel.cs" />
     <Compile Include="CameraView.xaml.cs">
       <DependentUpon>CameraView.xaml</DependentUpon>
     </Compile>
@@ -162,6 +164,7 @@
       <DependentUpon>MachineView.xaml</DependentUpon>
     </Compile>
     <Compile Include="MachineViewModel.cs" />
+    <Compile Include="PickModel.cs" />
     <Compile Include="RelayInterface.cs" />
     <Compile Include="Part.cs" />
     <Compile Include="RelayCommand.cs" />

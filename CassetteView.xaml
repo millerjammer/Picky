@@ -67,7 +67,9 @@
                         </ui:DataGrid.RowStyle>
                         <DataGrid.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Go to Location"  />
+                                <MenuItem Header="Go to Location"  Command="{Binding GoToPartLocationCommand}"/>
+                                <MenuItem Header="Place at Location"  Command="{Binding PlacePartAtLocationCommand}"/>
+                                <Separator Margin="2"/>
                                 <MenuItem Header="Add to Cassette" Command="{Binding AddPartToCassetteCommand}" />
                             </ContextMenu>
                         </DataGrid.ContextMenu>
@@ -96,11 +98,13 @@
                                 <TextBlock Text="{Binding name}">
                                     <TextBlock.ContextMenu>
                                         <ContextMenu>
-                                            <MenuItem Header="Save..." Command="{Binding SaveCassetteCommand}" />
+                                            <MenuItem Header="Save" Command="{Binding SaveCassetteCommand}" />
+                                            <MenuItem Header="Save As..." Command="{Binding SaveAsCassetteCommand}" />
+                                            <Separator Margin="2"/>
                                             <MenuItem Header="Close" Command="{Binding CloseCassetteCommand}" />
                                             <Separator Margin="2"/> 
-                                            <MenuItem Header="Go to Cassette" Command="{Binding GoToCassetteCommand}" />
-                                            <MenuItem Header="Set As Cassete Home" Command="{Binding SetCassetteHomeCommand}" />
+                                            <MenuItem Header="Go to Cassette Origin" Command="{Binding GoToCassetteCommand}" />
+                                            <MenuItem Header="Set As Cassete Origin" Command="{Binding SetCassetteHomeCommand}" />
                                         </ContextMenu>
                                     </TextBlock.ContextMenu>
                                 </TextBlock>
@@ -112,7 +116,7 @@
                                              ItemsSource="{Binding Feeders}" Grid.Row="1" HorizontalAlignment="Stretch" 
                                              AutoGenerateColumns="False" CanUserSortColumns="False" HorizontalContentAlignment="Stretch"
                                              MaxHeight="299" VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow"
-                                             IsReadOnly="True" >
+                                             IsReadOnly="True" SelectedIndex="0">
                                     <!-- Define Details -->
                                     <ui:DataGrid.RowDetailsTemplate>
                                         <DataTemplate>
@@ -183,14 +187,14 @@
                                         <ContextMenu>
                                             <MenuItem Header="Remove from Cassette"  Command="{Binding selectedFeeder.RemoveFeederFromCassetteCommand}"/>
                                             <Separator Margin="2"></Separator>
-                                            <MenuItem Header="Go to Feeder Location" Command="{Binding selectedFeeder.GoToFeederCommand}"  />
+                                            <MenuItem Header="Go to Feeder Origin" Command="{Binding selectedFeeder.GoToFeederCommand}"  />
                                             <MenuItem Header="Go to Feeder Drive Location" Command="{Binding selectedFeeder.GoToFeederDriveCommand}" />
-                                            <MenuItem Header="Go to Component Pick"  />
                                             <Separator Margin="2"></Separator>
-                                            <MenuItem Header="Pick Component"  />
+                                            <MenuItem Header="Go to Next Component" Command="{Binding selectedFeeder.GoToNextComponentCommand}" />
+                                            <MenuItem Header="Pick Next Component" Command="{Binding selectedFeeder.PickNextComponentCommand}"  />
                                             <Separator Margin="2"></Separator>
                                             <MenuItem Header="Set Part Template" Command="{Binding selectedFeeder.SetPartTemplateCommand}" />
-                                            <MenuItem Header="Find Part" Command="{Binding selectedFeeder.part.FindPartCommand}" />
+                            
                                         </ContextMenu>
                                     </DataGrid.ContextMenu>
                                 </ui:DataGrid>

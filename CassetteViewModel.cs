@@ -25,7 +25,7 @@ namespace Picky
 
         public Cassette selectedCassette
         {
-            get { return Machine.selectedCassette; }
+            get { return Machine.selectedCassette; } 
             set { Machine.selectedCassette = value; OnPropertyChanged(nameof(selectedCassette)); }
         }
 
@@ -48,14 +48,13 @@ namespace Picky
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-      
-    private void OnCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+
+        private void OnCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            Console.WriteLine("collection change"); 
+            Console.WriteLine("collection change");
             // Handle collection changes here
             // This method will be called when MyCollection changes
             // You can perform any necessary actions or notify other components about the changes.
-
         }
 
         public CassetteViewModel()
@@ -64,7 +63,41 @@ namespace Picky
             Machine.Cassettes.CollectionChanged += OnCollectionChanged;
             Machine.PickList.CollectionChanged += OnCollectionChanged;
         }
-         
+
+        public ICommand PlacePartAtLocationCommand { get { return new RelayCommand(PlacePartAtLocation); } }
+        private void PlacePartAtLocation()
+        {
+            Machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
+            Machine.Messages.Add(Command.S3G_GetPosition());
+            
+            double partx = Machine.PCB_OriginX + (Convert.ToDouble(selectedPickListPart.CenterX) * Constants.MIL_TO_MM);
+            double party = Machine.PCB_OriginY + (Convert.ToDouble(selectedPickListPart.CenterY) * Constants.MIL_TO_MM);
+            double angle = Convert.ToDouble(selectedPickListPart.Rotation);
+            double z = 14;
+            Tuple<double, double> offset = Machine.SelectedPickTool.GetPickOffsetAtRotation(angle);
+            /* TODO is this the right z to use?  Or, perhaps use 'z' above? */
+            partx += Constants.PLACE_DISTORTION_OFFSET_X_MM - (offset.Item1 * Machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z));
+            party += Constants.PLACE_DISTORTION_OFFSET_Y_MM - (offset.Item2 * Machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z));
+
+            Machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(partx, party));
+            Machine.Messages.Add(Command.S3G_GetPosition());
+            Machine.Messages.Add(Command.S3G_SetAbsoluteAngle(angle/Constants.B_DEGREES_PER_MM));
+            Machine.Messages.Add(Command.S3G_GetPosition());
+            Machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(z));
+            Machine.Messages.Add(Command.S3G_GetPosition());
+        }
+
+        public ICommand GoToPartLocationCommand { get { return new RelayCommand(GoToPartLocation); } }
+        private void GoToPartLocation()
+        {
+            Machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
+            Machine.Messages.Add(Command.S3G_GetPosition());
+            Machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(Machine.PCB_OriginX + (Convert.ToDouble(selectedPickListPart.CenterX) * Constants.MIL_TO_MM), Machine.PCB_OriginY + (Convert.ToDouble(selectedPickListPart.CenterY) * Constants.MIL_TO_MM)));
+            Machine.Messages.Add(Command.S3G_GetPosition());
+            Machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
+            Machine.Messages.Add(Command.S3G_GetPosition());
+        }
+
         public ICommand AddCassetteCommand { get { return new RelayCommand(AddCassette); } }
         private void AddCassette()
         {
@@ -87,6 +120,7 @@ namespace Picky
                 return;
             }
             Feeder fdr = new Feeder();
+            fdr.width = Constants.FEEDER_THICKNESS;
             fdr.part = Machine.selectedPickListPart;
             Console.WriteLine("Adding part to feeder... ");
             Machine.selectedCassette.Feeders.Add(fdr);

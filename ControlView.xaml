@@ -10,18 +10,17 @@
     <Grid>
         <Expander Header="Commands" Width="180" IsExpanded="True">
             <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="2">
-                <ui:Button Command="{Binding InitializeCommand}" Content="Initialize" HorizontalAlignment="Stretch" Margin="2" Icon="Run20"/>
-                <ui:Button Command="{Binding HomeCommand}" Content="Home"  HorizontalAlignment="Stretch" Margin="2" Icon="Home20"/>
-                <ui:Button Command="{Binding SelfCheckCommand}" Content="Self Check" HorizontalAlignment="Stretch" Margin="2" Icon="Check20"/>
+                <ui:Button Command="{Binding CalibratePositionCommand}" x:Name="calPosition" Content="Cal Position" Background="{Binding CalPositionStatusColor}" HorizontalAlignment="Stretch" Margin="2" Icon="LinkMultiple24"/>
+                <ui:Button Command="{Binding CalibrateCameraCommand}" Content="Cal Camera" Background="{Binding CalCameraStatusColor}" HorizontalAlignment="Stretch" Margin="2" Icon="CameraSparkles24"/>
+                <ui:Button Command="{Binding CalibratePickCommand}" Content="Cal Part Pick" Background="{Binding CalPickStatusColor}" HorizontalAlignment="Stretch" Margin="2" Icon="Shortpick24"/>
+                <Separator Margin="5"/>
                 <ui:Button Command="{Binding StartCommand}" Content="Start" HorizontalAlignment="Stretch" Margin="2" Icon="Play20"/>
-                <ui:Button Command="{Binding PauseCommand}" Content="Pause" HorizontalAlignment="Stretch" Margin="2" Icon="Pause20"/>
+                <ToggleButton Command="{Binding PauseCommand}" IsChecked="{Binding IsMachinePaused}" Content="Pause" HorizontalAlignment="Stretch" Margin="2"/>
                 <ui:Button Command="{Binding StopCommand}" Content="Stop"  HorizontalAlignment="Stretch" Margin="2" Icon="Stop20"/>
-                <Separator Margin="5">
-
-                </Separator>
+                <Separator Margin="5"/>
                 <ToggleButton Command="{Binding IlluminatorToggleCommand}" IsChecked="{Binding isIlluminatorOn}" HorizontalAlignment="Stretch"  Margin="2" Content="Light"/>
                 <ToggleButton Command="{Binding PumpToggleCommand}" IsChecked="{Binding isPumpOn}" HorizontalAlignment="Stretch" Margin="2" Content="Vacuum"/>
-                <ToggleButton Command="{Binding ValveToggleCommand}" IsChecked="{Binding isValveOn}" HorizontalAlignment="Stretch" Margin="2" Content="Valve"/>
+                <ToggleButton Command="{Binding ValveToggleCommand}" IsChecked="{Binding isValveOn}" HorizontalAlignment="Stretch" Margin="2" Content="Open Valve"/>
             </StackPanel>
 
         </Expander>

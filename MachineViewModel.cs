@@ -1,16 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO.Ports;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Timers;
 using System.Windows.Input;
-using System.Windows.Interop;
-using Wpf.Ui.Input;
 
 namespace Picky
 {
@@ -44,6 +34,12 @@ namespace Picky
 
         public MachineViewModel()
         {
+            machine.Messages.Add(Command.S3G_Initialize());
+            machine.Messages.Add(Command.S3G_Initialize());
+            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.relayInterface.SetIlluminatorOn(true);
+            
         }
 
         public ICommand ButtonXLeftCommand { get { return new RelayCommand(ButtonXLeft); } }
@@ -86,7 +82,7 @@ namespace Picky
         public ICommand ButtonZUpCommand { get { return new RelayCommand(ButtonZUp); } }
         private void ButtonZUp()
         {
-            machine.Messages.Add(Command.S3G_SetRelativeZPosition(-distanceToAdvance));
+            machine.Messages.Add(Command.S3G_SetRelativeZPosition(distanceToAdvance));
             machine.Messages.Add(Command.S3G_GetPosition());
         }
 
@@ -100,47 +96,78 @@ namespace Picky
         public ICommand ButtonZDownCommand { get { return new RelayCommand(ButtonZDown); } }
         private void ButtonZDown()
         {
-            machine.Messages.Add(Command.S3G_SetRelativeZPosition(distanceToAdvance));
-            machine.Messages.Add(Command.S3G_GetPosition());
-        }
-
-        public ICommand ButtonAUpCommand { get { return new RelayCommand(ButtonAUp); } }
-        private void ButtonAUp()
-        {
-            machine.Messages.Add(Command.S3G_SetRelativeAngle(distanceToAdvance));
-            machine.Messages.Add(Command.S3G_GetPosition());
-        }
-
-        public ICommand ButtonAHomeCommand { get { return new RelayCommand(ButtonAHome); } }
-        private void ButtonAHome()
-        {
-
-        }
-        public ICommand ButtonADownCommand { get { return new RelayCommand(ButtonADown); } }
-        private void ButtonADown()
-        {
-            machine.Messages.Add(Command.S3G_SetRelativeAngle(-distanceToAdvance));
+            machine.Messages.Add(Command.S3G_SetRelativeZPosition(-distanceToAdvance));
             machine.Messages.Add(Command.S3G_GetPosition());
         }
 
         public ICommand ButtonBUpCommand { get { return new RelayCommand(ButtonBUp); } }
         private void ButtonBUp()
         {
-            machine.Messages.Add(Command.S3G_SetRelativeBPosition(distanceToAdvance));
+            machine.Messages.Add(Command.S3G_SetRelativeAngle(distanceToAdvance));
             machine.Messages.Add(Command.S3G_GetPosition());
         }
 
         public ICommand ButtonBHomeCommand { get { return new RelayCommand(ButtonBHome); } }
-        void ButtonBHome()
+        private void ButtonBHome()
+        {
+            machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0.00));
+            machine.Messages.Add(Command.S3G_GetPosition());
+        }
+        public ICommand ButtonBDownCommand { get { return new RelayCommand(ButtonBDown); } }
+        private void ButtonBDown()
+        {
+            machine.Messages.Add(Command.S3G_SetRelativeAngle(-distanceToAdvance));
+            machine.Messages.Add(Command.S3G_GetPosition());
+        }
+
+        public ICommand ButtonAUpCommand { get { return new RelayCommand(ButtonAUp); } }
+        private void ButtonAUp()
+        {
+            machine.Messages.Add(Command.S3G_SetRelativeAPosition(distanceToAdvance));
+            machine.Messages.Add(Command.S3G_GetPosition());
+        }
+
+        public ICommand ButtonAHomeCommand { get { return new RelayCommand(ButtonAHome); } }
+        void ButtonAHome()
         {
 
         }
 
-        public ICommand ButtonBDownCommand { get { return new RelayCommand(ButtonBDown); } }
-        private void ButtonBDown()
+        public ICommand ButtonADownCommand { get { return new RelayCommand(ButtonADown); } }
+        private void ButtonADown()
         {
-            machine.Messages.Add(Command.S3G_SetRelativeBPosition(-distanceToAdvance));
+            machine.Messages.Add(Command.S3G_SetRelativeAPosition(-distanceToAdvance));
             machine.Messages.Add(Command.S3G_GetPosition());
+        }
+
+        public ICommand EditPickToolCommand { get { return new RelayCommand(EditPickTool); } }
+        private void EditPickTool()
+        {
+            Console.WriteLine("Edit Pick Tool");
+        }
+
+        public ICommand GoToPCBOriginCommand { get { return new RelayCommand(GoToPCBOrigin); } }
+        private void GoToPCBOrigin()
+        {
+            Console.WriteLine("GoTo PCB");
+            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
+            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(machine.PCB_OriginX, machine.PCB_OriginY));
+            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(machine.PCB_OriginZ));
+            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0));
+            machine.Messages.Add(Command.S3G_GetPosition());
+        }
+        
+        public ICommand SetAsPCBOriginCommand { get { return new RelayCommand(SetAsPCBOrigin); } }
+        private void SetAsPCBOrigin()
+        {
+            Console.WriteLine("SetAs PCB Origin");
+            machine.PCB_OriginX = machine.CurrentX;
+            machine.PCB_OriginY = machine.CurrentY;
+            machine.PCB_OriginZ = machine.CurrentZ;
+            machine.SaveCalibrationSettings();
+
         }
     }
 }
