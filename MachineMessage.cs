@@ -22,6 +22,7 @@ namespace Picky
         public bool isPending;
         public int timeout;
         public int delay;
+        public Feeder feeder;
       
 
         
