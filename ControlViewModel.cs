@@ -14,10 +14,17 @@ namespace Picky
     {
         MachineModel machine;
 
+        private string playPauseButtonLabel = "Start/Play";
+        public string PlayPauseButtonLabel
+        {
+            get { return playPauseButtonLabel; }
+            set { playPauseButtonLabel = value; OnPropertyChanged(nameof(PlayPauseButtonLabel)); }
+        }
+        
         public bool IsMachinePaused
         {
             get { return machine.isMachinePaused; }
-            set { machine.isMachinePaused = value; OnPropertyChanged(nameof(IsMachinePaused)); }
+            set { machine.isMachinePaused = value; if (value == true) PlayPauseButtonLabel = "Resume"; else PlayPauseButtonLabel = "Start/Play"; OnPropertyChanged(nameof(IsMachinePaused)); }
         }
 
         public SolidColorBrush CalPositionStatusColor
@@ -132,30 +139,13 @@ namespace Picky
         public ICommand StartCommand { get { return new RelayCommand(Start); } }
         private void Start()
         {
-            /* Start at PCB Origin */
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(machine.PCB_OriginX, machine.PCB_OriginY));
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(machine.PCB_OriginZ));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            for (int i=0;i<machine.PickList.Count;i++)
+            if (machine.isMachinePaused == false && machine.Messages.Count == 0)
             {
-                /* Go to parts's location */
-                machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-                machine.Messages.Add(Command.S3G_GetPosition());
-                machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(machine.PCB_OriginX + (Convert.ToDouble(machine.selectedPickListPart.CenterX) * Constants.MIL_TO_MM), machine.PCB_OriginY + (Convert.ToDouble(machine.selectedPickListPart.CenterY) * Constants.MIL_TO_MM)));
-                machine.Messages.Add(Command.S3G_GetPosition());
-                machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-                machine.Messages.Add(Command.S3G_GetPosition());
+                GenerateJob();
             }
         }
-        public ICommand PauseCommand { get { return new RelayCommand(Pause); } }
-        private void Pause()
-        {
-
-        }
+       
+        
         public ICommand StopCommand { get { return new RelayCommand(Stop); } }
         private void Stop()
         {
@@ -178,6 +168,42 @@ namespace Picky
         private void ValveToggle()
         {
             machine.relayInterface.SetValveOn(isValveOn);
+        }
+
+        public void GenerateJob()
+        {
+            MachineMessage msg;
+
+            Console.WriteLine("Generating Job..");
+            /* Start at PCB Origin */
+            
+            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
+            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(machine.PCB_OriginX, machine.PCB_OriginY));
+            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(machine.PCB_OriginZ));
+            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0));
+            machine.Messages.Add(Command.S3G_GetPosition());
+            
+            /* Go to Cassette */
+            foreach (Cassette cassette in machine.Cassettes)
+            {
+                cassette.GoToCassette();
+                /* Go through the Pick List and pick out parts belongging to this cassette */
+                foreach (Part part in machine.PickList)
+                {
+                    if (part.cassette == cassette)
+                    {
+                        foreach (Feeder feeder in cassette.Feeders)
+                        {
+                            /* Find and Go to Feeder */
+                            feeder.GoToFeeder();
+                            feeder.PickNextComponentOptically();
+                            feeder.PlacePartAtLocation();
+                        }
+                    }
+                } 
+            }
         }
     }
 }

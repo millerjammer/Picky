@@ -12,6 +12,7 @@ using TransformGroup = System.Windows.Media.TransformGroup;
 using ScaleTransform = System.Windows.Media.ScaleTransform;
 using Point = System.Windows.Point;
 using Slider = Xamarin.Forms.Slider;
+using EnvDTE80;
 
 
 /* https://stackoverflow.com/questions/62573753/pan-and-zoom-but-contain-image-inside-parent-container */
@@ -33,13 +34,14 @@ namespace Picky
         private readonly BackgroundWorker bkgWorker;
         MachineModel machine = MachineModel.Instance;
 
-        private double x_next, y_next, y_last;
         System.Windows.Media.TransformGroup group;
         System.Windows.Media.ScaleTransform xform;
         System.Windows.Media.TranslateTransform tt;
 
         private Point start, origin;
-                       
+        private double x_part_cursor, y_part_cursor;
+
+
         private TranslateTransform GetTranslateTransform(UIElement element)
         {
             return (TranslateTransform)((TransformGroup)element.RenderTransform)
@@ -180,8 +182,11 @@ namespace Picky
             capture.Set(VideoCaptureProperties.FourCC, OpenCvSharp.VideoWriter.FourCC('m', 'j', 'p', 'g'));
             capture.Set(VideoCaptureProperties.FourCC, OpenCvSharp.VideoWriter.FourCC('M', 'J', 'P', 'G'));
 
+            
             capture.Set(VideoCaptureProperties.FrameWidth, Constants.CAMERA_FRAME_WIDTH);
             capture.Set(VideoCaptureProperties.FrameHeight, Constants.CAMERA_FRAME_HEIGHT);
+            capture.Set(VideoCaptureProperties.AutoExposure, 1);
+            capture.Set(VideoCaptureProperties.Brightness, .2);
             capture.Set(VideoCaptureProperties.BufferSize, 200);
             camera.IsManualFocus = false;
             bkgWorker.RunWorkerAsync();
@@ -262,7 +267,9 @@ namespace Picky
                     else if (machine?.selectedCassette?.selectedFeeder?.part?.TemplateFileName != null)
                     {
                         FindSelectedPartInImage(camera.cameraImage);
-                        OpenCvSharp.Cv2.DrawMarker(camera.cameraImage, new OpenCvSharp.Point(x_next, y_next), new OpenCvSharp.Scalar(0, 0, 255), OpenCvSharp.MarkerTypes.Cross, 100, 1);
+                        Feeder feeder = machine.selectedCassette.selectedFeeder;
+                        if (camera.IsPartInView)
+                            OpenCvSharp.Cv2.DrawMarker(camera.cameraImage, new OpenCvSharp.Point(x_part_cursor, y_part_cursor), new OpenCvSharp.Scalar(0, 0, 255), OpenCvSharp.MarkerTypes.Cross, 100, 1);
                     }
                     else
                     {
@@ -406,12 +413,14 @@ namespace Picky
         {
             Mat grayTemplateImage = new Mat();
             Mat matchResultImage = new Mat();
+            double x_next = 0, y_next = 0, y_last = 0;
+            double x_offset_pixels, y_offset_pixels;
+            double x_next_part, y_next_part;
+            bool partInView = false;
             Mat res_32f;
 
-            if(machine.selectedCassette.selectedFeeder.part.Template == null)
-            {
-                machine.selectedCassette.selectedFeeder.part.Template = new Mat(machine.selectedCassette.selectedFeeder.part.TemplateFileName);
-            }
+            machine.selectedCassette.selectedFeeder.part.Template = new Mat(machine.selectedCassette.selectedFeeder.part.TemplateFileName);
+            
             Mat template = machine.selectedCassette.selectedFeeder.part.Template;
 
             Cv2.CvtColor(image, camera.grayImage, OpenCvSharp.ColorConversionCodes.BGR2GRAY);
@@ -447,14 +456,19 @@ namespace Picky
                 }
                 else
                 {
-                    double x_offset_pixels = x_next - (0.5 * Constants.CAMERA_FRAME_WIDTH);
-                    double y_offset_pixels = -(y_next - (0.5 * Constants.CAMERA_FRAME_HEIGHT));
-                    double x_next_part = machine.CurrentX + (x_offset_pixels * machine.GetImageScaleAtDistanceX(machine.CurrentZ + Constants.FEEDER_TO_PLATFORM_ZOFFSET));
-                    double y_next_part = machine.CurrentY + (y_offset_pixels * machine.GetImageScaleAtDistanceY(machine.CurrentZ + Constants.FEEDER_TO_PLATFORM_ZOFFSET));
-                    machine.selectedCassette.selectedFeeder.SetCandidateNextPartLocation(x_next_part, y_next_part);
+                    x_offset_pixels = x_next - (0.5 * Constants.CAMERA_FRAME_WIDTH);
+                    y_offset_pixels = -(y_next - (0.5 * Constants.CAMERA_FRAME_HEIGHT));
+                    x_next_part = machine.CurrentX + (x_offset_pixels * machine.GetImageScaleAtDistanceX(machine.CurrentZ + Constants.FEEDER_TO_PLATFORM_ZOFFSET));
+                    y_next_part = machine.CurrentY + (y_offset_pixels * machine.GetImageScaleAtDistanceY(machine.CurrentZ + Constants.FEEDER_TO_PLATFORM_ZOFFSET));
+                    if(machine.selectedCassette.selectedFeeder.SetCandidateNextPartLocation(x_next_part, y_next_part) == true)
+                    {
+                        partInView = true;
+                        x_part_cursor = x_next; y_part_cursor = y_next;
+                    }
                     break;
                 }
             }
+            camera.IsPartInView = partInView;
         }
     }
 }

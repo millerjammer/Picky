@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Forms;
+using System.Windows.Interop;
 
 /*For S3G Serial Commands See: https://github.com/makerbot/s3g/blob/master/doc/s3gProtocol.md */
 
@@ -135,8 +136,8 @@ namespace Picky
                             s_in -= i + length;
                             if (isPositionGood == true && machine.Messages.Count > 0)
                             {
-                                Console.WriteLine("RX Count: " + rx_msgCount.ToString());
-                                Console.WriteLine("RX Data: " + rawString);
+                                //Console.WriteLine("RX Count: " + rx_msgCount.ToString());
+                                //Console.WriteLine("RX Data: " + rawString);
                                 machine.Messages.RemoveAt(0);
                             }
                             return true;
@@ -187,7 +188,19 @@ namespace Picky
                         machine.Messages.Clear();
                     }
                 }
-                
+                else if (msg.cmd[0] == Constants.JRM_SET_ABSOLUTE_XY_POSITION_OPTICALLY)
+                {
+                   Tuple<double, double> offset = machine.SelectedPickTool.GetPickOffsetAtRotation(0);
+                   double pickX = msg.feeder.x_next_part + Constants.PICK_DISTORTION_OFFSET_X_MM - (offset.Item1 * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z));
+                   double pickY = msg.feeder.y_next_part + Constants.PICK_DISTORTION_OFFSET_Y_MM - (offset.Item2 * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z));
+                    if (msg.feeder.x_next_part != 0 && msg.feeder.y_next_part != 0)
+                    {   
+                        Console.WriteLine("Valid Imagery - Next Pick: " + pickX + " mm " + pickY + " mm");
+                        MachineMessage next = Command.S3G_SetAbsolutePosition((byte)~(Constants.X_AXIS | Constants.Y_AXIS), pickX, pickY, 0, 0, 0);
+                        machine.Messages.RemoveAt(0);
+                        machine.Messages.Insert(0, next);
+                    }
+                }
                 else if (msg.cmd[0] == Constants.JRM_CALIBRATION_CHECK_Z)
                 {
                     Console.WriteLine("Calibration Z Check: " + machine.LastEndStopState);
@@ -288,11 +301,12 @@ namespace Picky
                 }
                 else
                 {
-                    serialPort.Write(msg.cmd, 0, msg.cmd[1] + 3);
-                    if (msg.target.axis != 0)
+                    if(msg.part != null)
                     {
-                        //dlg.SetActivePickLocation(messages.front().target);
+                        machine.selectedPickListPart = msg.part;
+                        Console.WriteLine("using part: " + msg.part.Description);
                     }
+                    serialPort.Write(msg.cmd, 0, msg.cmd[1] + 3);
                     tx_msgCount++;
                 }
             }

@@ -101,7 +101,7 @@ namespace Picky
         }
 
         public ICommand GoToCassetteCommand { get { return new RelayCommand(GoToCassette); } }
-        private void GoToCassette()
+        public void GoToCassette()
         {
             machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
             machine.Messages.Add(Command.S3G_GetPosition());
@@ -147,14 +147,6 @@ namespace Picky
         public ICommand CloseCassetteCommand { get { return new RelayCommand(CloseCassette); } }
         private void CloseCassette()
         {
-            foreach (Part part in machine.PickList)
-            {
-                if (part.cassette != null)
-                {
-                    if (part.cassette.Equals(this))
-                        part.cassette = null;
-                }
-            }
             machine.Cassettes.Remove(this);
         }
     }

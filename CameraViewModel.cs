@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace Picky
 {
@@ -30,6 +31,18 @@ namespace Picky
         public Mat edgeImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
         public Mat dilatedImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
         public Mat pickROI = new Mat();
+
+        public SolidColorBrush PartInViewIconColor
+        {
+            get { if(IsPartInView) return (new SolidColorBrush(Color.FromArgb(128, 0, 255, 0))); else return (new SolidColorBrush(Color.FromArgb(128, 255, 0, 0))); }
+        }
+
+        private bool isPartInView = false;
+        public bool IsPartInView 
+        {
+            get { return isPartInView; }
+            set { if(isPartInView == value) return; isPartInView = value; OnPropertyChanged(nameof(PartInViewIconColor)); }
+        }
 
         private bool isManualFocus;
         public bool IsManualFocus

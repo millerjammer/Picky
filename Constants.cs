@@ -42,8 +42,8 @@ namespace Picky
         public static int CALIBRATION_PICK_FOCUS = 390;
 
         /* Due to Barrel distortion and angular alignment */
-        public static double PICK_DISTORTION_OFFSET_X_MM = 0.15;
-        public static double PICK_DISTORTION_OFFSET_Y_MM = 0.20;
+        public static double PICK_DISTORTION_OFFSET_X_MM = 0;//0.15;
+        public static double PICK_DISTORTION_OFFSET_Y_MM = 0;//0.20;
         public static double PLACE_DISTORTION_OFFSET_X_MM = 0.0;
         public static double PLACE_DISTORTION_OFFSET_Y_MM = 0.0;
 
@@ -80,6 +80,8 @@ namespace Picky
         public static byte JRM_CALIBRATION_CHECK_PICK = 0x95;
         public static byte JRM_CALIBRATION_CHECK_PICK1 = 0x94;
         public static byte JRM_SET_PICKLIST_INDEX = 0x93;
+
+        public static byte JRM_SET_ABSOLUTE_XY_POSITION_OPTICALLY = 0x92;
 
         public static byte SS_MIGHTBOARD_HEADER = 0xD5;
         

@@ -25,6 +25,11 @@ namespace Picky
             cassetteVM = new CassetteViewModel();
             this.DataContext = cassetteVM;
 
-        }       
+        }   
+        
+        private void PickListSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            PickListGrid.ScrollIntoView(PickListGrid.SelectedItem);
+        }
     }
 }

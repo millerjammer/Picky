@@ -42,9 +42,9 @@
                         <TextBlock Grid.Column="0" Text="Part Pick List" Margin="10,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"  TextAlignment="Left" />
                         <ui:Button Grid.Column="1" Content="Open..." Command="{Binding OpenPickListCommand}" Icon="Folder32"  Height="30" Margin="0,0,0,0" HorizontalAlignment="Right"/>
                     </Grid>
-                    <ui:DataGrid  Grid.Row="1" HorizontalAlignment="Stretch" SelectedItem="{Binding selectedPickListPart}" 
+                    <ui:DataGrid  x:Name="PickListGrid" Grid.Row="1" HorizontalAlignment="Stretch" SelectedItem="{Binding selectedPickListPart}" 
                                       ItemsSource="{Binding PickList}" AutoGenerateColumns="False" CanUserSortColumns="False"
-                                      HorizontalContentAlignment="Stretch" 
+                                      HorizontalContentAlignment="Stretch" SelectionChanged="PickListSelectionChanged"
                                       VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="True" >
                         <!-- Placement 2nd Row - Data Grid -->
                         <DataGrid.Columns>
@@ -68,7 +68,7 @@
                         <DataGrid.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Go to Location"  Command="{Binding GoToPartLocationCommand}"/>
-                                <MenuItem Header="Place at Location"  Command="{Binding PlacePartAtLocationCommand}"/>
+                                <MenuItem Header="Place at Location"  Command="{Binding feeder.PlacePartAtLocationCommand}"/>
                                 <Separator Margin="2"/>
                                 <MenuItem Header="Add to Cassette" Command="{Binding AddPartToCassetteCommand}" />
                             </ContextMenu>

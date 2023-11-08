@@ -29,8 +29,6 @@ namespace Picky
             get { return partDetectionThreshold; }
             set { partDetectionThreshold = value; OnPropertyChanged(nameof(PartDetectionThreshold)); }
         }
-        public double Corrected_X { get; set; }
-        public double Corrected_Y { get; set; }
         public string Designator { get; set; }
         public string Comment { get; set; }
         public string Layer { get; set; }

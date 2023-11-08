@@ -92,9 +92,13 @@
                             <Label Content="A:" VerticalAlignment="Center" Padding="3 0 10 0"/>
                             <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.CurrentA, StringFormat={}{0:0.00}}"/>
                         </StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 2 2 2">
+                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 2 2 2">
                             <Label Content="B:" VerticalAlignment="Center" Padding="3 0 10 0"/>
                             <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.CurrentB, StringFormat={}{0:0.00}}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 2 2 2">
+                            <Label Content="Q:" VerticalAlignment="Center" Padding="3 0 10 0"/>
+                            <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.Messages.Count}"/>
                         </StackPanel>
                     </Grid>
                 </Border>

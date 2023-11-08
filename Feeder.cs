@@ -100,6 +100,7 @@ namespace Picky
 
         public bool SetCandidateNextPartLocation(double x, double y)
         {
+            /* See if this falls in the correct range */
             double left = x_origin - (width / 2);
             double right = x_origin + (width / 2);
             if( x > left && x < right) 
@@ -126,7 +127,7 @@ namespace Picky
         }
 
         public ICommand GoToFeederCommand { get { return new RelayCommand(GoToFeeder); } }
-        private void GoToFeeder()
+        public void GoToFeeder()
         {
             machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
             machine.Messages.Add(Command.S3G_GetPosition());
@@ -143,6 +144,29 @@ namespace Picky
             machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(x_drive, y_drive));
             machine.Messages.Add(Command.S3G_GetPosition());
             machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(z_drive));
+            machine.Messages.Add(Command.S3G_GetPosition());
+        }
+
+        public ICommand PlacePartAtLocationCommand { get { return new RelayCommand(PlacePartAtLocation); } }
+        public void PlacePartAtLocation()
+        {
+            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
+            machine.Messages.Add(Command.S3G_GetPosition());
+
+            double partx = machine.PCB_OriginX + (Convert.ToDouble(machine.selectedPickListPart.CenterX) * Constants.MIL_TO_MM);
+            double party = machine.PCB_OriginY + (Convert.ToDouble(machine.selectedPickListPart.CenterY) * Constants.MIL_TO_MM);
+            double angle = Convert.ToDouble(machine.selectedPickListPart.Rotation);
+            double z = 14;
+            Tuple<double, double> offset = machine.SelectedPickTool.GetPickOffsetAtRotation(angle);
+            /* TODO is this the right z to use?  Or, perhaps use 'z' above? */
+            partx += Constants.PLACE_DISTORTION_OFFSET_X_MM - (offset.Item1 * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z));
+            party += Constants.PLACE_DISTORTION_OFFSET_Y_MM - (offset.Item2 * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z));
+
+            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(partx, party));
+            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(Command.S3G_SetAbsoluteAngle(angle / Constants.B_DEGREES_PER_MM));
+            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(z));
             machine.Messages.Add(Command.S3G_GetPosition());
         }
 
@@ -170,14 +194,29 @@ namespace Picky
         }
 
         public ICommand PickNextComponentCommand { get { return new RelayCommand(PickNextComponent); } }
-        private void PickNextComponent()
+        public void PickNextComponent()
         {
             double pickX, pickY;
-            Tuple<double, double> offset = machine.SelectedPickTool.GetPickOffsetAtRotation(machine.CurrentB * Constants.B_DEGREES_PER_MM);
-            pickX = x_next_part + Constants.PICK_DISTORTION_OFFSET_X_MM - (offset.Item1 * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z));
-            pickY = y_next_part + Constants.PICK_DISTORTION_OFFSET_Y_MM - (offset.Item2 * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z));
-            Console.WriteLine("Pick next: " +  pickX + " mm " + pickY + " mm");
-            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(pickX, pickY));
+            Tuple<double, double> offset = machine.SelectedPickTool.GetPickOffsetAtRotation(0);
+            
+            if (x_next_part != 0 && y_next_part != 0)
+            {
+                pickX = x_next_part + Constants.PICK_DISTORTION_OFFSET_X_MM - (offset.Item1 * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z));
+                pickY = y_next_part + Constants.PICK_DISTORTION_OFFSET_Y_MM - (offset.Item2 * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z));
+                Console.WriteLine("Pick next: " + pickX + " mm " + pickY + " mm");
+                machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(pickX, pickY));
+                machine.Messages.Add(Command.S3G_GetPosition());
+                machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0));
+                machine.Messages.Add(Command.S3G_GetPosition());
+                machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.PART_TO_PICKUP_Z));
+                machine.Messages.Add(Command.S3G_GetPosition());
+            }
+        }
+
+        public void PickNextComponentOptically()
+        {
+            /* This function loads commands to cause the serial command dispatcher to use values from the camera as the component's x, y */
+            machine.Messages.Add(Command.S3G_SetAbsoluteXYPositionOptically(this));
             machine.Messages.Add(Command.S3G_GetPosition());
             machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0));
             machine.Messages.Add(Command.S3G_GetPosition());

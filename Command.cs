@@ -5,7 +5,14 @@ namespace Picky
 {
     public class Command
     {
-       
+        public static MachineMessage S3G_SetAbsoluteXYPositionOptically(Feeder feeder)
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.cmd[0] = Constants.JRM_SET_ABSOLUTE_XY_POSITION_OPTICALLY;
+            msg.feeder = feeder;
+            return msg; 
+        }
+        
         public static MachineMessage S3G_SetAbsoluteXYPosition(double x, double y)
         {
             return S3G_SetAbsolutePosition((byte)~(Constants.X_AXIS | Constants.Y_AXIS), x, y, 0, 0, 0);
@@ -97,7 +104,7 @@ namespace Picky
             msg.target.x = x; msg.target.y = y;
             msg.target.z = z; msg.target.a = a;
             msg.target.b = b; msg.target.axis = axis;
-
+            
 
             xx = (uint)(x * Constants.XY_STEPS_PER_MM);
             yy = (uint)(y * Constants.XY_STEPS_PER_MM);

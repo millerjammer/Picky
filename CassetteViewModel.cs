@@ -26,7 +26,12 @@ namespace Picky
         public Cassette selectedCassette
         {
             get { return Machine.selectedCassette; } 
-            set { Machine.selectedCassette = value; OnPropertyChanged(nameof(selectedCassette)); }
+            set { Machine.selectedCassette = value; if(Machine.selectedCassette != null) Machine.selectedCassette.PropertyChanged += SelectedCassette_PropertyChanged; OnPropertyChanged(nameof(selectedCassette)); }
+        }
+
+        private void SelectedCassette_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            UpdatePickListCassetteReferences();
         }
 
         public ObservableCollection<Part> PickList
@@ -44,17 +49,25 @@ namespace Picky
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged(string propertyName)
         {
-            Console.WriteLine("property change: " + propertyName);
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+           PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
 
         private void OnCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             Console.WriteLine("collection change");
-            // Handle collection changes here
-            // This method will be called when MyCollection changes
-            // You can perform any necessary actions or notify other components about the changes.
+            UpdatePickListCassetteReferences();
+            if (Machine.PickList != null && Machine.selectedPickListPart == null)
+            {
+                /* Make sure we're listening to changes on the selected Picklist */
+                Machine.PropertyChanged += SelectedPickListPart_PropertyChanged;
+            }
+            
+        }
+
+        private void SelectedPickListPart_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            OnPropertyChanged(nameof(selectedPickListPart));
         }
 
         public CassetteViewModel()
@@ -62,29 +75,6 @@ namespace Picky
             Machine = MachineModel.Instance;
             Machine.Cassettes.CollectionChanged += OnCollectionChanged;
             Machine.PickList.CollectionChanged += OnCollectionChanged;
-        }
-
-        public ICommand PlacePartAtLocationCommand { get { return new RelayCommand(PlacePartAtLocation); } }
-        private void PlacePartAtLocation()
-        {
-            Machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-            Machine.Messages.Add(Command.S3G_GetPosition());
-            
-            double partx = Machine.PCB_OriginX + (Convert.ToDouble(selectedPickListPart.CenterX) * Constants.MIL_TO_MM);
-            double party = Machine.PCB_OriginY + (Convert.ToDouble(selectedPickListPart.CenterY) * Constants.MIL_TO_MM);
-            double angle = Convert.ToDouble(selectedPickListPart.Rotation);
-            double z = 14;
-            Tuple<double, double> offset = Machine.SelectedPickTool.GetPickOffsetAtRotation(angle);
-            /* TODO is this the right z to use?  Or, perhaps use 'z' above? */
-            partx += Constants.PLACE_DISTORTION_OFFSET_X_MM - (offset.Item1 * Machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z));
-            party += Constants.PLACE_DISTORTION_OFFSET_Y_MM - (offset.Item2 * Machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z));
-
-            Machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(partx, party));
-            Machine.Messages.Add(Command.S3G_GetPosition());
-            Machine.Messages.Add(Command.S3G_SetAbsoluteAngle(angle/Constants.B_DEGREES_PER_MM));
-            Machine.Messages.Add(Command.S3G_GetPosition());
-            Machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(z));
-            Machine.Messages.Add(Command.S3G_GetPosition());
         }
 
         public ICommand GoToPartLocationCommand { get { return new RelayCommand(GoToPartLocation); } }
@@ -122,19 +112,26 @@ namespace Picky
             Feeder fdr = new Feeder();
             fdr.width = Constants.FEEDER_THICKNESS;
             fdr.part = Machine.selectedPickListPart;
-            Console.WriteLine("Adding part to feeder... ");
             Machine.selectedCassette.Feeders.Add(fdr);
             Machine.selectedPickListPart.cassette = Machine.selectedCassette;
-            /* Update the references in the pickList */
+        }
+
+        public void UpdatePickListCassetteReferences()
+        {
+            /* Update the cassetter eferences to each part in the pickList */
+            /* Occurs on cassetee or feeder collection change cassette i.e. add, remove */
+            Console.WriteLine("Adding PickList Part Cassette References... ");
             foreach (Part part in Machine.PickList)
             {
-                if (part.cassette == null)
+                part.cassette = null;
+                
+                foreach (Cassette cassette in Machine.Cassettes)
                 {
-                    foreach (Feeder feeder in Machine.selectedCassette.Feeders)
+                    foreach (Feeder feeder in cassette.Feeders)
                     {
                         if (part.Description == feeder.part.Description && part.Footprint == feeder.part.Footprint)
                         {
-                            part.cassette = Machine.selectedCassette;
+                            part.cassette = cassette;
                         }
                     }
                 }
@@ -157,20 +154,6 @@ namespace Picky
                 }
             }
             Machine.selectedCassette = Machine.Cassettes.Last();
-            /* Update the references in the pickList */
-            foreach (Part part in Machine.PickList)
-            {
-                if (part.cassette == null)
-                {
-                    foreach (Feeder feeder in  Machine.selectedCassette.Feeders)
-                    {
-                        if (part.Description == feeder.part.Description && part.Footprint == feeder.part.Footprint)
-                        {
-                            part.cassette = Machine.selectedCassette;
-                        }
-                    }
-                }
-            }
         }
 
         public ICommand OpenPickListCommand { get { return new RelayCommand(OpenPickList); } }
@@ -178,6 +161,10 @@ namespace Picky
         {
             bool isBody = false;
             int[] startIndex = new int[8];
+
+            /* Remove existing, if one exists */
+            Machine?.PickList.Clear();
+
             OpenFileDialog openFileDialog = new OpenFileDialog();
 
             openFileDialog.InitialDirectory = "c:\\";

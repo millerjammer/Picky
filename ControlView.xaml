@@ -14,8 +14,7 @@
                 <ui:Button Command="{Binding CalibrateCameraCommand}" Content="Cal Camera" Background="{Binding CalCameraStatusColor}" HorizontalAlignment="Stretch" Margin="2" Icon="CameraSparkles24"/>
                 <ui:Button Command="{Binding CalibratePickCommand}" Content="Cal Part Pick" Background="{Binding CalPickStatusColor}" HorizontalAlignment="Stretch" Margin="2" Icon="Shortpick24"/>
                 <Separator Margin="5"/>
-                <ui:Button Command="{Binding StartCommand}" Content="Start" HorizontalAlignment="Stretch" Margin="2" Icon="Play20"/>
-                <ToggleButton Command="{Binding PauseCommand}" IsChecked="{Binding IsMachinePaused}" Content="Pause" HorizontalAlignment="Stretch" Margin="2"/>
+                <ToggleButton Command="{Binding StartCommand}" IsChecked="{Binding IsMachinePaused}" Content="{Binding PlayPauseButtonLabel}" HorizontalAlignment="Stretch" Margin="2"/>
                 <ui:Button Command="{Binding StopCommand}" Content="Stop"  HorizontalAlignment="Stretch" Margin="2" Icon="Stop20"/>
                 <Separator Margin="5"/>
                 <ToggleButton Command="{Binding IlluminatorToggleCommand}" IsChecked="{Binding isIlluminatorOn}" HorizontalAlignment="Stretch"  Margin="2" Content="Light"/>
