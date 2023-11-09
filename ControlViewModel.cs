@@ -88,10 +88,10 @@ namespace Picky
         private void CalibrateCamera()
         {
             machine.CameraCalibrationState = MachineModel.CalibrationState.InProcess;
-            Console.WriteLine("Cal Camera Started. Target Centered @:" + Constants.PCB_MAX_DIMENSION_X / 2 + "mm " + Constants.PCB_MAX_DIMENSION_Y / 2 + "mm");
+            Console.WriteLine("Cal Camera Started. Target Centered @:" + Constants.CALIBRATION_TARGET_LOCATION_X_MM + " mm " + Constants.CALIBRATION_TARGET_LOCATION_Y_MM + " mm");
             machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
             machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(-(Constants.PCB_MAX_DIMENSION_X/2), -(Constants.PCB_MAX_DIMENSION_Y/2) - 8.0));
+            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(Constants.CALIBRATION_TARGET_LOCATION_X_MM, Constants.CALIBRATION_TARGET_LOCATION_Y_MM));
             machine.Messages.Add(Command.S3G_GetPosition());
             machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.CALIBRATION_TARGET_DIST_MM));
             machine.Messages.Add(Command.S3G_GetPosition());

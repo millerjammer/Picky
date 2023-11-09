@@ -29,7 +29,7 @@ namespace Picky
         public OpenCvSharp.Rect RefObject
         {
             get { return refObject; }
-            set { refObject = value;  }
+            set { Console.WriteLine("Reference Updated. Old: " + refObject.Width + " " + refObject.Height + " new: " + value.Width + " " + value.Height); refObject = value;  }
         }
 
         public double pCB_OriginX { get; set; }

@@ -240,6 +240,22 @@ namespace Picky
                                 machine.SetCalRectangle(machine.CalRectangle);
                                 machine.CameraCalibrationState = MachineModel.CalibrationState.Complete;
                                 machine.Messages.RemoveAt(0);
+                                /* Now head to a corner, change the z and compensate for focus */
+                                double left_mm = machine.CurrentX - (((Constants.CAMERA_FRAME_WIDTH/2) - machine.CalRectangle.Left) * machine.GetImageScaleAtDistanceX(25));
+                                double right_mm = machine.CurrentX + ((machine.CalRectangle.Right - (Constants.CAMERA_FRAME_WIDTH / 2)) * machine.GetImageScaleAtDistanceX(25));
+                                double bottom_mm = machine.CurrentY - ((machine.CalRectangle.Bottom - (Constants.CAMERA_FRAME_HEIGHT / 2)) * machine.GetImageScaleAtDistanceY(25));
+                                double top_mm = machine.CurrentY + (((Constants.CAMERA_FRAME_HEIGHT/2) - machine.CalRectangle.Top)  * machine.GetImageScaleAtDistanceY(25));
+                                machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(25.0));
+                                machine.Messages.Add(Command.S3G_GetPosition());
+                                machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(left_mm, top_mm));
+                                machine.Messages.Add(Command.S3G_GetPosition()); 
+                                machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(right_mm,top_mm));
+                                machine.Messages.Add(Command.S3G_GetPosition());
+                                machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(right_mm, bottom_mm));
+                                machine.Messages.Add(Command.S3G_GetPosition());
+                                machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(left_mm, bottom_mm));
+                                machine.Messages.Add(Command.S3G_GetPosition());
+
                             }
                             else
                             {
@@ -264,12 +280,12 @@ namespace Picky
                 {
                     Console.WriteLine("Rotation Start");
                     machine.CalPick.Initialize();
-                    machine.Messages.Add(Command.S3G_SetAbsoluteAngle(50));
-                    machine.Messages.Add(Command.S3G_GetPosition());
-                    machine.Messages.Add(Command.S3G_SetAbsoluteAngle(100));
-                    machine.Messages.Add(Command.S3G_GetPosition());
-                    machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0));
-                    machine.Messages.Add(Command.S3G_GetPosition());
+                    //machine.Messages.Add(Command.S3G_SetAbsoluteAngle(50));
+                    //machine.Messages.Add(Command.S3G_GetPosition());
+                    //machine.Messages.Add(Command.S3G_SetAbsoluteAngle(100));
+                    //machine.Messages.Add(Command.S3G_GetPosition());
+                    //machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0));
+                    //machine.Messages.Add(Command.S3G_GetPosition());
                     machine.Messages.Add(Command.JRM_CalibrationCalculatePick1());
                     machine.Messages.RemoveAt(0);
                 }

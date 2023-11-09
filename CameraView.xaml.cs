@@ -13,6 +13,7 @@ using ScaleTransform = System.Windows.Media.ScaleTransform;
 using Point = System.Windows.Point;
 using Slider = Xamarin.Forms.Slider;
 using EnvDTE80;
+using Newtonsoft.Json.Linq;
 
 
 /* https://stackoverflow.com/questions/62573753/pan-and-zoom-but-contain-image-inside-parent-container */

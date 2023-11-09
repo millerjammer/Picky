@@ -30,6 +30,7 @@ namespace Picky
         /* These are temporary for use while performing calibration */
         public PickModel CalPick { get; set; } = new PickModel();
         public OpenCvSharp.Rect CalRectangle { get; set; } = new OpenCvSharp.Rect();
+       
 
         /* Current PickTool */
         public List<PickModel> PickTools { get; set; }
@@ -191,18 +192,24 @@ namespace Picky
         {
             /*******************************************************************************/
             /* Returns mm/pix given distance (as reported by Machine i.e. machine.CurrentX */
+            /* Use law of similar triangles (caldist/calscale) = (newdist/?) solve for ?   */
 
-            double imageScale = ((Constants.CALIBRATION_TARGET_WIDTH_MM / Cal.RefObject.Width) * (distance + Constants.CAMERA_OFFSET_Z)) / (Constants.CAMERA_OFFSET_Z + Constants.CALIBRATION_TARGET_DIST_MM);
-            return (imageScale);
+            /* Get mm/pix */
+            double calibrationScale = ((Constants.CALIBRATION_TARGET_WIDTH_MM) / Cal.RefObject.Width);
+            double distanceScale = ((distance + Constants.CAMERA_OFFSET_Z) * calibrationScale) / (Constants.CAMERA_OFFSET_Z + Constants.CALIBRATION_TARGET_DIST_MM);
+            return (distanceScale);
         }
 
         public double GetImageScaleAtDistanceY(double distance)
         {
             /*******************************************************************************/
             /* Returns mm/pix given distance (as reported by Machine i.e. machine.CurrentX */
+            /* Use law of similar triangles (caldist/calscale) = (newdist/?) solve for ?   */
 
-            double imageScale = ((Constants.CALIBRATION_TARGET_HEIGHT_MM / Cal.RefObject.Height) * (distance + Constants.CAMERA_OFFSET_Z)) / (Constants.CAMERA_OFFSET_Z + Constants.CALIBRATION_TARGET_DIST_MM);
-            return (imageScale);
+            /* Get mm/pix */
+            double calibrationScale = ((Constants.CALIBRATION_TARGET_HEIGHT_MM) / Cal.RefObject.Height);
+            double distanceScale = ((distance + Constants.CAMERA_OFFSET_Z) * calibrationScale) / (Constants.CAMERA_OFFSET_Z + Constants.CALIBRATION_TARGET_DIST_MM);
+            return (distanceScale);
         }
 
         public bool SetCalPickTool(PickModel pickModelToUse)

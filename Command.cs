@@ -111,7 +111,10 @@ namespace Picky
             zz = (uint)(z * Constants.Z_STEPS_PER_MM);
             aa = (uint)(a * Constants.AB_STEPS_PER_MM);
             bb = (uint)(b * Constants.AB_STEPS_PER_MM);
-            duration = 2 * 1000000;
+            if (axis == (byte)~(Constants.B_AXIS))
+                duration = 5 * 1000000;
+            else
+                duration = 2 * 1000000;
 
             msg.cmd[0] = Constants.SS_MIGHTBOARD_HEADER;
             msg.cmd[1] = 26;

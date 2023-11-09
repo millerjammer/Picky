@@ -123,7 +123,7 @@ namespace Picky
             {
                 int value = (int)capture.Get(VideoCaptureProperties.Focus);
                 capture.Set(VideoCaptureProperties.Focus, Focus);
-                //Console.WriteLine("Manual Focus " + value + " -> " + Focus);
+                Console.WriteLine("Manual Focus " + value + " -> " + Focus);
             }
             else
             {

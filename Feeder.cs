@@ -159,9 +159,10 @@ namespace Picky
             double z = 14;
             Tuple<double, double> offset = machine.SelectedPickTool.GetPickOffsetAtRotation(angle);
             /* TODO is this the right z to use?  Or, perhaps use 'z' above? */
+            
             partx += Constants.PLACE_DISTORTION_OFFSET_X_MM - (offset.Item1 * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z));
             party += Constants.PLACE_DISTORTION_OFFSET_Y_MM - (offset.Item2 * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z));
-
+            
             machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(partx, party));
             machine.Messages.Add(Command.S3G_GetPosition());
             machine.Messages.Add(Command.S3G_SetAbsoluteAngle(angle / Constants.B_DEGREES_PER_MM));
@@ -203,6 +204,7 @@ namespace Picky
             {
                 pickX = x_next_part + Constants.PICK_DISTORTION_OFFSET_X_MM - (offset.Item1 * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z));
                 pickY = y_next_part + Constants.PICK_DISTORTION_OFFSET_Y_MM - (offset.Item2 * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z));
+                Console.WriteLine("HEY offset is: " + (offset.Item1 * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z)) + " mm " + (offset.Item2 * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z)));
                 Console.WriteLine("Pick next: " + pickX + " mm " + pickY + " mm");
                 machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(pickX, pickY));
                 machine.Messages.Add(Command.S3G_GetPosition());
