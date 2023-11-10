@@ -35,10 +35,10 @@ namespace Picky
         /* Dimensions of the actual calibration target */
         public static double CALIBRATION_TARGET_WIDTH_MM = 69.85;
         public static double CALIBRATION_TARGET_HEIGHT_MM = 44.45;
-        public static double CALIBRATION_TARGET_DIST_MM = 45.0;
+        public static double CALIBRATION_TARGET_DIST_MM = 25.0;
 
         public static double CALIBRATION_TARGET_LOCATION_X_MM = -72.0;
-        public static double CALIBRATION_TARGET_LOCATION_Y_MM = -54.0;
+        public static double CALIBRATION_TARGET_LOCATION_Y_MM = -55.0;
 
         /* FIxed focus and height for pick calibration offset */
         public static double CALIBRATION_PICK_HEIGHT_MM = 45.0;

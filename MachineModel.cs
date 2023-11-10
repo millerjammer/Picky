@@ -194,10 +194,10 @@ namespace Picky
             /* Returns mm/pix given distance (as reported by Machine i.e. machine.CurrentX */
             /* Use law of similar triangles (caldist/calscale) = (newdist/?) solve for ?   */
 
-            /* Get mm/pix */
-            double calibrationScale = ((Constants.CALIBRATION_TARGET_WIDTH_MM) / Cal.RefObject.Width);
-            double distanceScale = ((distance + Constants.CAMERA_OFFSET_Z) * calibrationScale) / (Constants.CAMERA_OFFSET_Z + Constants.CALIBRATION_TARGET_DIST_MM);
-            return (distanceScale);
+            double fov_at_cal_mm = (Constants.CAMERA_FRAME_WIDTH * Constants.CALIBRATION_TARGET_WIDTH_MM) / Cal.RefObject.Width;
+            double fov_mm = ((distance + 50.8) * fov_at_cal_mm) / (Constants.CALIBRATION_TARGET_DIST_MM + 50.8);
+
+            return (fov_mm/Constants.CAMERA_FRAME_WIDTH);
         }
 
         public double GetImageScaleAtDistanceY(double distance)
@@ -206,10 +206,10 @@ namespace Picky
             /* Returns mm/pix given distance (as reported by Machine i.e. machine.CurrentX */
             /* Use law of similar triangles (caldist/calscale) = (newdist/?) solve for ?   */
 
-            /* Get mm/pix */
-            double calibrationScale = ((Constants.CALIBRATION_TARGET_HEIGHT_MM) / Cal.RefObject.Height);
-            double distanceScale = ((distance + Constants.CAMERA_OFFSET_Z) * calibrationScale) / (Constants.CAMERA_OFFSET_Z + Constants.CALIBRATION_TARGET_DIST_MM);
-            return (distanceScale);
+            double fov_at_cal_mm = (Constants.CAMERA_FRAME_HEIGHT * Constants.CALIBRATION_TARGET_HEIGHT_MM) / Cal.RefObject.Height;
+            double fov_mm = ((distance + 50.8) * fov_at_cal_mm) / (Constants.CALIBRATION_TARGET_DIST_MM + 50.8);
+
+            return (fov_mm / Constants.CAMERA_FRAME_HEIGHT);
         }
 
         public bool SetCalPickTool(PickModel pickModelToUse)
