@@ -235,7 +235,13 @@ namespace Picky
                             {
                                 
                                 Console.WriteLine("Final Target (w,h): " + machine.CalRectangle.Width + "px " + machine.CalRectangle.Height + "px");
-                                Console.WriteLine("Item Resolution: X: " + machine.GetImageScaleAtDistanceX(machine.CurrentZ) + "mm/px Y:" + machine.GetImageScaleAtDistanceY(machine.CurrentZ) + "mm/px");
+                                Console.WriteLine("Calculated Target Size @ Z=" + machine.CurrentZ + "mm ");
+                                Console.WriteLine("Target Size: " + machine.CalRectangle.Width * machine.GetImageScaleAtDistanceX(machine.CurrentZ) + "mm Y:" + machine.CalRectangle.Height * machine.GetImageScaleAtDistanceY(machine.CurrentZ) + "mm/px");
+                                Console.WriteLine("Actual Size: " + Constants.CALIBRATION_TARGET_WIDTH_MM + "mm Y:" + Constants.CALIBRATION_TARGET_HEIGHT_MM);
+                                double offset_x = ((Constants.CAMERA_FRAME_WIDTH/2) - (machine.CalRectangle.Left + (machine.CalRectangle.Width / 2))) * machine.GetImageScaleAtDistanceX(machine.CurrentZ);
+                                double offset_y = ((Constants.CAMERA_FRAME_HEIGHT/2) - (machine.CalRectangle.Top + (machine.CalRectangle.Height / 2))) * machine.GetImageScaleAtDistanceY(machine.CurrentZ);
+                                Console.WriteLine("Target Offset: " + offset_x + "mm Y:" + offset_y);
+
                                 machine.CalibrationStatusString = "Item Resolution: Successful";
                                 machine.SetCalRectangle(machine.CalRectangle);
                                 machine.CameraCalibrationState = MachineModel.CalibrationState.Complete;
@@ -246,10 +252,10 @@ namespace Picky
                                     Console.WriteLine("Z: " + i + "mm Resolution: " + machine.GetImageScaleAtDistanceX(i) + "mm/px, " + machine.GetImageScaleAtDistanceY(i) + "mm/px");
                                 }
                                 /* Now head to a corner, change the z and compensate for focus */
-                                double left_mm = machine.CurrentX - (((Constants.CAMERA_FRAME_WIDTH/2) - machine.CalRectangle.Left) * machine.GetImageScaleAtDistanceX(45));
-                                double right_mm = machine.CurrentX + ((machine.CalRectangle.Right - (Constants.CAMERA_FRAME_WIDTH / 2)) * machine.GetImageScaleAtDistanceX(45));
-                                double bottom_mm = machine.CurrentY - ((machine.CalRectangle.Bottom - (Constants.CAMERA_FRAME_HEIGHT / 2)) * machine.GetImageScaleAtDistanceY(45));
-                                double top_mm = machine.CurrentY + (((Constants.CAMERA_FRAME_HEIGHT/2) - machine.CalRectangle.Top)  * machine.GetImageScaleAtDistanceY(45));
+                                double left_mm = machine.CurrentX - (((Constants.CAMERA_FRAME_WIDTH/2) - machine.CalRectangle.Left) * machine.GetImageScaleAtDistanceX(25));
+                                double right_mm = machine.CurrentX + ((machine.CalRectangle.Right - (Constants.CAMERA_FRAME_WIDTH / 2)) * machine.GetImageScaleAtDistanceX(25));
+                                double bottom_mm = machine.CurrentY - ((machine.CalRectangle.Bottom - (Constants.CAMERA_FRAME_HEIGHT / 2)) * machine.GetImageScaleAtDistanceY(25));
+                                double top_mm = machine.CurrentY + (((Constants.CAMERA_FRAME_HEIGHT/2) - machine.CalRectangle.Top)  * machine.GetImageScaleAtDistanceY(25));
                                 machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(45.0));
                                 machine.Messages.Add(Command.S3G_GetPosition());
                                 machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(left_mm, top_mm));
@@ -271,6 +277,11 @@ namespace Picky
                                 machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(right_mm, bottom_mm));
                                 machine.Messages.Add(Command.S3G_GetPosition());
                                 machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(left_mm, bottom_mm));
+                                machine.Messages.Add(Command.S3G_GetPosition());
+
+                                machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(45.0));
+                                machine.Messages.Add(Command.S3G_GetPosition());
+                                machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(Constants.CALIBRATION_TARGET_LOCATION_X_MM + offset_x, Constants.CALIBRATION_TARGET_LOCATION_Y_MM + offset_y ));
                                 machine.Messages.Add(Command.S3G_GetPosition());
 
 

@@ -459,8 +459,8 @@ namespace Picky
                 {
                     x_offset_pixels = x_next - (0.5 * Constants.CAMERA_FRAME_WIDTH);
                     y_offset_pixels = -(y_next - (0.5 * Constants.CAMERA_FRAME_HEIGHT));
-                    x_next_part = machine.CurrentX + (x_offset_pixels * machine.GetImageScaleAtDistanceX(machine.CurrentZ + Constants.FEEDER_TO_PLATFORM_ZOFFSET));
-                    y_next_part = machine.CurrentY + (y_offset_pixels * machine.GetImageScaleAtDistanceY(machine.CurrentZ + Constants.FEEDER_TO_PLATFORM_ZOFFSET));
+                    x_next_part = machine.CurrentX + (x_offset_pixels * machine.GetImageScaleAtDistanceX(machine.CurrentZ - 15));
+                    y_next_part = machine.CurrentY + (y_offset_pixels * machine.GetImageScaleAtDistanceY(machine.CurrentZ - 15));
                     if(machine.selectedCassette.selectedFeeder.SetCandidateNextPartLocation(x_next_part, y_next_part) == true)
                     {
                         partInView = true;
