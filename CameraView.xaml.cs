@@ -16,7 +16,7 @@ using EnvDTE80;
 using Newtonsoft.Json.Linq;
 
 
-/* https://stackoverflow.com/questions/62573753/pan-and-zoom-but-contain-image-inside-parent-container */
+/* https://stackoverflow.com/questions/62573753/pan-and-zoom-but-contain-image-inside-parent-container  */
 /* https://stackoverflow.com/questions/741956/pan-zoom-image/6782715#6782715 */
 /* https://www.kurokesu.com/main/2020/07/12/pulling-full-resolution-from-a-webcam-with-opencv-windows/ */
 namespace Picky
