@@ -129,29 +129,29 @@ namespace Picky
         public ICommand GoToFeederCommand { get { return new RelayCommand(GoToFeeder); } }
         public void GoToFeeder()
         {
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(x_origin, y_origin));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
+            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(x_origin, y_origin));
+            machine.Messages.Add(GCommand.G_GetPosition());
         }
 
         public ICommand GoToFeederDriveCommand { get { return new RelayCommand(GoToFeederDrive); } }
         private void GoToFeederDrive()
         {
             Console.WriteLine("Go To Feeder Drive Position: " + x_drive + " mm " + y_drive + " mm");
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(x_drive, y_drive));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(z_drive));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
+            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(x_drive, y_drive));
+            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(z_drive));
+            machine.Messages.Add(GCommand.G_GetPosition());
         }
 
         public ICommand PlacePartAtLocationCommand { get { return new RelayCommand(PlacePartAtLocation); } }
         public void PlacePartAtLocation()
         {
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
+            machine.Messages.Add(GCommand.G_GetPosition());
 
             double partx = machine.PCB_OriginX + (Convert.ToDouble(machine.selectedPickListPart.CenterX) * Constants.MIL_TO_MM);
             double party = machine.PCB_OriginY + (Convert.ToDouble(machine.selectedPickListPart.CenterY) * Constants.MIL_TO_MM);
@@ -163,12 +163,12 @@ namespace Picky
             partx += Constants.PLACE_DISTORTION_OFFSET_X_MM - (offset.Item1 * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z));
             party += Constants.PLACE_DISTORTION_OFFSET_Y_MM - (offset.Item2 * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z));
             
-            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(partx, party));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteAngle(angle / Constants.B_DEGREES_PER_MM));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(z));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(partx, party));
+            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteAngle(angle / Constants.B_DEGREES_PER_MM));
+            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(z));
+            machine.Messages.Add(GCommand.G_GetPosition());
         }
 
         public ICommand RemoveFeederFromCassetteCommand { get { return new RelayCommand(RemoveFeederFromCassette); } }
@@ -185,12 +185,12 @@ namespace Picky
         public ICommand GoToNextComponentCommand { get { return new RelayCommand(GoToNextComponent); } }
         private void GoToNextComponent()
         {
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
+            machine.Messages.Add(GCommand.G_GetPosition());
             if (x_next_part != 0 && y_next_part != 0)
             {
-                machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(x_next_part, y_next_part));
-                machine.Messages.Add(Command.S3G_GetPosition());
+                machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(x_next_part, y_next_part));
+                machine.Messages.Add(GCommand.G_GetPosition());
             }
         }
 
@@ -206,24 +206,24 @@ namespace Picky
                 pickY = y_next_part + Constants.PICK_DISTORTION_OFFSET_Y_MM - (offset.Item2 * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z));
                 Console.WriteLine("HEY offset is: " + (offset.Item1 * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z)) + " mm " + (offset.Item2 * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z)));
                 Console.WriteLine("Pick next: " + pickX + " mm " + pickY + " mm");
-                machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(pickX, pickY));
-                machine.Messages.Add(Command.S3G_GetPosition());
-                machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0));
-                machine.Messages.Add(Command.S3G_GetPosition());
-                machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.PART_TO_PICKUP_Z));
-                machine.Messages.Add(Command.S3G_GetPosition());
+                machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(pickX, pickY));
+                machine.Messages.Add(GCommand.G_GetPosition());
+                machine.Messages.Add(GCommand.G_SetAbsoluteAngle(0));
+                machine.Messages.Add(GCommand.G_GetPosition());
+                machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(Constants.PART_TO_PICKUP_Z));
+                machine.Messages.Add(GCommand.G_GetPosition());
             }
         }
 
         public void PickNextComponentOptically()
         {
             /* This function loads commands to cause the serial command dispatcher to use values from the camera as the component's x, y */
-            machine.Messages.Add(Command.S3G_SetAbsoluteXYPositionOptically(this));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.PART_TO_PICKUP_Z));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteXYPositionOptically(this));
+            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteAngle(0));
+            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(Constants.PART_TO_PICKUP_Z));
+            machine.Messages.Add(GCommand.G_GetPosition());
         }
 
         public ICommand SetPartTemplateCommand { get { return new RelayCommand(SetPartTemplate); } }

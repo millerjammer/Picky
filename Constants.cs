@@ -87,13 +87,13 @@ namespace Picky
         public static byte JRM_SET_ABSOLUTE_XY_POSITION_OPTICALLY = 0x92;
 
         public static byte SS_MIGHTBOARD_HEADER = 0xD5;
-        
+                
         public static int BIT_PUMP = 0x20;
         public static int BIT_RELIEF = 0x40;
         public static int BIT_LIGHT = 0x10;
 
         public static int MAX_BUFFER_SIZE = 512;
-        public static int QUEUE_SERVICE_INTERVAL = 200;
+        public static int QUEUE_SERVICE_INTERVAL = 500;
             
 
         public static byte PX_AXIS = 0x80;

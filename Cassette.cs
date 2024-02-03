@@ -103,10 +103,10 @@ namespace Picky
         public ICommand GoToCassetteCommand { get { return new RelayCommand(GoToCassette); } }
         public void GoToCassette()
         {
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(x_origin, y_origin));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
+            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(x_origin, y_origin));
+            machine.Messages.Add(GCommand.G_GetPosition());
         }
 
         public ICommand SetCassetteHomeCommand { get { return new RelayCommand(SetCassetteHome); } }

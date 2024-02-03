@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO.Ports;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Forms;
@@ -17,24 +20,27 @@ namespace Picky
 {
     public class SerialInterface 
     {
-        private static byte[] serial_buffer = new byte[Constants.MAX_BUFFER_SIZE];
-        private static int s_in = 0;
-        private int tick = 0;
+       private static byte[] serial_buffer = new byte[Constants.MAX_BUFFER_SIZE];
+       private static int s_in = 0;
+       private int tick = 0;
 
-        MachineModel machine = MachineModel.Instance;
+       MachineModel machine = MachineModel.Instance;
 
-        private static MachineMessage.Pos lastPos = new MachineMessage.Pos();
-        public int rx_msgCount { get; set; }
-        public int tx_msgCount { get; set; }
+       private static MachineMessage.Pos lastPos = new MachineMessage.Pos();
+       public int rx_msgCount { get; set; }
+       public int tx_msgCount { get; set; }
 
-        static SerialPort serialPort;
+       static SerialPort serialPort;
 
        public SerialInterface() {
 
             /* Open Port */
             serialPort = new SerialPort();
-            serialPort.PortName = "COM4";
+            serialPort.PortName = "COM12";
             serialPort.BaudRate = 115200;
+            /* The following is critial! Or no RX for you */
+            serialPort.RtsEnable = true;
+            serialPort.DtrEnable = true;
             try
             {
                 serialPort.Open();
@@ -45,6 +51,8 @@ namespace Picky
             }
             if (serialPort.IsOpen)
             {
+                serialPort.DiscardInBuffer();
+                serialPort.DiscardOutBuffer();
                 Console.WriteLine("Machine Serial Port Opened.");
             }
                      
@@ -81,67 +89,53 @@ namespace Picky
             int length, i, j, k;
             int bytes_read;
             byte[] sbuf = new byte[64];
-            string rawString = " ";
             bool isPositionGood = true;
-            bool isPositionFaulty = false;
-
+            
             if (serialPort.IsOpen)
             {
                 /**** Read the port, stick it at end of the main buffer *****/
-                if (serialPort.BytesToRead == 0)
-                {
+                int avail = serialPort.BytesToRead;
+                if (avail == 0)
                     return true;
-                }
-                bytes_read = serialPort.Read(sbuf, 0, 64);
+                bytes_read = serialPort.Read(sbuf, 0, avail);
                 for (i = 0; i < bytes_read; i++)
                 {
                     serial_buffer[s_in++] = sbuf[i];
                 }
                 //Try to read a message 
-                for (i = 0; i < s_in; i++)
+                while (Array.IndexOf(serial_buffer, (byte)'\n') >= 0)
                 {
-                    if (serial_buffer[i] == (byte)Constants.SS_MIGHTBOARD_HEADER)
+                    length = Array.IndexOf(serial_buffer, (byte)'\n') + 1;
+
+                    //There are enough bytes to parse a message, first, write what we got
+                    for (j = 0; j < length; j++)
+                        Console.Write((char)serial_buffer[j]);
+                    Console.WriteLine();
+
+                    //Check return message
+                    if (serial_buffer[0] == (byte)'o' && serial_buffer[1] == (byte)'k')
                     {
-                        length = serial_buffer[i + 1] + 3;
-                        if (length <= (s_in - i))
-                        {
-                            //There are enough bytes to parse a message
-                            for (j = 0; j < length; j++)
-                            {
-                                //Read the Message and put in Log
-                                rawString += " " + String.Format("{0:X}", serial_buffer[i + j] & 0xFF);
-                            }
-                            //dlg.m_messageBox.InsertString(-1, str);
-                            rx_msgCount++;
-                            //Check return message
-                            if (serial_buffer[i + 1] == (byte)Constants.S3G_GET_EXTENDED_POSITION_CURRENT_LEN)
-                            {
-                                isPositionGood = getPositionFromMessage();
-                                isPositionFaulty = CheckPositionHardFailure();
-                                if (isPositionFaulty)
-                                {
-                                    machine.Messages.Clear();
-                                    machine.Messages.Add(Command.S3G_AbortImmediately());
-                                    machine.CameraCalibrationState = MachineModel.CalibrationState.Failed;
-                                    machine.PositionCalibrationState = MachineModel.CalibrationState.Failed;
-                                    machine.CalibrationStatusString = "Abort due to bad position";
-    
-                                }
-                            }
-                            //Fixup the byte buffer by moving unread bytes and the pointer
-                            for (k = 0; k < Constants.MAX_BUFFER_SIZE - length; k++)
-                            {
-                                serial_buffer[k] = serial_buffer[i + length];
-                            }
-                            s_in -= i + length;
-                            if (isPositionGood == true && machine.Messages.Count > 0)
-                            {
-                                //Console.WriteLine("RX Count: " + rx_msgCount.ToString());
-                                //Console.WriteLine("RX Data: " + rawString);
-                                machine.Messages.RemoveAt(0);
-                            }
-                            return true;
-                        }
+                        rx_msgCount++;
+                    }
+                    else if (serial_buffer[0] == (byte)'X' && serial_buffer[1] == (byte)':')
+                    {
+                        rx_msgCount++;
+                        isPositionGood = getPositionFromMessage();
+                    }
+
+                    //Fixup the byte buffer by moving unread bytes and the pointer
+                    for (k = 0; k < Constants.MAX_BUFFER_SIZE - length; k++)
+                    {
+                        serial_buffer[k] = serial_buffer[k + length];
+                    }
+                    s_in = Array.IndexOf(serial_buffer, (byte)'\n') + 1;
+
+                    //Fix up Message queue if position ok
+                    if (isPositionGood == true && machine.Messages.Count > 0)
+                    {
+                        //Console.WriteLine("RX Count: " + rx_msgCount.ToString());
+                        //Console.WriteLine("RX Data: " + rawString);
+                        machine.Messages.RemoveAt(0);
                     }
                 }
                 return true;
@@ -149,22 +143,8 @@ namespace Picky
             return false;
         }
 
-        private bool CheckPositionHardFailure() {
-            /********************************************************************
-            * Checks position
-            *
-            *********************************************************************/
-
-            if (machine.CurrentX < Constants.LIMIT_ABSOLUTE_X)
-                return true;
-            if (machine.CurrentY < Constants.LIMIT_ABSOLUTE_Y)
-                return true;
-            if (machine.CurrentZ > Constants.LIMIT_ABSOLUTE_Z)
-                return true;
-            return false;
-        }
-
-            private bool ServiceOutboundMessageQueue()
+      
+        private bool ServiceOutboundMessageQueue()
         /********************************************************************
         * This is outbound messages to the machine
         *
@@ -196,7 +176,7 @@ namespace Picky
                     if (msg.feeder.x_next_part != 0 && msg.feeder.y_next_part != 0)
                     {   
                         Console.WriteLine("Valid Imagery - Next Pick: " + pickX + " mm " + pickY + " mm");
-                        MachineMessage next = Command.S3G_SetAbsolutePosition((byte)~(Constants.X_AXIS | Constants.Y_AXIS), pickX, pickY, 0, 0, 0);
+                        MachineMessage next = GCommand.G_SetAbsolutePosition((byte)~(Constants.X_AXIS | Constants.Y_AXIS), pickX, pickY, 0, 0, 0);
                         machine.Messages.RemoveAt(0);
                         machine.Messages.Insert(0, next);
                     }
@@ -221,7 +201,7 @@ namespace Picky
                 {
                     Console.WriteLine("In position, resolution cal started.");
                     tick = 10;
-                    machine.Messages.Add(Command.JRM_CalibrationCalculateItemResolution1());
+                    machine.Messages.Add(GCommand.JRM_CalibrationCalculateItemResolution1());
                     machine.Messages.RemoveAt(0);
 
                 }
@@ -245,16 +225,16 @@ namespace Picky
                                 double right_mm = machine.CurrentX + ((machine.CalRectangle.Right - (Constants.CAMERA_FRAME_WIDTH / 2)) * machine.GetImageScaleAtDistanceX(25));
                                 double bottom_mm = machine.CurrentY - ((machine.CalRectangle.Bottom - (Constants.CAMERA_FRAME_HEIGHT / 2)) * machine.GetImageScaleAtDistanceY(25));
                                 double top_mm = machine.CurrentY + (((Constants.CAMERA_FRAME_HEIGHT/2) - machine.CalRectangle.Top)  * machine.GetImageScaleAtDistanceY(25));
-                                machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(25.0));
-                                machine.Messages.Add(Command.S3G_GetPosition());
-                                machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(left_mm, top_mm));
-                                machine.Messages.Add(Command.S3G_GetPosition()); 
-                                machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(right_mm,top_mm));
-                                machine.Messages.Add(Command.S3G_GetPosition());
-                                machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(right_mm, bottom_mm));
-                                machine.Messages.Add(Command.S3G_GetPosition());
-                                machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(left_mm, bottom_mm));
-                                machine.Messages.Add(Command.S3G_GetPosition());
+                                machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(25.0));
+                                machine.Messages.Add(GCommand.G_GetPosition());
+                                machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(left_mm, top_mm));
+                                machine.Messages.Add(GCommand.G_GetPosition()); 
+                                machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(right_mm,top_mm));
+                                machine.Messages.Add(GCommand.G_GetPosition());
+                                machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(right_mm, bottom_mm));
+                                machine.Messages.Add(GCommand.G_GetPosition());
+                                machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(left_mm, bottom_mm));
+                                machine.Messages.Add(GCommand.G_GetPosition());
 
                             }
                             else
@@ -286,7 +266,7 @@ namespace Picky
                     //machine.Messages.Add(Command.S3G_GetPosition());
                     //machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0));
                     //machine.Messages.Add(Command.S3G_GetPosition());
-                    machine.Messages.Add(Command.JRM_CalibrationCalculatePick1());
+                    machine.Messages.Add(GCommand.JRM_CalibrationCalculatePick1());
                     machine.Messages.RemoveAt(0);
                 }
                 else if (msg.cmd[0] == Constants.JRM_CALIBRATION_CHECK_PICK1)
@@ -322,7 +302,9 @@ namespace Picky
                         machine.selectedPickListPart = msg.part;
                         Console.WriteLine("using part: " + msg.part.Description);
                     }
-                    serialPort.Write(msg.cmd, 0, msg.cmd[1] + 3);
+                    int len = Array.IndexOf(msg.cmd, (byte)'\n');
+                    Console.WriteLine("Write: " + Encoding.UTF8.GetString(msg.cmd));
+                    serialPort.Write(msg.cmd, 0, len + 1);
                     tx_msgCount++;
                 }
             }
@@ -346,20 +328,18 @@ namespace Picky
                 return true;
             }
             MachineMessage.Pos target = machine.Messages.First().target;
-            int xx, yy, zz, aa, bb;
+            
+            // Define a regular expression pattern for extracting doubles
+            string pattern = @"(\d+\.\d+)";
+            Regex regex = new Regex(pattern);
 
-            xx = (((int)serial_buffer[3]) | (((int)serial_buffer[4]) << 8) | (((int)serial_buffer[5]) << 16) | (((int)serial_buffer[6]) << 24));
-            machine.CurrentX = xx / Constants.XY_STEPS_PER_MM;
-            yy = (((int)serial_buffer[7]) | (((int)serial_buffer[8]) << 8) | (((int)serial_buffer[9]) << 16) | (((int)serial_buffer[10]) << 24));
-            machine.CurrentY = yy / Constants.XY_STEPS_PER_MM;
-            zz = (((int)serial_buffer[11]) | (((int)serial_buffer[12]) << 8) | (((int)serial_buffer[13]) << 16) | (((int)serial_buffer[14]) << 24));
-            machine.CurrentZ = zz / Constants.Z_STEPS_PER_MM;
-            aa = (((int)serial_buffer[15]) | (((int)serial_buffer[16]) << 8) | (((int)serial_buffer[17]) << 16) | (((int)serial_buffer[18]) << 24));
-            machine.CurrentA = aa / Constants.AB_STEPS_PER_MM;
-            bb = (((int)serial_buffer[19]) | (((int)serial_buffer[20]) << 8) | (((int)serial_buffer[21]) << 16) | (((int)serial_buffer[22]) << 24));
-            machine.CurrentB = (bb / Constants.AB_STEPS_PER_MM);
-            machine.LastEndStopState = ((int)serial_buffer[23]) | ((int)serial_buffer[24] << 8);
+            // Match the pattern in the input string
+            MatchCollection matches = regex.Matches(Encoding.UTF8.GetString(serial_buffer));
 
+            machine.CurrentX = double.Parse(matches[0].Value);
+            machine.CurrentY = double.Parse(matches[1].Value);
+            machine.CurrentZ = double.Parse(matches[2].Value);
+            
             if ((machine.CurrentX == lastPos.x) && (machine.CurrentY == lastPos.y) && (machine.CurrentZ == lastPos.z) && (machine.CurrentA == lastPos.a) && (machine.CurrentB == lastPos.b))
             {
                 if ((Math.Abs(lastPos.x - target.x) < 1) || (target.axis & Constants.X_AXIS) == 0)
