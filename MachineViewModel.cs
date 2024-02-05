@@ -43,36 +43,41 @@ namespace Picky
         public ICommand ButtonXLeftCommand { get { return new RelayCommand(ButtonXLeft); } }
         private void ButtonXLeft()
         {
-            machine.Messages.Add(GCommand.G_SetRelativeXYPosition(-distanceToAdvance, 0));
-            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
+            machine.Messages.Add(GCommand.G_SetPosition( -distanceToAdvance, 0, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
         }
 
         public ICommand ButtonXRightCommand { get { return new RelayCommand(ButtonXRight); } }
         private void ButtonXRight()
         {
-            machine.Messages.Add(GCommand.G_SetRelativeXYPosition(distanceToAdvance, 0));
-            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
+            machine.Messages.Add(GCommand.G_SetPosition(distanceToAdvance, 0, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
         }
 
         public ICommand ButtonYUpCommand { get { return new RelayCommand(ButtonYUp); } }
         private void ButtonYUp()
         {
-            machine.Messages.Add(GCommand.G_SetRelativeXYPosition(0, distanceToAdvance));
-            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
+            machine.Messages.Add(GCommand.G_SetPosition(0, distanceToAdvance, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
         }
 
         public ICommand ButtonYDownCommand { get { return new RelayCommand(ButtonYDown); } }
         private void ButtonYDown()
         {
-            machine.Messages.Add(GCommand.G_SetRelativeXYPosition(0, -distanceToAdvance));
-            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
+            machine.Messages.Add(GCommand.G_SetPosition(0, -distanceToAdvance, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+
         }
 
         public ICommand ButtonXYHomeCommand { get { return new RelayCommand(ButtonXYHome); } }
         private void ButtonXYHome()
         {
             machine.Messages.Add(GCommand.G_FindXYMaximums());
-            machine.Messages.Add(GCommand.G_GetPosition());
+            
         }
 
 
@@ -80,7 +85,7 @@ namespace Picky
         private void ButtonZUp()
         {
             machine.Messages.Add(GCommand.G_SetRelativeZPosition(distanceToAdvance));
-            machine.Messages.Add(GCommand.G_GetPosition());
+            
         }
 
         public ICommand ButtonZHomeCommand { get { return new RelayCommand(ButtonZHome); } }

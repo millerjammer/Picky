@@ -7,6 +7,7 @@
 
 
 using System.Text;
+using System.Windows.Forms.VisualStyles;
 
 namespace Picky
 {
@@ -98,6 +99,8 @@ namespace Picky
         }
 
 
+
+
         public static MachineMessage G_SetAbsolutePosition(byte axis, double x, double y, double z, double a, double b)
         {
             /******************************************************************
@@ -110,7 +113,7 @@ namespace Picky
             msg.target.z = z; msg.target.a = a;
             msg.target.b = b; msg.target.axis = axis;
 
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} Z{2}\r\n", x, y, z));
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} Z{2}\n", x, y, z));
             msg.delay = 1;
             msg.timeout = 5000;
             return msg;  // Recommend a GetPosition
@@ -125,7 +128,7 @@ namespace Picky
             msg.target.z = z; msg.target.a = a;
             msg.target.b = b; msg.target.axis = 0x00;
 
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G92 X{0} Y{1} Z{2}\r\n", x, y, z));
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G92 X{0} Y{1} Z{2}\n", x, y, z));
 
             msg.delay = 1;
             msg.timeout = 5000;
@@ -140,9 +143,9 @@ namespace Picky
             msg.target.axis = 0x00;
 
             if (enable == true)
-                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M17\r\n"));
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M17\n"));
             else
-                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M18\r\n"));
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M18\n"));
             msg.delay = 1000;
             msg.timeout = 1000;
             return msg;
@@ -179,6 +182,51 @@ namespace Picky
             return msg;
         }
 
+        public static MachineMessage G_SetAutoPositionReporting(bool enabled)
+        {
+
+            MachineMessage msg = new MachineMessage();
+            msg.target.axis = 0x00;
+            if(enabled == true)
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M154 S1\n"));
+            else
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M154 S0\n"));
+            msg.delay = 1000;
+            msg.timeout = 5000;
+            return msg;
+        }
+
+        public static MachineMessage G_SetAbsolutePositioningMode(bool enabled)
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.target.axis = 0x00;
+            if (enabled == true)
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("G90\n"));
+            else
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("G91\n"));
+            msg.delay = 1000;
+            msg.timeout = 5000;
+            return msg;
+
+        }
+
+        public static MachineMessage G_SetPosition(double x, double y, double z, double a, double b)
+        {
+            /******************************************************************
+            * Units are mm
+            */
+
+            MachineMessage msg = new MachineMessage();
+            msg.target.x = x; msg.target.y = y;
+            msg.target.z = z; msg.target.a = a;
+            msg.target.b = b; 
+
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} Z{2} E{3} F{4}\n", x, y, z, a, b));
+            msg.delay = 1;
+            msg.timeout = 5000;
+            return msg;  
+
+        }
 
         public static MachineMessage G_GetPosition()
         {
@@ -186,7 +234,7 @@ namespace Picky
             MachineMessage msg = new MachineMessage();
             msg.target.axis = 0x00;
 
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M114\r\n"));
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M114_DETAIL D\n"));
             msg.delay = 1000;
             msg.timeout = 5000;
             return msg;

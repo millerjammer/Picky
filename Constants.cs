@@ -92,8 +92,8 @@ namespace Picky
         public static int BIT_RELIEF = 0x40;
         public static int BIT_LIGHT = 0x10;
 
-        public static int MAX_BUFFER_SIZE = 512;
-        public static int QUEUE_SERVICE_INTERVAL = 500;
+        public static int MAX_BUFFER_SIZE = 4096;
+        public static int QUEUE_SERVICE_INTERVAL = 100;
             
 
         public static byte PX_AXIS = 0x80;

@@ -8,6 +8,8 @@ namespace Picky
 {
     public class MachineMessage
     {
+        public enum MessageState { ReadyToSend, PendingOK, PendingPosition, Complete, Failed }
+
         public struct Pos{
             public double x;
             public double y;
@@ -19,7 +21,7 @@ namespace Picky
 
         public Pos target;
         public byte[] cmd;
-        public bool isPending;
+        public MessageState state;
         public int timeout;
         public int delay;
         public Part part;
@@ -30,7 +32,7 @@ namespace Picky
         public MachineMessage() 
         {
             cmd = new byte[64];
-            isPending = false;
+            state = MessageState.ReadyToSend;
         }
     }
 }

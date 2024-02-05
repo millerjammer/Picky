@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.OLE.Interop;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -53,6 +54,7 @@ namespace Picky
             {
                 serialPort.DiscardInBuffer();
                 serialPort.DiscardOutBuffer();
+                serialPort.ReadExisting();
                 Console.WriteLine("Machine Serial Port Opened.");
             }
                      
@@ -61,6 +63,8 @@ namespace Picky
             msgTimer.Elapsed += new ElapsedEventHandler(OnTimer);
             msgTimer.Interval = Constants.QUEUE_SERVICE_INTERVAL;
             msgTimer.Enabled = true;
+
+            machine.Messages.Add(GCommand.G_SetAutoPositionReporting(true));
         }
 
         public void OnTimer(object source, ElapsedEventArgs e)
@@ -70,75 +74,66 @@ namespace Picky
          * complete message in the queue to process. 
          * **********************************************************/
         {
-            if (ServicePickPort() == true)
-            {
-                if (machine.isMachinePaused == false)
-                {
-                    ServiceOutboundMessageQueue();
-                }
-            }
+            ServicePickPort();
+            if (machine.isMachinePaused == false)
+                ServiceOutboundMessageQueue();
+            
         }
 
         private bool ServicePickPort()
         /********************************************************************
          * Checks and processes serial data from the machine.
-         * Returns true if a message was successfully parsed.
+         * Returns true if a command was successfully parsed.
          *********************************************************************/
         {
 
             int length, i, j, k;
             int bytes_read;
-            byte[] sbuf = new byte[64];
-            bool isPositionGood = true;
-            
+            byte[] sbuf = new byte[1024];
+                        
             if (serialPort.IsOpen)
             {
                 /**** Read the port, stick it at end of the main buffer *****/
-                int avail = serialPort.BytesToRead;
-                if (avail == 0)
-                    return true;
-                bytes_read = serialPort.Read(sbuf, 0, avail);
+                bytes_read = serialPort.Read(sbuf, 0, serialPort.BytesToRead);
                 for (i = 0; i < bytes_read; i++)
-                {
                     serial_buffer[s_in++] = sbuf[i];
-                }
-                //Try to read a message 
+                
+                //Try to read messages if we got a \n in the buffer
                 while (Array.IndexOf(serial_buffer, (byte)'\n') >= 0)
                 {
                     length = Array.IndexOf(serial_buffer, (byte)'\n') + 1;
 
                     //There are enough bytes to parse a message, first, write what we got
-                    for (j = 0; j < length; j++)
-                        Console.Write((char)serial_buffer[j]);
-                    Console.WriteLine();
-
-                    //Check return message
+                    //for (j = 0; j < length; j++)
+                    //    Console.Write((char)serial_buffer[j]);
+                    
+                    //Check return message, OK message is always the last to send
                     if (serial_buffer[0] == (byte)'o' && serial_buffer[1] == (byte)'k')
                     {
                         rx_msgCount++;
+                        //Use PendingPosition to wait, i.e. debugging
+                        machine.Messages.First().state = MachineMessage.MessageState.Complete;
+                        for (j = 0; j < length; j++)
+                            Console.Write((char)serial_buffer[j]);
                     }
                     else if (serial_buffer[0] == (byte)'X' && serial_buffer[1] == (byte)':')
                     {
-                        rx_msgCount++;
-                        isPositionGood = getPositionFromMessage();
+                        getPositionFromMessage();
                     }
-
+                    
                     //Fixup the byte buffer by moving unread bytes and the pointer
                     for (k = 0; k < Constants.MAX_BUFFER_SIZE - length; k++)
                     {
                         serial_buffer[k] = serial_buffer[k + length];
                     }
                     s_in = Array.IndexOf(serial_buffer, (byte)'\n') + 1;
-
-                    //Fix up Message queue if position ok
-                    if (isPositionGood == true && machine.Messages.Count > 0)
-                    {
-                        //Console.WriteLine("RX Count: " + rx_msgCount.ToString());
-                        //Console.WriteLine("RX Data: " + rawString);
-                        machine.Messages.RemoveAt(0);
-                    }
                 }
-                return true;
+                if (machine.Messages.Count > 0 && machine.Messages.First().state == MachineMessage.MessageState.Complete)
+                {
+                    machine.Messages.RemoveAt(0);
+                    rx_msgCount++;
+                    return true;
+                }
             }
             return false;
         }
@@ -146,8 +141,9 @@ namespace Picky
       
         private bool ServiceOutboundMessageQueue()
         /********************************************************************
-        * This is outbound messages to the machine
-        *
+        * This is outbound messages to the machine.  If there is still a pending 
+        * message, no new message is sent
+        * Returns 'true' if a message was sent.
         *********************************************************************/
         {
             if (machine.Messages.Count() > 0)
@@ -302,10 +298,12 @@ namespace Picky
                         machine.selectedPickListPart = msg.part;
                         Console.WriteLine("using part: " + msg.part.Description);
                     }
-                    int len = Array.IndexOf(msg.cmd, (byte)'\n');
-                    Console.WriteLine("Write: " + Encoding.UTF8.GetString(msg.cmd));
-                    serialPort.Write(msg.cmd, 0, len + 1);
-                    tx_msgCount++;
+                    if (msg.state == MachineMessage.MessageState.ReadyToSend)
+                    {
+                        int len = Array.IndexOf(msg.cmd, (byte)'\n');
+                        serialPort.Write(msg.cmd, 0, len + 1);
+                        tx_msgCount++;
+                    }
                 }
             }
             return true;
@@ -313,22 +311,13 @@ namespace Picky
 
         private bool getPositionFromMessage()
         /********************************************************************
-         * Helper - Updates current position (from message 21)
-         *
+         * Helper - Updates current position and message, if message available
+         * Return true if no error
          *********************************************************************/
         {
-            /*
-            * Return true if position is good (close to target position)
-            */
+          
             bool isGood = false;
-            if (machine.Messages.Count == 0)
-            {
-                //If the queue is empty
-                //dlg.m_messageBox.AddString(L"Get Position Request: Queue Empty.");
-                return true;
-            }
-            MachineMessage.Pos target = machine.Messages.First().target;
-            
+
             // Define a regular expression pattern for extracting doubles
             string pattern = @"(\d+\.\d+)";
             Regex regex = new Regex(pattern);
@@ -339,18 +328,22 @@ namespace Picky
             machine.CurrentX = double.Parse(matches[0].Value);
             machine.CurrentY = double.Parse(matches[1].Value);
             machine.CurrentZ = double.Parse(matches[2].Value);
-            
+
+            if (machine.Messages.Count == 0)
+                return true;
+            MachineMessage msg = machine.Messages.First();
+
             if ((machine.CurrentX == lastPos.x) && (machine.CurrentY == lastPos.y) && (machine.CurrentZ == lastPos.z) && (machine.CurrentA == lastPos.a) && (machine.CurrentB == lastPos.b))
             {
-                if ((Math.Abs(lastPos.x - target.x) < 1) || (target.axis & Constants.X_AXIS) == 0)
+                if ((Math.Abs(lastPos.x - msg.target.x) < 1) || (msg.target.axis & Constants.X_AXIS) == 0)
                 {
-                    if ((Math.Abs(lastPos.y - target.y) < 1) || (target.axis & Constants.Y_AXIS) == 0)
+                    if ((Math.Abs(lastPos.y - msg.target.y) < 1) || (msg.target.axis & Constants.Y_AXIS) == 0)
                     {
-                        if ((Math.Abs(lastPos.z - target.z) < 1) || (target.axis & Constants.Z_AXIS) == 0)
+                        if ((Math.Abs(lastPos.z - msg.target.z) < 1) || (msg.target.axis & Constants.Z_AXIS) == 0)
                         {
-                            if ((Math.Abs(lastPos.a - target.a) < 1) || (target.axis & Constants.A_AXIS) == 0)
+                            if ((Math.Abs(lastPos.a - msg.target.a) < 1) || (msg.target.axis & Constants.A_AXIS) == 0)
                             {
-                                if ((Math.Abs(lastPos.b - target.b) < 1) || (target.axis & Constants.B_AXIS) == 0)
+                                if ((Math.Abs(lastPos.b - msg.target.b) < 1) || (msg.target.axis & Constants.B_AXIS) == 0)
                                 {
                                     isGood = true;
                                 }
@@ -361,12 +354,20 @@ namespace Picky
             }
 
             lastPos.x = machine.CurrentX; lastPos.y = machine.CurrentY; lastPos.z = machine.CurrentZ; lastPos.a = machine.CurrentA; lastPos.b = machine.CurrentB;
-                       
-            return isGood;
+            if (msg.cmd[0] == 'G' && msg.cmd[1] == '0')
+            {
+                if (isGood && msg.state == MachineMessage.MessageState.PendingPosition)
+                {
+                    msg.state = MachineMessage.MessageState.Complete;
+                }
+            }
+            else
+            {
+                msg.state = MachineMessage.MessageState.Complete;
+            }
+           
+            return true;
         }
-
-       
     }
-
 }
 
