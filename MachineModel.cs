@@ -6,7 +6,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
-
+using System.Windows.Controls.Primitives;
 
 namespace Picky
 {
@@ -14,8 +14,7 @@ namespace Picky
     {
         /* Declare as Singleton */
         private static readonly Lazy<MachineModel> lazy = new Lazy<MachineModel>(() => new MachineModel());
-
-        
+                
         public RelayInterface relayInterface;
 
         /* Serial Message Queue */
@@ -82,7 +81,6 @@ namespace Picky
             set { Cal.pCB_OriginZ = value; OnPropertyChanged(nameof(PCB_OriginZ)); }
         }
 
-
         /* Current machine position - needed because serial port makes changes here */
         private double currentX = 0;
         public double CurrentX
@@ -100,10 +98,7 @@ namespace Picky
         public double CurrentZ
         {
             get { return currentZ; }
-            set
-            {
-                currentZ = value; OnPropertyChanged(nameof(CurrentZ));
-            }
+            set { currentZ = value; OnPropertyChanged(nameof(CurrentZ)); }
         }
         private double currentA = 0;
         public double CurrentA
@@ -118,6 +113,35 @@ namespace Picky
             set { currentB = value; OnPropertyChanged(nameof(CurrentB)); }
         }
 
+        /* Hardware Components */
+        private bool isIlluminatorActive;
+        public bool IsIlluminatorActive
+        {
+            get { return isIlluminatorActive; }
+            set { isIlluminatorActive = value; OnPropertyChanged(nameof(IsIlluminatorActive)); }
+        }
+
+        private bool isUpIlluminatorActive;
+        public bool IsUpIlluminatorActive
+        {
+            get { return isUpIlluminatorActive; }
+            set { isUpIlluminatorActive = value; OnPropertyChanged(nameof(IsUpIlluminatorActive)); }
+        }
+
+        private bool isPumpActive;
+        public bool IsPumpActive
+        {
+            get { return isPumpActive; }
+            set { isPumpActive = value; OnPropertyChanged(nameof(IsPumpActive)); }
+        }
+
+        private bool isValveActive;
+        public bool IsValveActive
+        {
+            get { return isValveActive; }
+            set { isValveActive = value; OnPropertyChanged(nameof(IsValveActive)); }
+        }
+
         private bool isCameraCalibrated;
         public bool IsCameraCalibrated
         {
@@ -125,6 +149,7 @@ namespace Picky
             set { isCameraCalibrated = value; OnPropertyChanged(nameof(IsCameraCalibrated)); }
         }
 
+        /* Calibration */
         public enum CalibrationState { NotCalibrated, InProcess, Complete, Failed }
         private CalibrationState cameraCalibrationState;
         public CalibrationState CameraCalibrationState
@@ -180,6 +205,7 @@ namespace Picky
             PickTools.Add(new PickModel("Test 2"));
             PickTools.Add(new PickModel("Test 3"));
         }
+
         public static MachineModel Instance
         {
             get

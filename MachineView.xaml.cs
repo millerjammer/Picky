@@ -1,4 +1,8 @@
 ﻿using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using Wpf.Ui.Mvvm.Interfaces;
+using Wpf.Ui.Controls;
+
 
 namespace Picky
 {
@@ -8,12 +12,23 @@ namespace Picky
     public partial class MachineView : UserControl
     {
         private readonly MachineViewModel machine;
-        
+
         public MachineView()
         {
             InitializeComponent();
             machine = new MachineViewModel();
             this.DataContext = machine;
+            zSlider.Maximum = Constants.Z_AXIS_MAX;
+        }
+
+        public void SliderZ(object sender, DragCompletedEventArgs e)
+        {
+           
+        }
+
+        public void SliderR(object sender, DragCompletedEventArgs e)
+        {
+            //machine.SliderRUpdatePosition();
         }
     }
 }

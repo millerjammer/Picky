@@ -6,6 +6,7 @@
 
 
 
+using System;
 using System.Text;
 using System.Windows.Forms.VisualStyles;
 
@@ -114,9 +115,7 @@ namespace Picky
             msg.target.b = b; msg.target.axis = axis;
 
             msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} Z{2}\n", x, y, z));
-            msg.delay = 1;
-            msg.timeout = 5000;
-            return msg;  // Recommend a GetPosition
+            return msg;  
             
         }
 
@@ -129,29 +128,152 @@ namespace Picky
             msg.target.b = b; msg.target.axis = 0x00;
 
             msg.cmd = Encoding.UTF8.GetBytes(string.Format("G92 X{0} Y{1} Z{2}\n", x, y, z));
-
-            msg.delay = 1;
-            msg.timeout = 5000;
-
             return(msg);
         }
 
         public static MachineMessage G_EnableSteppers(byte axis, bool enable)
         {
-
             MachineMessage msg = new MachineMessage();
-            msg.target.axis = 0x00;
-
+            
             if (enable == true)
                 msg.cmd = Encoding.UTF8.GetBytes(string.Format("M17\n"));
             else
                 msg.cmd = Encoding.UTF8.GetBytes(string.Format("M18\n"));
-            msg.delay = 1000;
-            msg.timeout = 1000;
             return msg;
         }
 
-       
+        public static MachineMessage G_EnableIlluminator(bool enable)
+        {
+            MachineMessage msg = new MachineMessage();
+            
+            if (enable == true)
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M260 A8 B33\nM260 B0\nM260 B50 S1\n"));
+            else
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M260 A8 B33\nM260 B0\nM260 B0 S1\n"));
+            return msg;
+        }
+
+        public static MachineMessage G_EnableUpIlluminator(bool enable)
+        {
+            MachineMessage msg = new MachineMessage();
+
+            if (enable == true)
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M42 I1 P204 S255 T1\n"));
+            else
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M42 I1 P204 S0 T1\n"));
+            return msg;
+        }
+
+        public static MachineMessage G_EnablePump(bool enable)
+        {
+            MachineMessage msg = new MachineMessage();
+
+            if (enable == true)
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M42 I1 P207 S255 T1\n"));
+            else
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M42 I1 P207 S0 T1\n"));
+            return msg;
+        }
+
+        public static MachineMessage G_EnableValve(bool enable)
+        {
+            MachineMessage msg = new MachineMessage();
+
+            //Uses FAN0 Connection - M42 command won't work? TODO
+            if (enable == true)
+                //msg.cmd = Encoding.UTF8.GetBytes(string.Format("M42 I1 P203 S255 T1\n"));
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M106 P0 S255\n"));
+            else
+                //msg.cmd = Encoding.UTF8.GetBytes(string.Format("M42 I1 P203 S0 T1\n"));
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M106 P0 S0\n"));
+            return msg;
+        }
+
+        public static MachineMessage G_SetAutoPositionReporting(bool enabled)
+        {
+
+            MachineMessage msg = new MachineMessage();
+            if(enabled == true)
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M154 S1\n"));
+            else
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M154 S0\n"));
+            return msg;
+        }
+
+        public static MachineMessage G_FindMachineHome()
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G28 Z\nG28 A\nG28\n"));
+            return msg;
+        }
+        
+        public static MachineMessage G_SetZPosition(double distanceFromBed)
+        {
+            MachineMessage msg = new MachineMessage();
+            if (distanceFromBed < 0)
+                distanceFromBed = 0;
+            if (distanceFromBed > Constants.Z_AXIS_MAX)
+                distanceFromBed = Constants.Z_AXIS_MAX;
+
+            // Scale - TODO convert from angular to linear
+            double fraction = Constants.Z_AXIS_MAX_ROTATION / Constants.Z_AXIS_MAX;
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M280 P1 S{0}\n", Constants.Z_AXIS_MAX_ROTATION - (distanceFromBed * fraction)));
+            return msg;
+        }
+
+        public static MachineMessage G_SetRPosition(double angle)
+        {
+            MachineMessage msg = new MachineMessage();
+            if (angle < 0)
+                angle = 0;
+            if (angle > 360)
+                angle = (angle % 360) * 360;
+            if (angle > 180)
+                angle -= 180;
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M280 P2 S{0}\n", angle));
+            return msg;
+        }
+
+        public static MachineMessage G_SetAbsolutePositioningMode(bool enabled)
+        {
+            MachineMessage msg = new MachineMessage();
+            if (enabled == true)
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("G90\n"));
+            else
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("G91\n"));
+            return msg;
+
+        }
+
+        public static MachineMessage G_SetPosition(double x, double y, double z, double a, double b)
+        {
+            /******************************************************************
+            * Units are mm
+            * TODO b is actuall F{4} feedrate
+            */
+
+            MachineMessage msg = new MachineMessage();
+            msg.target.x = x; msg.target.y = y;
+            msg.target.z = z; msg.target.a = a;
+            msg.target.b = b; 
+
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} Z{2} A{3}\n", x, y, z, a ));
+            return msg;  
+
+        }
+
+        public static MachineMessage G_GetPosition()
+        {
+
+            MachineMessage msg = new MachineMessage();
+            msg.target.axis = 0x00;
+
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M114_DETAIL D\n"));
+            msg.delay = 1000;
+            msg.timeout = 5000;
+            return msg;
+        }
+
         public static MachineMessage G_PauseResumeImmediately()
         {
 
@@ -177,64 +299,6 @@ namespace Picky
             msg.cmd[1] = 0x01;
             msg.cmd[2] = Constants.S3G_ABORT_IMMEDIATELY;
             msg.cmd[3] = crc8(msg.cmd, 2, 1);
-            msg.delay = 1000;
-            msg.timeout = 5000;
-            return msg;
-        }
-
-        public static MachineMessage G_SetAutoPositionReporting(bool enabled)
-        {
-
-            MachineMessage msg = new MachineMessage();
-            msg.target.axis = 0x00;
-            if(enabled == true)
-                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M154 S1\n"));
-            else
-                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M154 S0\n"));
-            msg.delay = 1000;
-            msg.timeout = 5000;
-            return msg;
-        }
-
-        public static MachineMessage G_SetAbsolutePositioningMode(bool enabled)
-        {
-            MachineMessage msg = new MachineMessage();
-            msg.target.axis = 0x00;
-            if (enabled == true)
-                msg.cmd = Encoding.UTF8.GetBytes(string.Format("G90\n"));
-            else
-                msg.cmd = Encoding.UTF8.GetBytes(string.Format("G91\n"));
-            msg.delay = 1000;
-            msg.timeout = 5000;
-            return msg;
-
-        }
-
-        public static MachineMessage G_SetPosition(double x, double y, double z, double a, double b)
-        {
-            /******************************************************************
-            * Units are mm
-            */
-
-            MachineMessage msg = new MachineMessage();
-            msg.target.x = x; msg.target.y = y;
-            msg.target.z = z; msg.target.a = a;
-            msg.target.b = b; 
-
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} Z{2} E{3} F{4}\n", x, y, z, a, b));
-            msg.delay = 1;
-            msg.timeout = 5000;
-            return msg;  
-
-        }
-
-        public static MachineMessage G_GetPosition()
-        {
-
-            MachineMessage msg = new MachineMessage();
-            msg.target.axis = 0x00;
-
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M114_DETAIL D\n"));
             msg.delay = 1000;
             msg.timeout = 5000;
             return msg;

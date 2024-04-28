@@ -123,7 +123,13 @@ namespace Picky
         public static int AB_MAX_FEED_RATE = 1600;
         public static int X_AXIS_LENGTH = 227;
         public static int Y_AXIS_LENGTH = 148;
-        public static int Z_AXIS_LENGTH = 150;
+
+        public static int Z_AXIS_SERVO = 0x00;
+        public static int R_AXIS_SERVO = 0x01;
+        public static int W_AXIS_SERVO = 0x02;
+
+        public static double Z_AXIS_MAX_ROTATION = 100.0;
+        public static double Z_AXIS_MAX = 30.00;
 
         /* Exceeding these will result in position error and release of all steppers */
         public static double LIMIT_ABSOLUTE_Z = 80;

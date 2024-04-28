@@ -8,7 +8,15 @@ namespace Picky
 {
     public class MachineMessage
     {
-        public enum MessageState { ReadyToSend, PendingOK, PendingPosition, Complete, Failed }
+        public enum MessageState { ReadyToSend, PendingOK, PendingPosition, Complete, Timeout, Failed }
+        /*  
+         *  ReadyToSend - The message has been created, is in the queue but has not been transmitted
+         *  PendingOK   - The message has been sent but no 'ok' has been received, 
+         *  PendingPosition - The message has been sent 'ok' has been received, but waiting for position to update (optional)
+         *  Complete - The message has been sent, 'ok' has been recieved and processing is complete, ok to remove
+         *  Timeout - A timeout occurred waiting for 'ok'.  Maybe resend
+         *  Failed - An 'err' was recieved.  Maybe restart
+         */
 
         public struct Pos{
             public double x;
@@ -33,6 +41,8 @@ namespace Picky
         {
             cmd = new byte[64];
             state = MessageState.ReadyToSend;
+            delay = 1000;
+            timeout = 5000;
         }
     }
 }

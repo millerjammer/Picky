@@ -158,6 +158,7 @@
     <Compile Include="ControlViewModel.cs" />
     <Compile Include="Feeder.cs" />
     <Compile Include="GCommand.cs" />
+    <Compile Include="ImageProcessing.cs" />
     <Compile Include="MachineModel.cs" />
     <Compile Include="MachineMessage.cs" />
     <Compile Include="MachineView.xaml.cs">

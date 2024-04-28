@@ -65,6 +65,12 @@ namespace Picky
             msgTimer.Enabled = true;
 
             machine.Messages.Add(GCommand.G_SetAutoPositionReporting(true));
+            machine.CurrentZ = Constants.Z_AXIS_MAX;
+            machine.Messages.Add(GCommand.G_SetZPosition(machine.CurrentZ));
+            machine.CurrentA = 90;
+            machine.Messages.Add(GCommand.G_SetRPosition(machine.CurrentA));
+            machine.Messages.Add(GCommand.G_EnableIlluminator(false));
+
         }
 
         public void OnTimer(object source, ElapsedEventArgs e)
@@ -89,6 +95,7 @@ namespace Picky
 
             int length, i, j, k;
             int bytes_read;
+            MachineMessage msg;
             byte[] sbuf = new byte[1024];
                         
             if (serialPort.IsOpen)
@@ -108,15 +115,91 @@ namespace Picky
                     //    Console.Write((char)serial_buffer[j]);
                     
                     //Check return message, OK message is always the last to send
-                    if (serial_buffer[0] == (byte)'o' && serial_buffer[1] == (byte)'k')
+                    if(machine.Messages.Count > 0)
                     {
-                        rx_msgCount++;
-                        //Use PendingPosition to wait, i.e. debugging
-                        machine.Messages.First().state = MachineMessage.MessageState.Complete;
-                        for (j = 0; j < length; j++)
-                            Console.Write((char)serial_buffer[j]);
+                        msg = machine.Messages.First();
+                        if (serial_buffer[0] == (byte)'o' && serial_buffer[1] == (byte)'k')
+                        {
+                            rx_msgCount++;
+                            if (msg.state == MachineMessage.MessageState.PendingOK)
+                                msg.state = MachineMessage.MessageState.Complete;
+                            for (j = 0; j < length; j++)
+                                Console.Write((char)serial_buffer[j]);
+                            // Parse Illuminator Status
+                            if (msg.cmd[0] == 'M' && msg.cmd[1] == '2' && msg.cmd[2] == '6' && msg.cmd[3] == '0')
+                            {
+                                string pattern = @"B(\S)";     // Find first B0 (device) then capture the value
+                                Regex regex = new Regex(pattern);
+                                MatchCollection matches = regex.Matches(Encoding.UTF8.GetString(msg.cmd));
+                                if (matches[1].Value == "B0" && matches[2].Value == "B0")
+                                {
+                                    Console.WriteLine("down illuminator off");
+                                    machine.IsIlluminatorActive = false;
+                                }
+                                else if (matches[1].Value == "B0" && matches[2].Value == "B5")
+                                {
+                                    Console.WriteLine("down illuminator on");
+                                    machine.IsIlluminatorActive = true;
+                                }
+                            }
+                            // Parse Fan Status
+                            if (msg.cmd[0] == 'M' && msg.cmd[1] == '1' && msg.cmd[2] == '0' && msg.cmd[3] == '6')
+                            {
+                                string pattern = @"(?<=[P|S])\d+";     // Find first P[device] then capture S[value]
+                                Regex regex = new Regex(pattern);
+                                MatchCollection matches = regex.Matches(Encoding.UTF8.GetString(msg.cmd));
+                                if (matches[0].Value == "0" && matches[1].Value == "0")
+                                    machine.IsValveActive = false;
+                                else if (matches[0].Value == "0" && matches[1].Value == "255")
+                                    machine.IsValveActive = true;
+                            }
+                            // Parse Pin Set State Command
+                            if (msg.cmd[0] == 'M' && msg.cmd[1] == '4' && msg.cmd[2] == '2')
+                            {
+                                string pattern = @"(?<=[P|S])\d+";
+                                Regex regex = new Regex(pattern);
+                                MatchCollection matches = regex.Matches(Encoding.UTF8.GetString(msg.cmd));
+                                if (matches[0].Value == "203") {
+                                    if (matches[1].Value == "0") {
+                                        machine.IsValveActive = false;
+                                        Console.WriteLine("valve off");
+                                    }
+                                    else
+                                    {
+                                        machine.IsValveActive = true;
+                                        Console.WriteLine("valve on");
+                                    }
+                                }
+                                else if (matches[0].Value == "207")
+                                {
+                                    if (matches[1].Value == "0")
+                                    {
+                                        machine.IsPumpActive = false;
+                                        Console.WriteLine("pump off");
+                                    }
+                                    else
+                                    {
+                                        machine.IsPumpActive = true;
+                                        Console.WriteLine("pump on");
+                                    }
+                                }
+                                else if (matches[0].Value == "204")
+                                {
+                                    if (matches[1].Value == "0")
+                                    {
+                                        machine.IsUpIlluminatorActive = false;
+                                        Console.WriteLine("up illuminator off");
+                                    }
+                                    else
+                                    {
+                                        machine.IsUpIlluminatorActive = true;
+                                        Console.WriteLine("up illuminator on");
+                                    }
+                                }
+                            }
+                        }
                     }
-                    else if (serial_buffer[0] == (byte)'X' && serial_buffer[1] == (byte)':')
+                    if (serial_buffer[0] == (byte)'X' && serial_buffer[1] == (byte)':')
                     {
                         getPositionFromMessage();
                     }
@@ -300,8 +383,9 @@ namespace Picky
                     }
                     if (msg.state == MachineMessage.MessageState.ReadyToSend)
                     {
-                        int len = Array.IndexOf(msg.cmd, (byte)'\n');
+                        int len = Array.LastIndexOf(msg.cmd, (byte)'\n');
                         serialPort.Write(msg.cmd, 0, len + 1);
+                        msg.state = MachineMessage.MessageState.PendingOK;
                         tx_msgCount++;
                     }
                 }
@@ -327,8 +411,7 @@ namespace Picky
 
             machine.CurrentX = double.Parse(matches[0].Value);
             machine.CurrentY = double.Parse(matches[1].Value);
-            machine.CurrentZ = double.Parse(matches[2].Value);
-
+            
             if (machine.Messages.Count == 0)
                 return true;
             MachineMessage msg = machine.Messages.First();
@@ -339,8 +422,7 @@ namespace Picky
                 {
                     if ((Math.Abs(lastPos.y - msg.target.y) < 1) || (msg.target.axis & Constants.Y_AXIS) == 0)
                     {
-                        if ((Math.Abs(lastPos.z - msg.target.z) < 1) || (msg.target.axis & Constants.Z_AXIS) == 0)
-                        {
+                        
                             if ((Math.Abs(lastPos.a - msg.target.a) < 1) || (msg.target.axis & Constants.A_AXIS) == 0)
                             {
                                 if ((Math.Abs(lastPos.b - msg.target.b) < 1) || (msg.target.axis & Constants.B_AXIS) == 0)
@@ -348,12 +430,12 @@ namespace Picky
                                     isGood = true;
                                 }
                             }
-                        }
+                        
                     }
                 }
             }
 
-            lastPos.x = machine.CurrentX; lastPos.y = machine.CurrentY; lastPos.z = machine.CurrentZ; lastPos.a = machine.CurrentA; lastPos.b = machine.CurrentB;
+            lastPos.x = machine.CurrentX; lastPos.y = machine.CurrentY; lastPos.a = machine.CurrentA; lastPos.b = machine.CurrentB;
             if (msg.cmd[0] == 'G' && msg.cmd[1] == '0')
             {
                 if (isGood && msg.state == MachineMessage.MessageState.PendingPosition)
@@ -361,11 +443,7 @@ namespace Picky
                     msg.state = MachineMessage.MessageState.Complete;
                 }
             }
-            else
-            {
-                msg.state = MachineMessage.MessageState.Complete;
-            }
-           
+                     
             return true;
         }
     }
