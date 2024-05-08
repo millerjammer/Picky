@@ -155,6 +155,15 @@ namespace Picky
                 machine.Messages.Add(GCommand.G_EnableValve(true));
         }
 
+        public ICommand ButtonOpenToolCommand { get { return new RelayCommand(ButtonTool); } }
+        private void ButtonTool()
+        {
+            if (machine.IsToolStorageOpen == true)
+                machine.Messages.Add(GCommand.G_OpenToolStorage(false));
+            else
+                machine.Messages.Add(GCommand.G_OpenToolStorage(true));
+        }
+
         public ICommand ButtonBUpCommand { get { return new RelayCommand(ButtonBUp); } }
         private void ButtonBUp()
         {

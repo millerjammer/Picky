@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Timers;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -41,6 +42,8 @@ namespace Picky
         MachineModel machine = MachineModel.Instance;
         private readonly BackgroundWorker bkgWorker;
 
+        private int tick = 0;
+
         public List<CameraSelection> CameraIndexView { get; set; }
         public CameraSelection SelectedCameraIndexViewItem { get; set; }
         
@@ -58,6 +61,9 @@ namespace Picky
         public Mat pickROI = new Mat();
 
         public Image frameImage;
+
+        public string[] currentQRCode;
+        public Point2f[] currentQRCodePoints;
 
         private double x_part_cursor, y_part_cursor;
 
@@ -132,6 +138,11 @@ namespace Picky
             captureUp.Set(VideoCaptureProperties.Brightness, .2);
             captureUp.Set(VideoCaptureProperties.BufferSize, 200);
 
+            System.Timers.Timer imgTimer = new System.Timers.Timer();
+            imgTimer.Elapsed += new ElapsedEventHandler(OnTimer) ;
+            imgTimer.Interval = 1000;
+            imgTimer.Enabled = true;
+
             /* Listen for selectedCassette to change, then we can listen for selectedFeeder */
             machine.PropertyChanged += OnMachinePropertyChanged;
 
@@ -190,6 +201,14 @@ namespace Picky
 
         }
 
+        public void OnTimer(object source, ElapsedEventArgs e)
+        /************************************************************
+         * 
+         * **********************************************************/
+        {
+            tick++;
+        }
+
         public void setCameraFocus()
         {
             captureUp.AutoFocus = !IsManualFocus;
@@ -226,6 +245,7 @@ namespace Picky
                 {
                     Console.WriteLine("Ouchy - " + ex.ToString());
                 }
+
                 if (machine.CameraCalibrationState == MachineModel.CalibrationState.InProcess)
                 {
                     machine.CalRectangle = FindRectangleInImage(cameraImage);
@@ -268,15 +288,39 @@ namespace Picky
                 }
                 else if (machine?.selectedCassette?.selectedFeeder?.part?.TemplateFileName != null)
                 {
+                    // If a part in a feeder in a cassette is selected do part detection
                     FindSelectedPartInImage(cameraImage);
                     Feeder feeder = machine.selectedCassette.selectedFeeder;
                     if (IsPartInView)
+                    {
                         OpenCvSharp.Cv2.DrawMarker(cameraImage, new OpenCvSharp.Point(x_part_cursor, y_part_cursor), new OpenCvSharp.Scalar(0, 0, 255), OpenCvSharp.MarkerTypes.Cross, 100, 1);
+                    }
+            
+                }
+                // At least update the streams
+                UpdateSecondaryVideoStream();
+                if (machine.Messages.Count == 0)
+                {
+                    if (currentQRCode == null)
+                    {
+                        if(tick >=2)
+                            DecodeQRCode();
+                    }
+                    else
+                    {
+                        for (int i = 0; i < currentQRCodePoints.Length; i++)
+                        {
+                            OpenCvSharp.Cv2.DrawMarker(cameraImage, new OpenCvSharp.Point(currentQRCodePoints[i].X, currentQRCodePoints[i].Y), new OpenCvSharp.Scalar(255, 0, 0), OpenCvSharp.MarkerTypes.Cross, 200, 4);
+                        }
+                    }
                 }
                 else
                 {
-                    UpdateSecondaryVideoStream();
+                    tick = 0;
+                    currentQRCode = null;
+                    Console.WriteLine("Moved.");
                 }
+                
 
                 OpenCvSharp.Cv2.DrawMarker(cameraImage, new OpenCvSharp.Point(cameraImage.Cols / 2, cameraImage.Rows / 2), new OpenCvSharp.Scalar(0, 0, 255), OpenCvSharp.MarkerTypes.Cross, 100, 1);
                 App.Current.Dispatcher.Invoke(() =>
@@ -291,6 +335,26 @@ namespace Picky
                     }
                 });
                 Cv2.WaitKey(10);
+            }
+        }
+
+        private void DecodeQRCode()
+        {
+            try
+            {
+                using (var detector = new QRCodeDetector())
+                {
+                    detector.DetectMulti(grayImage, out currentQRCodePoints);
+                    detector.DecodeMulti(grayImage, currentQRCodePoints, out currentQRCode);
+                    for(int i=0;i<currentQRCode.Length; i++)
+                        Console.WriteLine("QR: " + currentQRCode[i]);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error decoding QR code: {ex.Message}");
+                return; 
             }
         }
 

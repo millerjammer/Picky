@@ -142,6 +142,13 @@ namespace Picky
             set { isValveActive = value; OnPropertyChanged(nameof(IsValveActive)); }
         }
 
+        private bool isToolStorageOpen;
+        public bool IsToolStorageOpen
+        {
+            get { return isToolStorageOpen; }
+            set { isToolStorageOpen = value; OnPropertyChanged(nameof(IsToolStorageOpen)); }
+        }
+
         private bool isCameraCalibrated;
         public bool IsCameraCalibrated
         {

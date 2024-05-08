@@ -30,6 +30,8 @@ namespace Picky
         private readonly CameraView cameraView;
         private readonly SerialInterface serialInterface;
 
+        private readonly ControlWindow controlWindow;
+
 
         public MainWindow()
         {
@@ -46,8 +48,11 @@ namespace Picky
             controlsView = new ControlView();
             ctrlView.Children.Add(controlsView);
 
-            cameraView = new CameraView();
-            camView.Children.Add(cameraView);
+            //cameraView = new CameraView();
+            //camView.Children.Add(cameraView);
+
+            controlWindow = new ControlWindow();
+            controlWindow.Show();
 
         }
     }

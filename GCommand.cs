@@ -189,6 +189,17 @@ namespace Picky
             return msg;
         }
 
+        public static MachineMessage G_OpenToolStorage(bool open)
+        {
+            MachineMessage msg = new MachineMessage();
+
+            if (open == true)
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M280 P0 S15\n"));
+            else
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M280 P0 S50\n"));
+            return msg;
+        }
+
         public static MachineMessage G_SetAutoPositionReporting(bool enabled)
         {
 
@@ -203,7 +214,7 @@ namespace Picky
         public static MachineMessage G_FindMachineHome()
         {
             MachineMessage msg = new MachineMessage();
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G28 Z\nG28 A\nG28\n"));
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G28 Z\nG28 A\nG28 Y\nG28 X\n"));
             return msg;
         }
         

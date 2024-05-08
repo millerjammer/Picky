@@ -42,8 +42,7 @@
                 <Grid Grid.Column="0" Name="ctrlView" Margin="10" VerticalAlignment="Top"/>
                 <!-- Adding MachineView -->
                 <Grid Grid.Column="1" Name="mView"/>
-                <!--Adding Camera View-->
-                <Grid Grid.Column="2" Name="camView" Margin="10"/>
+                
             </Grid>
             <!-- Adding CassetteView -->
             <Grid Name="cView" Grid.Row="1"  Grid.Column="1" Margin="10 10 10 10" />

@@ -57,7 +57,7 @@
                                 <ColumnDefinition Width="auto"/>
                                 <ColumnDefinition Width="auto"/>
                             </Grid.ColumnDefinitions>
-                            <Slider x:Name="zSlider" Thumb.DragCompleted ="SliderZ" Value ="{Binding Machine.CurrentZ}" Grid.Column="0" HorizontalAlignment="Stretch" Margin="2,2,0,0" Orientation="Vertical" SmallChange="1" Maximum="100" LargeChange="10" IsDirectionReversed="False" VerticalAlignment="Stretch"/>
+                            <Slider x:Name="zSlider" Thumb.DragCompleted ="SliderZ" Value ="{Binding Machine.CurrentZ}" Grid.Column="0" HorizontalAlignment="Stretch" Margin="2,2,0,0" Orientation="Vertical" SmallChange="1" Maximum="100" LargeChange="10" IsDirectionReversed="True" VerticalAlignment="Stretch"/>
                             <Grid Grid.Column="1" VerticalAlignment="Center">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="auto"/>
@@ -76,11 +76,13 @@
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
                         </Grid.RowDefinitions>
                         <ui:ToggleSwitch Command="{Binding ButtonLightCommand}" Grid.Row="0" Margin="10" Padding="0" Content="D Light"/>
                         <ui:ToggleSwitch Command="{Binding ButtonUpLightCommand}" Grid.Row="1" Margin="10" Padding="0" Content="U Light"/>
                         <ui:ToggleSwitch Command="{Binding ButtonPumpCommand}" Grid.Row="2" Margin="10" Padding="0" Content="Pump"/>
                         <ui:ToggleSwitch Command="{Binding ButtonValveCommand}" Grid.Row="3" Margin="10" Padding="0" Content="Valve"/>
+                        <ui:ToggleSwitch Command="{Binding ButtonOpenToolCommand}" Grid.Row="4" Margin="10" Padding="0" Content="Tool"/>
                     </Grid>
                 </Grid>
                 <Grid Grid.Row="1" HorizontalAlignment="Left">

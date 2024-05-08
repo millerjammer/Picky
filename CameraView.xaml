@@ -8,26 +8,11 @@
              mc:Ignorable="d" 
              d:DesignHeight="480" d:DesignWidth="800">
     <Grid>
-        <Expander Width="auto" IsExpanded="True" VerticalAlignment="Top">
-            <Expander.Header>
+        
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
-                        <!-- Expander header content -->
-                        <ColumnDefinition Width="Auto" />
-                        <!-- Button -->
-                    </Grid.ColumnDefinitions>
-                    <!-- Left column for Expander header content -->
-                    <TextBlock Grid.Column="0" Text="Camera" VerticalAlignment="Center" />
-                    <!-- Right column for the button -->
-                    <ui:Button Grid.Column="1" Icon="FullScreenMaximize24" Command="{Binding FullScreenCommand}" Margin="20 0 10 0" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                </Grid>
-            </Expander.Header>
-            <Expander.Content>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="650" />
-                        <ColumnDefinition Width="150" />
+                        <ColumnDefinition Width="auto" />
                     </Grid.ColumnDefinitions>
                     <Border x:Name="border" Grid.Column="0" ClipToBounds="True">
                         <Image ClipToBounds="True" x:Name="FrameImage" />
@@ -45,7 +30,6 @@
                         </StackPanel>
                     </StackPanel>
                 </Grid>
-            </Expander.Content>
-        </Expander>
+            
     </Grid>
 </UserControl>

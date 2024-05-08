@@ -153,6 +153,17 @@ namespace Picky
                                 else if (matches[0].Value == "0" && matches[1].Value == "255")
                                     machine.IsValveActive = true;
                             }
+                            // Parse Servo Status
+                            if (msg.cmd[0] == 'M' && msg.cmd[1] == '2' && msg.cmd[2] == '8' && msg.cmd[3] == '0')
+                            {
+                                string pattern = @"(?<=[P|S])\d+";     // Find first P[device] then capture S[value]
+                                Regex regex = new Regex(pattern);
+                                MatchCollection matches = regex.Matches(Encoding.UTF8.GetString(msg.cmd));
+                                if (matches[0].Value == "0" && matches[1].Value == "50")
+                                    machine.IsToolStorageOpen = false;
+                                else if (matches[0].Value == "0" && matches[1].Value == "15")
+                                    machine.IsToolStorageOpen = true;
+                            }
                             // Parse Pin Set State Command
                             if (msg.cmd[0] == 'M' && msg.cmd[1] == '4' && msg.cmd[2] == '2')
                             {
@@ -411,7 +422,9 @@ namespace Picky
 
             machine.CurrentX = double.Parse(matches[0].Value);
             machine.CurrentY = double.Parse(matches[1].Value);
-            
+            machine.CurrentZ = double.Parse(matches[2].Value);
+            machine.CurrentA = double.Parse(matches[3].Value);
+
             if (machine.Messages.Count == 0)
                 return true;
             MachineMessage msg = machine.Messages.First();
