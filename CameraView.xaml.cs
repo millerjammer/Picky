@@ -57,14 +57,14 @@ namespace Picky
             
             group = new System.Windows.Media.TransformGroup();
             xform = new System.Windows.Media.ScaleTransform();
-            xform.ScaleX = -1;
-            xform.ScaleY = -1;
+            xform.ScaleX = 1;
+            xform.ScaleY = 1;
             group.Children.Add(xform);
             tt = new System.Windows.Media.TranslateTransform();
             group.Children.Add(tt);
 
             FrameImage.RenderTransform = group;
-            FrameImage.RenderTransformOrigin = new Point(0.5, 0.5);
+            FrameImage.RenderTransformOrigin = new Point(0, 0);
                         
             FrameImage.MouseWheel += Image_MouseWheel;
             FrameImage.MouseLeftButtonDown += Image_MouseDown;

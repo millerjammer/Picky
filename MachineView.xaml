@@ -7,17 +7,13 @@
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:local="clr-namespace:Picky"
              mc:Ignorable="d" FontSize="12" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="480" d:DesignWidth="400">
 
     <!-- Center Settings Expander -->
     <Grid Margin="10" VerticalAlignment="Top">
         <Expander Header="Machine" Width="380" IsExpanded="True">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
@@ -147,54 +143,9 @@
                         </StackPanel>
                     </Grid>
                 </Border>
+                
+                
                 <Grid Grid.Row="4">
-                    <Label Content="Pick Tool: " Margin="0 15 0 0"/>
-                </Grid>
-                <Grid Grid.Row="5">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="auto"/>
-                        <ColumnDefinition Width="auto"/>
-                        <ColumnDefinition Width="auto"/>
-                    </Grid.ColumnDefinitions>
-                    <ComboBox Grid.Column="0" ItemsSource="{Binding Machine.PickTools}" DisplayMemberPath="Description" SelectedItem="{Binding Machine.SelectedPickTool}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="0 0 3 0" />
-                    <ui:Button Grid.Column="3" Command="{Binding EditPickToolCommand}" CornerRadius="4" Width="36" Height="36" Margin="3" Padding="0" Icon="Edit32" />
-                </Grid>
-                <Grid Grid.Row="6">
-                    <Label Content="PCB Origin: " Margin="0 10 0 3"/>
-                </Grid>
-                <Border Grid.Row="7" BorderBrush="Gray" BorderThickness="1" CornerRadius="4">
-                    <Grid Margin="15 10 0 10" HorizontalAlignment="Stretch">
-                        <!-- PCB Origin -->
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="auto"/>
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal"  Margin="2">
-                            <Label Content="X:" VerticalAlignment="Center" Padding="3 0 5 0"/>
-                            <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.PCB_OriginX, StringFormat={}{0:0.00}}"/>
-                        </StackPanel>
-                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 2 2 2">
-                            <Label Content="Y:" VerticalAlignment="Center" Padding="3 0 5 0"/>
-                            <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.PCB_OriginY, StringFormat={}{0:0.00}}"/>
-                        </StackPanel>
-                        <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 2 2 2">
-                            <Label Content="Z:" VerticalAlignment="Center" Padding="3 0 5 0"/>
-                            <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.PCB_OriginZ, StringFormat={}{0:0.00}}"/>
-                        </StackPanel>
-                        <Grid.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Go to PCB Origin" Command="{Binding GoToPCBOriginCommand}" />
-                                <MenuItem Header="Set As PCB Origin" Command="{Binding SetAsPCBOriginCommand}" />
-                            </ContextMenu>
-                        </Grid.ContextMenu>
-                    </Grid>
-                </Border>
-                <Grid Grid.Row="8">
                     <TextBlock Text="{Binding Machine.CalibrationStatusString}" Margin="0 15 3 3"/>
                 </Grid>
             </Grid>

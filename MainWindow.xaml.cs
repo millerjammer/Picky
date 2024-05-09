@@ -31,6 +31,7 @@ namespace Picky
         private readonly SerialInterface serialInterface;
 
         private readonly ControlWindow controlWindow;
+        private readonly PickListView pickListView;
 
 
         public MainWindow()
@@ -39,14 +40,17 @@ namespace Picky
             InitializeComponent();
             serialInterface = new SerialInterface();
            
-            machineView = new MachineView();
-            mView.Children.Add(machineView);
+            //machineView = new MachineView();
+            //mView.Children.Add(machineView);
             
             cassetteView = new CassetteView();
             cView.Children.Add(cassetteView);
 
-            controlsView = new ControlView();
-            ctrlView.Children.Add(controlsView);
+            pickListView = new PickListView();
+            lView.Children.Add(pickListView);
+
+            //controlsView = new ControlView();
+            //ctrlView.Children.Add(controlsView);
 
             //cameraView = new CameraView();
             //camView.Children.Add(cameraView);

@@ -55,7 +55,7 @@ namespace Picky
                 serialPort.DiscardInBuffer();
                 serialPort.DiscardOutBuffer();
                 serialPort.ReadExisting();
-                Console.WriteLine("Machine Serial Port Opened.");
+                Console.WriteLine("Machine Serial Port Opened. " + System.Environment.CurrentDirectory);
             }
                      
             /* Start a Timer to Handle Message Queue */

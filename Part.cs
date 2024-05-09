@@ -21,7 +21,7 @@ namespace Picky
         public string TemplateFileName
         {
             get { return template; }
-            set { template = value; Console.WriteLine("part template name changed "); OnPropertyChanged(nameof(TemplateFileName)); }
+            set { template = value; Console.WriteLine("part template name changed"); OnPropertyChanged(nameof(TemplateFileName)); }
         }
         private double partDetectionThreshold = Constants.DEFAULT_PART_DETECTION_THRESHOLD;
         public double PartDetectionThreshold
@@ -57,6 +57,8 @@ namespace Picky
 
         public Part()
         {
+
+            template = System.Environment.CurrentDirectory + "\\no_image_sm.png";
         }
     }
 }

@@ -17,7 +17,7 @@
                     <Border x:Name="border" Grid.Column="0" ClipToBounds="True">
                         <Image ClipToBounds="True" x:Name="FrameImage" />
                     </Border>
-                    <StackPanel Grid.Column="2">
+                    <StackPanel Grid.Column="1">
                         <ComboBox Name="CameraIndex" ItemsSource="{Binding CameraIndexView}" DisplayMemberPath="cameraName" SelectedItem="{Binding SelectedCameraIndexViewItem}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 10 0 10" />
                         <ToggleButton x:Name="mftb" Content="Manual Focus" IsChecked="{Binding IsManualFocus}"  Margin="10 0 0 0" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
                         <Slider IsEnabled="{Binding IsChecked, ElementName=mftb}" Value="{Binding Focus}"  Minimum="0" Maximum="600" HorizontalAlignment="Stretch" Margin="20 10 15 10" />

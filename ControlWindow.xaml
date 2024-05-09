@@ -5,11 +5,19 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Picky" 
         mc:Ignorable="d" FontSize="12" 
-        Height="600" Width="900" ResizeMode="CanResize"
+        Height="700" Width="1200" ResizeMode="CanResize"
         WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterScreen" Background="Transparent">
-        
-    <Grid>
-        <local:CameraView Loaded="CameraView_Loaded"/>
-        
-    </Grid>
+
+    <Border CornerRadius="10" Background="#151f2d" Margin="0 0 0 0">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+
+            <local:MachineView Grid.Column="0"/>
+            <local:CameraView Grid.Column="1" Loaded="CameraView_Loaded"/>
+
+        </Grid>
+    </Border>
 </Window>
