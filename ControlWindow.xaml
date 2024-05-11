@@ -5,19 +5,25 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Picky" 
         mc:Ignorable="d" FontSize="12" 
-        Height="700" Width="1200" ResizeMode="CanResize"
+        Height="550" Width="1200" ResizeMode="CanResize"
         WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterScreen" Background="Transparent">
 
     <Border CornerRadius="10" Background="#151f2d" Margin="0 0 0 0">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto" />
-                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
             <local:MachineView Grid.Column="0"/>
-            <local:CameraView Grid.Column="1" Loaded="CameraView_Loaded"/>
-
-        </Grid>
+            <TabControl Grid.Column="1" Margin="10 10 10 10">
+                <TabItem Header="Up Camera" Name="upCam">
+                    
+                </TabItem>
+                <TabItem Header="Down Camera" Name="downCam">
+                    
+                </TabItem>
+            </TabControl>
+         </Grid>
     </Border>
 </Window>

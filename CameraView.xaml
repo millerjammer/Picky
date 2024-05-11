@@ -3,10 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             d:DataContext="{d:DesignInstance Type=local:CameraViewModel}"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:local="clr-namespace:Picky"
              mc:Ignorable="d" 
-             d:DesignHeight="480" d:DesignWidth="800">
+             d:DesignHeight="200" d:DesignWidth="600">
     <Grid>
         
                 <Grid>
@@ -15,15 +16,14 @@
                         <ColumnDefinition Width="auto" />
                     </Grid.ColumnDefinitions>
                     <Border x:Name="border" Grid.Column="0" ClipToBounds="True">
-                        <Image ClipToBounds="True" x:Name="FrameImage" />
+                        <Image ClipToBounds="True" x:Name="FrameImage" Margin="15 5 5 5"/>
                     </Border>
                     <StackPanel Grid.Column="1">
-                        <ComboBox Name="CameraIndex" ItemsSource="{Binding CameraIndexView}" DisplayMemberPath="cameraName" SelectedItem="{Binding SelectedCameraIndexViewItem}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 10 0 10" />
-                        <ToggleButton x:Name="mftb" Content="Manual Focus" IsChecked="{Binding IsManualFocus}"  Margin="10 0 0 0" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+                        <ToggleButton x:Name="mftb" Content="Manual Focus" IsChecked="{Binding IsManualFocus}"  Margin="10 10 10 0" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
                         <Slider IsEnabled="{Binding IsChecked, ElementName=mftb}" Value="{Binding Focus}"  Minimum="0" Maximum="600" HorizontalAlignment="Stretch" Margin="20 10 15 10" />
                         <Label Content="Detection Threshold" IsEnabled="{Binding IsCassetteFeederSelected, Mode=OneWay}" Margin="20 0 0 0"/>
                         <Slider Value="{Binding DetectionThreshold, Mode=TwoWay}" IsEnabled="{Binding IsCassetteFeederSelected, Mode=OneWay}" Minimum="-255" Maximum="0" HorizontalAlignment="Stretch" Margin="20 10 15 10" />
-                        <ComboBox Name="ImageType" ItemsSource="{Binding VisualizationView}" DisplayMemberPath="viewName" SelectedItem="{Binding SelectedVisualizationViewItem}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 0 0 0" />
+                        <ComboBox Name="ImageType" ItemsSource="{Binding VisualizationView}" DisplayMemberPath="viewName" SelectedItem="{Binding SelectedVisualizationViewItem}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 0 15 0" />
                         <StackPanel Orientation="Horizontal" Margin="20 15 0 0">
                             <Label Content="Part In View"/>
                             <Ellipse Fill="{Binding PartInViewIconColor}" Height="15" Width="15" Margin="35 0 0 5" StrokeThickness="0" Stroke="Black"/>

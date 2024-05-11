@@ -50,7 +50,6 @@ namespace Picky
                 /* Make sure we're listening to changes on the selected Picklist */
                 //Machine.PropertyChanged += SelectedPickListPart_PropertyChanged;
             }
-            
         }
 
         public CassetteViewModel()

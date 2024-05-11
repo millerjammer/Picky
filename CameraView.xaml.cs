@@ -49,10 +49,10 @@ namespace Picky
               .Children.First(tr => tr is ScaleTransform);
         }
 
-        public CameraView()
+        public CameraView(CameraModel cam)
         {
             InitializeComponent();
-            camera = new CameraViewModel(FrameImage);
+            camera = new CameraViewModel(FrameImage, cam);
             this.DataContext = camera;
             
             group = new System.Windows.Media.TransformGroup();

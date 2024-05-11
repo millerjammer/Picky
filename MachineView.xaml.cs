@@ -28,7 +28,7 @@ namespace Picky
 
         public void SliderR(object sender, DragCompletedEventArgs e)
         {
-            //machine.SliderRUpdatePosition();
+            
         }
     }
 }

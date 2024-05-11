@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Shell.Interop;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,11 +23,10 @@ namespace Picky
         public ControlWindow()
         {
             InitializeComponent();
+            MachineModel machine = MachineModel.Instance;
+            upCam.Content = new CameraView(machine.upCamera);
+            downCam.Content = new CameraView(machine.downCamera);
         }
-
-        private void CameraView_Loaded(object sender, RoutedEventArgs e)
-        {
-
-        }
+    
     }
 }

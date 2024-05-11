@@ -232,13 +232,13 @@ namespace Picky
             Console.WriteLine("Set Part Template");
             using (Window window = new Window("Select ROI"))
             {
-                window.Image = machine.currentRawImage;
+                window.Image = machine.downCamera.ColorImage;
 
                 // Use SelectROI to interactively select a region
-                OpenCvSharp.Rect roi = Cv2.SelectROI("Select ROI", machine.currentRawImage);
+                OpenCvSharp.Rect roi = Cv2.SelectROI("Select ROI", machine.downCamera.ColorImage);
 
                 // Capture the selected ROI
-                part.Template = new Mat(machine.currentRawImage, roi);
+                part.Template = new Mat(machine.downCamera.ColorImage, roi);
 
                 // Write part template to file
                 DateTime now = DateTime.Now;

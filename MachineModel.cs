@@ -20,11 +20,14 @@ namespace Picky
         /* Serial Message Queue */
         public ObservableCollection<MachineMessage> Messages { get; set; }
 
-        public Mat currentRawImage;
         public bool isMachinePaused { get; set; }
                 
         /* Calibration Stuff */
-        private CalibrationModel Cal {  get; set; } 
+        private CalibrationModel Cal {  get; set; }
+
+        /* Cameras */
+        public CameraModel upCamera { get; set; }
+        public CameraModel downCamera { get; set; }
 
         /* These are temporary for use while performing calibration */
         public PickModel CalPick { get; set; } = new PickModel();
@@ -198,6 +201,10 @@ namespace Picky
             Cassettes = new ObservableCollection<Cassette>();
             PickList = new ObservableCollection<Part>();
             relayInterface = new RelayInterface();
+
+            downCamera = new CameraModel(0);
+            upCamera = new CameraModel(2);
+
 
             String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             String FullFileName = path + "\\" + Constants.CALIBRATION_FILE_NAME;
