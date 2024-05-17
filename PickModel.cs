@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenCvSharp;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -32,13 +33,8 @@ namespace Picky
         public double measured_width;
 
         /* Tool Storage, nominal and camera assisted actual */
-        public double tool_storage_x { get; set; }
-        public double tool_storage_y { get; set; }
-        public double tool_storage_z { get; set; }
-
-        public double actual_storage_x { get; set; }
-        public double actual_storage_y { get; set; }
-        public double actual_storage_z { get; set; }
+        public double toolStorageX { get; set; }
+        public double toolStorageY { get; set; }
 
         /* Physical Traits */
         public string Description { get; set; }

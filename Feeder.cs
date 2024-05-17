@@ -153,17 +153,17 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
             machine.Messages.Add(GCommand.G_GetPosition());
 
-            double partx = machine.PCB_OriginX + (Convert.ToDouble(machine.selectedPickListPart.CenterX) * Constants.MIL_TO_MM);
-            double party = machine.PCB_OriginY + (Convert.ToDouble(machine.selectedPickListPart.CenterY) * Constants.MIL_TO_MM);
+           // double partx = machine.PCB_OriginX + (Convert.ToDouble(machine.selectedPickListPart.CenterX) * Constants.MIL_TO_MM);
+           // double party = machine.PCB_OriginY + (Convert.ToDouble(machine.selectedPickListPart.CenterY) * Constants.MIL_TO_MM);
             double angle = Convert.ToDouble(machine.selectedPickListPart.Rotation);
             double z = 14;
             Tuple<double, double> offset = machine.SelectedPickTool.GetPickOffsetAtRotation(angle);
             /* TODO is this the right z to use?  Or, perhaps use 'z' above? */
             
-            partx += Constants.PLACE_DISTORTION_OFFSET_X_MM - (offset.Item1 * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z));
-            party += Constants.PLACE_DISTORTION_OFFSET_Y_MM - (offset.Item2 * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z));
+           // partx += Constants.PLACE_DISTORTION_OFFSET_X_MM - (offset.Item1 * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z));
+           // party += Constants.PLACE_DISTORTION_OFFSET_Y_MM - (offset.Item2 * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z));
             
-            machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(partx, party));
+            //machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(partx, party));
             machine.Messages.Add(GCommand.G_GetPosition());
             machine.Messages.Add(GCommand.G_SetAbsoluteAngle(angle / Constants.B_DEGREES_PER_MM));
             machine.Messages.Add(GCommand.G_GetPosition());

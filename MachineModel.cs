@@ -23,7 +23,7 @@ namespace Picky
         public bool isMachinePaused { get; set; }
                 
         /* Calibration Stuff */
-        private CalibrationModel Cal {  get; set; }
+        public CalibrationModel Cal {  get; set; }
 
         /* Cameras */
         public CameraModel upCamera { get; set; }
@@ -67,23 +67,7 @@ namespace Picky
             get { return calibrationStatusString; }
             set { calibrationStatusString = value; OnPropertyChanged(nameof(CalibrationStatusString)); }
         }
-        /* PCB Origin */
-        public double PCB_OriginX
-        {
-            get { return Cal.pCB_OriginX; }
-            set { Cal.pCB_OriginX = value; OnPropertyChanged(nameof(PCB_OriginX)); }
-        }
-        public double PCB_OriginY
-        {
-            get { return Cal.pCB_OriginY; }
-            set { Cal.pCB_OriginY = value; OnPropertyChanged(nameof(PCB_OriginY)); }
-        }
-        public double PCB_OriginZ
-        {
-            get { return Cal.pCB_OriginZ; }
-            set { Cal.pCB_OriginZ = value; OnPropertyChanged(nameof(PCB_OriginZ)); }
-        }
-
+        
         /* Current machine position - needed because serial port makes changes here */
         private double currentX = 0;
         public double CurrentX
@@ -202,22 +186,35 @@ namespace Picky
             PickList = new ObservableCollection<Part>();
             relayInterface = new RelayInterface();
 
-            downCamera = new CameraModel(0);
-            upCamera = new CameraModel(2);
+            downCamera = new CameraModel(2);
+            upCamera = new CameraModel(0);
 
 
             String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            String FullFileName = path + "\\" + Constants.CALIBRATION_FILE_NAME;
-            using (StreamReader file = File.OpenText(FullFileName))
+                        
+            using (StreamReader file = File.OpenText(path + "\\" + Constants.CALIBRATION_FILE_NAME))
             {
                 JsonSerializer serializer = new JsonSerializer();
                 Cal = ((CalibrationModel)serializer.Deserialize(file, typeof(CalibrationModel)));
             }
-            
-            PickTools = new List<PickModel>();
-            PickTools.Add(new PickModel("Test 1"));
-            PickTools.Add(new PickModel("Test 2"));
-            PickTools.Add(new PickModel("Test 3"));
+
+            try
+            {
+                using (StreamReader file = File.OpenText(path + "\\" + Constants.TOOL_FILE_NAME))
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    PickTools = ((List<PickModel>)serializer.Deserialize(file, typeof(List<PickModel>)));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Can't find file: " + path + "\\" + Constants.TOOL_FILE_NAME);
+                
+                PickTools = new List<PickModel>();
+                PickTools.Add(new PickModel("Test 1"));
+                PickTools.Add(new PickModel("Test 2"));
+                PickTools.Add(new PickModel("Test 3"));
+            }
         }
 
         public static MachineModel Instance
@@ -255,7 +252,6 @@ namespace Picky
         public bool SetCalPickTool(PickModel pickModelToUse)
         {
             Cal.PickToolCal = pickModelToUse;
-            Cal.SaveCal();
             // TODO Return false if the pickmodel is bad
             return true;
         }
@@ -263,14 +259,19 @@ namespace Picky
         public bool SetCalRectangle(OpenCvSharp.Rect rectangleToUse)
         {
             Cal.RefObject = rectangleToUse;
-            Cal.SaveCal();
             // TODO Return false if the rectangle is bad
             return true;
         }
 
-        public void SaveCalibrationSettings()
+        public void SaveSettings()
         {
-            Cal.SaveCal();
+            String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            
+            File.WriteAllText(path + "\\" + Constants.CALIBRATION_FILE_NAME, JsonConvert.SerializeObject(Cal, Formatting.Indented));
+            Console.WriteLine("Configuration Data Saved.");
+
+            File.WriteAllText(path + "\\" + Constants.TOOL_FILE_NAME, JsonConvert.SerializeObject(PickTools, Formatting.Indented));
+            Console.WriteLine("Configuration Data Saved.");
         }
     }
 }

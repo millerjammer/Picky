@@ -289,7 +289,10 @@ namespace Picky
                     {
                         try
                         {
-                            frameImage.Source = selectedViewMat.ToWriteableBitmap();
+                            if (frameImage != null)
+                            {
+                                frameImage.Source = selectedViewMat.ToWriteableBitmap();
+                            }
                         }
                         catch (Exception ex)
                         {

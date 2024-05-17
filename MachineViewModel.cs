@@ -97,7 +97,7 @@ namespace Picky
         private void ButtonZDown()
         {
             machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
-            machine.Messages.Add(GCommand.G_SetPosition(0, 0, +distanceToAdvance, 0, 0));
+            machine.Messages.Add(GCommand.G_ProbeZ(+distanceToAdvance));
             machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
         }
 
@@ -214,7 +214,7 @@ namespace Picky
         private void GoToPCBOrigin()
         {
             Console.WriteLine("GoTo PCB");
-            machine.Messages.Add(GCommand.G_SetPosition(machine.PCB_OriginX, machine.PCB_OriginY, 0, 0, 0));
+            //machine.Messages.Add(GCommand.G_SetPosition(machine.PCB_OriginX, machine.PCB_OriginY, 0, 0, 0));
            
         }
         
@@ -222,10 +222,10 @@ namespace Picky
         private void SetAsPCBOrigin()
         {
             Console.WriteLine("SetAs PCB Origin");
-            machine.PCB_OriginX = machine.CurrentX;
-            machine.PCB_OriginY = machine.CurrentY;
-            machine.PCB_OriginZ = machine.CurrentZ;
-            machine.SaveCalibrationSettings();
+            //machine.PCB_OriginX = machine.CurrentX;
+            //machine.PCB_OriginY = machine.CurrentY;
+           // machine.PCB_OriginZ = machine.CurrentZ;
+            //machine.SaveibrationSettings();
 
         }
     }

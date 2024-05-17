@@ -145,6 +145,10 @@
       <DependentUpon>BoardView.xaml</DependentUpon>
     </Compile>
     <Compile Include="CalibrationModel.cs" />
+    <Compile Include="CalibrationViewModel.cs" />
+    <Compile Include="CalibrationWindow.xaml.cs">
+      <DependentUpon>CalibrationWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="CameraModel.cs" />
     <Compile Include="CameraView.xaml.cs">
       <DependentUpon>CameraView.xaml</DependentUpon>
@@ -185,6 +189,10 @@
     <Compile Include="RelayCommand.cs" />
     <Compile Include="SerialInterface.cs" />
     <Page Include="BoardView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="CalibrationWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -73,7 +73,7 @@ namespace Picky
         {
             Machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
             Machine.Messages.Add(GCommand.G_GetPosition());
-            Machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(Machine.PCB_OriginX + (Convert.ToDouble(selectedPickListPart.CenterX) * Constants.MIL_TO_MM), Machine.PCB_OriginY + (Convert.ToDouble(selectedPickListPart.CenterY) * Constants.MIL_TO_MM)));
+           // Machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(Machine.PCB_OriginX + (Convert.ToDouble(selectedPickListPart.CenterX) * Constants.MIL_TO_MM), Machine.PCB_OriginY + (Convert.ToDouble(selectedPickListPart.CenterY) * Constants.MIL_TO_MM)));
             Machine.Messages.Add(GCommand.G_GetPosition());
             Machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
             Machine.Messages.Add(GCommand.G_GetPosition());

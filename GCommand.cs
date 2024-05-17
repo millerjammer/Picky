@@ -100,7 +100,20 @@ namespace Picky
         }
 
 
+        public static MachineMessage G_ProbeZ(double z)
+        {
+            /******************************************************************
+            * Units are mm
+            * See https://marlinfw.org/docs/gcode/G038.html
+            */
 
+            MachineMessage msg = new MachineMessage();
+            msg.target.z = z;
+
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G38.5 Z{0}\n", z));
+            return msg;
+
+        }
 
         public static MachineMessage G_SetAbsolutePosition(byte axis, double x, double y, double z, double a, double b)
         {
@@ -194,7 +207,7 @@ namespace Picky
             MachineMessage msg = new MachineMessage();
 
             if (open == true)
-                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M280 P0 S15\n"));
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M280 P0 S9\n"));
             else
                 msg.cmd = Encoding.UTF8.GetBytes(string.Format("M280 P0 S50\n"));
             return msg;

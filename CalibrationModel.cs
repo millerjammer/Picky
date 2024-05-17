@@ -13,7 +13,7 @@ using System.Web.UI.WebControls.WebParts;
 
 namespace Picky
 {
-    internal class CalibrationModel
+    public class CalibrationModel
     {
 
         /* Calibration Parameters - Pick Tool */
@@ -24,7 +24,7 @@ namespace Picky
             set { pickToolCal = value; }
         }
 
-        /* Calibration Parameters - Scale */
+        /* Calibration Parameters - mm/steps*/
         private OpenCvSharp.Rect refObject;
         public OpenCvSharp.Rect RefObject
         {
@@ -32,22 +32,32 @@ namespace Picky
             set { Console.WriteLine("Reference Updated. Old: " + refObject.Width + " " + refObject.Height + " new: " + value.Width + " " + value.Height); refObject = value;  }
         }
 
-        public double pCB_OriginX { get; set; }
-        public double pCB_OriginY { get; set; }
-        public double pCB_OriginZ { get; set; }
+        /* Camera/Pick Physics */
+        public double MachineOriginToDownCameraX { get; set; }
+        public double MachineOriginToDownCameraY { get; set; }
+        public double MachineOriginToDownCameraZ { get; set; }
+
+        public double MachineOriginToPickHeadX1 { get; set; }
+        public double MachineOriginToPickHeadY1 { get; set; }
+        public double MachineOriginToPickHeadZ1 { get; set; }
+
+        public double MachineOriginToPickHeadX2 { get; set; }
+        public double MachineOriginToPickHeadY2 { get; set; }
+        public double MachineOriginToPickHeadZ2 { get; set; }
+
+        /*Calculated */
+        public double DownCameraToPickHeadX { get; set; }
+        public double DownCameraToPickHeadY { get; set; }
+
+        public double DownCameraAngleX { get; set; }
+        public double DownCameraAngleY { get; set; }
+
 
         public CalibrationModel() 
         {
             pickToolCal = new PickModel();
             refObject = new OpenCvSharp.Rect(0, 0, Constants.CALIBRATION_TARGET_WIDTH_DEFAULT_PIX, Constants.CALIBRATION_TARGET_HEIGHT_DEFAULT_PIX);
         }
-
-        public void SaveCal()
-        {
-            String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            String FullFileName = path + "\\" + Constants.CALIBRATION_FILE_NAME;
-            File.WriteAllText(FullFileName, JsonConvert.SerializeObject(this, Formatting.Indented));
-            Console.WriteLine("Calibration Data Saved.");
-        }
+                
     }
 }

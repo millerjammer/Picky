@@ -4,9 +4,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        d:DataContext="{d:DesignInstance Type=local:MainWindow}"
         xmlns:local="clr-namespace:Picky" 
         mc:Ignorable="d" FontSize="12" 
-        Height="800" Width="800" ResizeMode="CanResize"
+        Height="600" Width="800" ResizeMode="CanResize"
         WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterScreen" Background="Transparent">
 
     <Window.Resources>
@@ -17,24 +18,63 @@
             <local:PickListView/>
         </DataTemplate>
     </Window.Resources>
-
     <Border CornerRadius="10" Background="#151f2d" Margin="0 0 0 0">
-        <Grid VerticalAlignment="Top">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto" x:Name="mainUpperRow"/>
-                <RowDefinition Height="auto" x:Name="mainLowerRow"/>
-            </Grid.RowDefinitions>
-            <!--Top Row - Toolbar + Commands/Settings + Camera-->
-            <Grid Grid.Row="0" >
-                <!--Top Row - Toolbar + Commands/Settings-->
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="auto"/>
-                </Grid.ColumnDefinitions>
+        <DockPanel>
+            <!-- Buttons on the left side -->
+            <StackPanel DockPanel.Dock="Left" Orientation="Vertical">
+                <ui:Button Width="80" Height="80" Command="{Binding OnCalibrateCommand}">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xF272;" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Calibrate" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </ui:Button>
+                <ui:Button Width="80" Height="80" Command="{Binding OnToolsCommand}">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE76D;" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Tools" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </ui:Button>
+            <ui:Button Width="80" Height="80" Command="{Binding OnControlsCommand}">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE7C2;" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Controls" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </ui:Button>
+            <ui:Button Width="80" Height="80" Command="{Binding OnPCBCommand}">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xF404;" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Board" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </ui:Button>
+            <ui:Button Width="80" Height="80" Command="{Binding OnSettingsCommand}">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE713;" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Settings" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </ui:Button>
+            </StackPanel>
+
+            <!-- Main content of the window -->
+            <Grid DockPanel.Dock="Right">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" x:Name="mainUpperRow"/>
+                    <RowDefinition Height="auto" x:Name="mainLowerRow"/>
+                </Grid.RowDefinitions>
+                <!--Top Row - Toolbar + Commands/Settings + Camera-->
+                <Grid Grid.Row="0" >
+                    <!--Top Row - Toolbar + Commands/Settings-->
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                </Grid>
+                <Grid Name="lView" Grid.Row="0"  Grid.Column="0" Margin="10 10 10 10" />
+                <Grid Name="cView" Grid.Row="1"  Grid.Column="0" Margin="10 10 10 10" />
             </Grid>
-            <Grid Name="lView" Grid.Row="0"  Grid.Column="0" Margin="10 10 10 10" />
-            <Grid Name="cView" Grid.Row="1"  Grid.Column="0" Margin="10 10 10 10" />
-        </Grid>
+
+
+        </DockPanel>
     </Border>
+
 </Window>

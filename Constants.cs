@@ -146,6 +146,7 @@ namespace Picky
         public static int PICK_OFFSET_MIL = 1000;
 
         public static string CALIBRATION_FILE_NAME = "cal.json";
-    
+        public static string TOOL_FILE_NAME = "tool.json";
+
     }
 }

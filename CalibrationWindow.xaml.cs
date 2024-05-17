@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualStudio.Shell.Interop;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -12,26 +11,23 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
 
 namespace Picky
 {
     /// <summary>
-    /// Interaction logic for ControlWindow.xaml
+    /// Interaction logic for CalibrationWindow.xaml
     /// </summary>
-    public partial class ControlWindow : Window
+    public partial class CalibrationWindow : Window
     {
-        public CalibrationWindow calibrationWindow;
+        CalibrationViewModel calVM;
 
-        public ControlWindow()
+        public CalibrationWindow(MachineModel mm)
         {
             InitializeComponent();
-            MachineModel machine = MachineModel.Instance;
-            upCam.Content = new CameraView(machine.upCamera);
-            downCam.Content = new CameraView(machine.downCamera);
-
-            calibrationWindow = new CalibrationWindow(machine);
-           
+            calVM = new CalibrationViewModel(mm);
+            this.DataContext = calVM;
         }
 
         protected override void OnClosing(CancelEventArgs e)
@@ -42,6 +38,5 @@ namespace Picky
             // Hide the window instead of closing it
             this.Hide();
         }
-
     }
 }

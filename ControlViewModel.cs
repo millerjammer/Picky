@@ -179,8 +179,8 @@ namespace Picky
             
             machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
             machine.Messages.Add(GCommand.G_GetPosition());
-            machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(machine.PCB_OriginX, machine.PCB_OriginY));
-            machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(machine.PCB_OriginZ));
+            //machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(machine.PCB_OriginX, machine.PCB_OriginY));
+           // machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(machine.PCB_OriginZ));
             machine.Messages.Add(GCommand.G_GetPosition());
             machine.Messages.Add(GCommand.G_SetAbsoluteAngle(0));
             machine.Messages.Add(GCommand.G_GetPosition());

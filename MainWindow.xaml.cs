@@ -7,6 +7,7 @@ using System.Windows.Media;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Input;
 
 /********************************************************************
  * Notes:
@@ -36,13 +37,13 @@ namespace Picky
 
         public MainWindow()
         {
-            
+
             InitializeComponent();
             serialInterface = new SerialInterface();
-           
+
             //machineView = new MachineView();
             //mView.Children.Add(machineView);
-            
+
             cassetteView = new CassetteView();
             cView.Children.Add(cassetteView);
 
@@ -56,8 +57,21 @@ namespace Picky
             //camView.Children.Add(cameraView);
 
             controlWindow = new ControlWindow();
-            controlWindow.Show();
-
+            DataContext = this;
         }
+           
+
+        public ICommand OnControlsCommand { get { return new RelayCommand(onControl); } }
+        private void onControl()
+        {
+            controlWindow.Show();
+        }
+
+        public ICommand OnCalibrateCommand { get { return new RelayCommand(onCalibrate); } }
+        private void onCalibrate()
+        {
+            controlWindow.calibrationWindow.Show();
+        }
+        
     }
 }

@@ -161,7 +161,7 @@ namespace Picky
                                 MatchCollection matches = regex.Matches(Encoding.UTF8.GetString(msg.cmd));
                                 if (matches[0].Value == "0" && matches[1].Value == "50")
                                     machine.IsToolStorageOpen = false;
-                                else if (matches[0].Value == "0" && matches[1].Value == "15")
+                                else if (matches[0].Value == "0" && matches[1].Value == "9")
                                     machine.IsToolStorageOpen = true;
                             }
                             // Parse Pin Set State Command
