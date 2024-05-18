@@ -180,9 +180,10 @@
       <DependentUpon>PickListView.xaml</DependentUpon>
     </Compile>
     <Compile Include="PickListViewModel.cs" />
-    <Compile Include="PickModel.cs" />
-    <Compile Include="PickView.xaml.cs">
-      <DependentUpon>PickView.xaml</DependentUpon>
+    <Compile Include="PickToolModel.cs" />
+    <Compile Include="PickToolViewModel.cs" />
+    <Compile Include="PickToolWindow.xaml.cs">
+      <DependentUpon>PickToolWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="RelayInterface.cs" />
     <Compile Include="Part.cs" />
@@ -232,9 +233,9 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="PickView.xaml">
-      <SubType>Designer</SubType>
+    <Page Include="PickToolWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
   <ItemGroup>

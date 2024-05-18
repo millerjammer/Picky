@@ -30,19 +30,18 @@ namespace Picky
         public CameraModel downCamera { get; set; }
 
         /* These are temporary for use while performing calibration */
-        public PickModel CalPick { get; set; } = new PickModel();
+        public PickToolModel CalPick { get; set; } = new PickToolModel();
         public OpenCvSharp.Rect CalRectangle { get; set; } = new OpenCvSharp.Rect();
        
-
-        /* Current PickTool */
-        public List<PickModel> PickTools { get; set; }
-        public PickModel SelectedPickTool
+        /* Current PickTools */
+        public ObservableCollection<PickToolModel> PickToolList { get; set; }
+        public PickToolModel SelectedPickTool
         {
             get { return Cal.PickToolCal; }
             set { Cal.PickToolCal = value; OnPropertyChanged(nameof(selectedCassette)); }
         }
 
-        /* Current PickList */
+        /* Current PickList (These are the parts to place) */
         private Part _selectedPickListPart;
         public Part selectedPickListPart
         {
@@ -203,17 +202,17 @@ namespace Picky
                 using (StreamReader file = File.OpenText(path + "\\" + Constants.TOOL_FILE_NAME))
                 {
                     JsonSerializer serializer = new JsonSerializer();
-                    PickTools = ((List<PickModel>)serializer.Deserialize(file, typeof(List<PickModel>)));
+                    PickToolList = ((ObservableCollection<PickToolModel>)serializer.Deserialize(file, typeof(ObservableCollection<PickToolModel>)));
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Can't find file: " + path + "\\" + Constants.TOOL_FILE_NAME);
                 
-                PickTools = new List<PickModel>();
-                PickTools.Add(new PickModel("Test 1"));
-                PickTools.Add(new PickModel("Test 2"));
-                PickTools.Add(new PickModel("Test 3"));
+                PickToolList = new ObservableCollection<PickToolModel>();
+                PickToolList.Add(new PickToolModel("Test 1"));
+                PickToolList.Add(new PickToolModel("Test 2"));
+                PickToolList.Add(new PickToolModel("Test 3"));
             }
         }
 
@@ -249,7 +248,7 @@ namespace Picky
             return (distanceScale);
         }
 
-        public bool SetCalPickTool(PickModel pickModelToUse)
+        public bool SetCalPickTool(PickToolModel pickModelToUse)
         {
             Cal.PickToolCal = pickModelToUse;
             // TODO Return false if the pickmodel is bad
@@ -270,7 +269,7 @@ namespace Picky
             File.WriteAllText(path + "\\" + Constants.CALIBRATION_FILE_NAME, JsonConvert.SerializeObject(Cal, Formatting.Indented));
             Console.WriteLine("Configuration Data Saved.");
 
-            File.WriteAllText(path + "\\" + Constants.TOOL_FILE_NAME, JsonConvert.SerializeObject(PickTools, Formatting.Indented));
+            File.WriteAllText(path + "\\" + Constants.TOOL_FILE_NAME, JsonConvert.SerializeObject(PickToolList, Formatting.Indented));
             Console.WriteLine("Configuration Data Saved.");
         }
     }

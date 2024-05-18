@@ -1,0 +1,33 @@
+﻿<Window x:Class="Picky.PickWindow"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:local="clr-namespace:Picky"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="600">
+    <Border CornerRadius="10" Background="#151f2d" Margin="0 0 0 0">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="30"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Row="0">
+                <Label Content="Pick Tool: " Margin="2 2 0 0"/>
+            </Grid>
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+                <ComboBox Grid.Column="0" ItemsSource="{Binding Machine.PickTools}" DisplayMemberPath="Description" SelectedItem="{Binding Machine.SelectedPickTool}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="0 0 3 0" />
+                <ui:Button Grid.Column="3" Command="{Binding EditPickToolCommand}" CornerRadius="4" Width="36" Height="36" Margin="3" Padding="0" Icon="Edit32" />
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

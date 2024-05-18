@@ -17,8 +17,8 @@ namespace Picky
     {
 
         /* Calibration Parameters - Pick Tool */
-        private PickModel pickToolCal;
-        public PickModel PickToolCal
+        private PickToolModel pickToolCal;
+        public PickToolModel PickToolCal
         {
             get { return pickToolCal; }
             set { pickToolCal = value; }
@@ -55,7 +55,7 @@ namespace Picky
 
         public CalibrationModel() 
         {
-            pickToolCal = new PickModel();
+            pickToolCal = new PickToolModel();
             refObject = new OpenCvSharp.Rect(0, 0, Constants.CALIBRATION_TARGET_WIDTH_DEFAULT_PIX, Constants.CALIBRATION_TARGET_HEIGHT_DEFAULT_PIX);
         }
                 
