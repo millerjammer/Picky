@@ -20,6 +20,13 @@ namespace Picky
         /* Serial Message Queue */
         public ObservableCollection<MachineMessage> Messages { get; set; }
 
+        private MachineMessage selectedMachineMessage;
+        public MachineMessage SelectedMachineMessage
+        {
+            get { return selectedMachineMessage; }
+            set { selectedMachineMessage = value; OnPropertyChanged(nameof(SelectedMachineMessage)); }
+        }
+
         public bool isMachinePaused { get; set; }
                 
         /* Calibration Stuff */

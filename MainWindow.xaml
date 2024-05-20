@@ -22,31 +22,37 @@
         <DockPanel>
             <!-- Buttons on the left side -->
             <StackPanel DockPanel.Dock="Left" Orientation="Vertical">
-                <ui:Button Width="80" Height="80" Command="{Binding OnCalibrateCommand}">
+                <ui:Button Width="85" Height="80" Command="{Binding OnCalibrateCommand}">
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                         <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xF272;" HorizontalAlignment="Center"/>
                         <TextBlock Text="Calibrate" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </ui:Button>
-                <ui:Button Width="80" Height="80" Command="{Binding OnToolsCommand}">
+                <ui:Button Width="85" Height="80" Command="{Binding OnToolsCommand}">
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                         <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE76D;" HorizontalAlignment="Center"/>
                         <TextBlock Text="Tools" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </ui:Button>
-            <ui:Button Width="80" Height="80" Command="{Binding OnControlsCommand}">
+            <ui:Button Width="85" Height="80" Command="{Binding OnControlsCommand}">
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                         <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE7C2;" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Controls" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Machine" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </ui:Button>
-            <ui:Button Width="80" Height="80" Command="{Binding OnPCBCommand}">
+            <ui:Button Width="85" Height="80" Command="{Binding OnPCBCommand}">
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                         <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xF404;" HorizontalAlignment="Center"/>
                         <TextBlock Text="Board" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </ui:Button>
-            <ui:Button Width="80" Height="80" Command="{Binding OnSettingsCommand}">
+                <ui:Button Width="85" Height="80" Command="{Binding OnAssembleCommand}">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE950;" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Monitor" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </ui:Button>
+                <ui:Button Width="85" Height="80" Command="{Binding OnSettingsCommand}">
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                         <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE713;" HorizontalAlignment="Center"/>
                         <TextBlock Text="Settings" HorizontalAlignment="Center"/>

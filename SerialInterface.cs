@@ -113,11 +113,11 @@ namespace Picky
                     //There are enough bytes to parse a message, first, write what we got
                     //for (j = 0; j < length; j++)
                     //    Console.Write((char)serial_buffer[j]);
-                    
+
                     //Check return message, OK message is always the last to send
-                    if(machine.Messages.Count > 0)
+                    if (machine.Messages.Count > 0 && machine.Messages.Count > rx_msgCount)
                     {
-                        msg = machine.Messages.First();
+                        msg = machine.Messages.ElementAt(rx_msgCount);      // msg = machine.Messages.First();
                         if (serial_buffer[0] == (byte)'o' && serial_buffer[1] == (byte)'k')
                         {
                             rx_msgCount++;
@@ -170,8 +170,10 @@ namespace Picky
                                 string pattern = @"(?<=[P|S])\d+";
                                 Regex regex = new Regex(pattern);
                                 MatchCollection matches = regex.Matches(Encoding.UTF8.GetString(msg.cmd));
-                                if (matches[0].Value == "203") {
-                                    if (matches[1].Value == "0") {
+                                if (matches[0].Value == "203")
+                                {
+                                    if (matches[1].Value == "0")
+                                    {
                                         machine.IsValveActive = false;
                                         Console.WriteLine("valve off");
                                     }
@@ -209,10 +211,11 @@ namespace Picky
                                 }
                             }
                         }
-                    }
-                    if (serial_buffer[0] == (byte)'X' && serial_buffer[1] == (byte)':')
-                    {
-                        getPositionFromMessage();
+
+                        if (serial_buffer[0] == (byte)'X' && serial_buffer[1] == (byte)':')
+                        {
+                            getPositionFromMessage();
+                        }
                     }
                     
                     //Fixup the byte buffer by moving unread bytes and the pointer
@@ -222,12 +225,12 @@ namespace Picky
                     }
                     s_in = Array.IndexOf(serial_buffer, (byte)'\n') + 1;
                 }
-                if (machine.Messages.Count > 0 && machine.Messages.First().state == MachineMessage.MessageState.Complete)
-                {
-                    machine.Messages.RemoveAt(0);
-                    rx_msgCount++;
+                //if (machine.Messages.Count > 0 && machine.Messages.ElementAt(rx_msgCount).state == MachineMessage.MessageState.Complete)  //machine.Messages.First()
+                //{
+                    //machine.Messages.RemoveAt(0);
+                //    rx_msgCount++;
                     return true;
-                }
+                //}
             }
             return false;
         }
@@ -240,9 +243,9 @@ namespace Picky
         * Returns 'true' if a message was sent.
         *********************************************************************/
         {
-            if (machine.Messages.Count() > 0)
+            if (machine.Messages.Count() > 0 && machine.Messages.Count > rx_msgCount)
             {
-                MachineMessage msg = machine.Messages.First();
+                MachineMessage msg = machine.Messages.ElementAt(rx_msgCount);
                 if (msg.cmd[0] == Constants.JRM_CALIBRATION_CHECK_XY)
                 {
                     Console.WriteLine("Calibration XY Check: " + machine.LastEndStopState);
@@ -427,7 +430,7 @@ namespace Picky
 
             if (machine.Messages.Count == 0)
                 return true;
-            MachineMessage msg = machine.Messages.First();
+            MachineMessage msg = machine.Messages.ElementAt(rx_msgCount); //machine.Messages.First();
 
             if ((machine.CurrentX == lastPos.x) && (machine.CurrentY == lastPos.y) && (machine.CurrentZ == lastPos.z) && (machine.CurrentA == lastPos.a) && (machine.CurrentB == lastPos.b))
             {

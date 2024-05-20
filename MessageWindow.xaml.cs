@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualStudio.Shell.Interop;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -17,25 +16,21 @@ using System.Windows.Shapes;
 namespace Picky
 {
     /// <summary>
-    /// Interaction logic for ControlWindow.xaml
+    /// Interaction logic for MessageWindow.xaml
     /// </summary>
-    public partial class ControlWindow : Window
+    public partial class MessageWindow : Window
     {
-        public CalibrationWindow calibrationWindow;
-        public PickToolWindow pickToolWindow;
-        public MessageWindow messageWindow;
-
-        public ControlWindow()
+        MessageViewModel messageVM;
+        public MessageWindow(MachineModel mm)
         {
             InitializeComponent();
-            MachineModel machine = MachineModel.Instance;
-            upCam.Content = new CameraView(machine.upCamera);
-            downCam.Content = new CameraView(machine.downCamera);
+           messageVM = new MessageViewModel(mm);
+            this.DataContext = messageVM;
+        }
 
-            calibrationWindow = new CalibrationWindow(machine);
-            pickToolWindow = new PickToolWindow(machine);
-            messageWindow = new MessageWindow(machine);
-           
+        private void MachineMessageSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            //PickListGrid.ScrollIntoView(PickListGrid.SelectedItem);
         }
 
         protected override void OnClosing(CancelEventArgs e)
@@ -46,6 +41,5 @@ namespace Picky
             // Hide the window instead of closing it
             this.Hide();
         }
-
     }
 }

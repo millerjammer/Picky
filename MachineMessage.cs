@@ -1,4 +1,6 @@
-﻿using System;
+﻿using EnvDTE80;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,17 +28,22 @@ namespace Picky
             public double b;
             public byte axis;
         }
-
+        public int index { get; set; }
         public Pos target;
-        public byte[] cmd;
-        public MessageState state;
-        public int timeout;
-        public int delay;
-        public Part part;
-        public Feeder feeder;
-      
+        private byte[] _cmd;
+        public byte[] cmd {
+            get { return _cmd; }
+            set { _cmd = value; cmdString = System.Text.Encoding.ASCII.GetString(_cmd); cmdString = cmdString.Substring(0, cmdString.Length - 1); }
+        }
+        public string cmdString { get; set; }
+        public MessageState state { get; set; }
+        public int timeout { get; set; }
+        public int delay { get; set; }
+        public Part part { get; set; }
+        public Feeder feeder { get; set; }
 
-        
+
+
         public MachineMessage() 
         {
             cmd = new byte[64];

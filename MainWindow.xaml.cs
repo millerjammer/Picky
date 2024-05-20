@@ -79,5 +79,11 @@ namespace Picky
             controlWindow.pickToolWindow.Show();
         }
 
+        public ICommand OnAssembleCommand { get { return new RelayCommand(onAssemble); } }
+        private void onAssemble()
+        {
+            controlWindow.messageWindow.Show();
+        }
+
     }
 }

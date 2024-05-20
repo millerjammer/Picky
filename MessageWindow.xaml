@@ -1,0 +1,98 @@
+﻿<Window x:Class="Picky.MessageWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        xmlns:local="clr-namespace:Picky"
+        mc:Ignorable="d"
+        d:DesignHeight="300" d:DesignWidth="300">
+    <Border CornerRadius="10" Background="#151f2d" Margin="0 0 0 0">
+        <DockPanel>
+            <!-- Buttons on the Top -->
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                <ui:Button Width="85" Height="80" Command="{Binding OnPlay}">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE768;" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Play" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </ui:Button>
+                <ui:Button Width="85" Height="80" Command="{Binding OnStop}">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE71A;" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Stop" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </ui:Button>
+                <ui:Button Width="85" Height="80" Command="{Binding OnPause}">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE769;" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Pause" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </ui:Button>
+                <ui:Button Width="85" Height="80" Command="{Binding OnNext}">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE893;" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Step" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </ui:Button>
+               
+            </StackPanel>
+
+            <Grid DockPanel.Dock="Bottom">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid Grid.Column="0" Margin="5 -10 5 5" >
+                    <!-- Placement 2 Rows -->
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="45" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Margin="10 0 10 0" >
+                        <!-- Placement 1 Row - Title and Basic Controls -->
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                    <ui:DataGrid  x:Name="MessageGrid" Grid.Row="1" HorizontalAlignment="Stretch" SelectedItem="{Binding selectedMessage}" 
+  ItemsSource="{Binding Messages}" AutoGenerateColumns="False" CanUserSortColumns="False"
+  HorizontalContentAlignment="Stretch" SelectionChanged="MachineMessageSelectionChanged"
+  VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="True">
+                        <!-- Placement 2nd Row - Data Grid -->
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Binding="{Binding index}" Header="Index" Width="50">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Center" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Binding="{Binding cmdString}" Header="Command" Width="*"/>
+                            <DataGridTextColumn Binding="{Binding state}" Header="State" Width="120"/>
+                            <DataGridTextColumn Binding="{Binding timeout}" Header="Timeoout [ms]" Width="100"/>
+                            <DataGridTextColumn Binding="{Binding delay}" Header="Delay [ms]" Width="80"/>
+                            <DataGridTextColumn Binding="{Binding Part.Designator}" Header="Part" Width="70"/>
+                        </DataGrid.Columns>
+                        <ui:DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="#80B9EE"/>
+                                        <Setter Property="Foreground" Value="Black"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ui:DataGrid.RowStyle>
+                    </ui:DataGrid>
+                </Grid>
+            </Grid>
+
+
+        </DockPanel>
+
+        
+                    
+            
+    </Border>
+</Window>
