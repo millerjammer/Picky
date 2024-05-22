@@ -14,15 +14,18 @@
                 <ColumnDefinition Width="auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-
-            <local:MachineView Grid.Column="0"/>
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <local:MachineView Grid.Row="0"/>
+                <local:PickToolView Grid.Row="1"/>
+            </Grid>
+            
             <TabControl Grid.Column="1" Margin="10 10 10 10">
-                <TabItem Header="Up Camera" Name="upCam">
-                    
-                </TabItem>
-                <TabItem Header="Down Camera" Name="downCam">
-                    
-                </TabItem>
+                <TabItem Header="Up Camera" Name="upCam"/>
+                <TabItem Header="Down Camera" Name="downCam"/>
             </TabControl>
          </Grid>
     </Border>

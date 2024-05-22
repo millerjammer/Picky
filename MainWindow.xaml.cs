@@ -72,13 +72,7 @@ namespace Picky
         {
             controlWindow.calibrationWindow.Show();
         }
-
-        public ICommand OnToolsCommand { get { return new RelayCommand(onTools); } }
-        private void onTools()
-        {
-            controlWindow.pickToolWindow.Show();
-        }
-
+               
         public ICommand OnAssembleCommand { get { return new RelayCommand(onAssemble); } }
         private void onAssemble()
         {

@@ -22,7 +22,7 @@ namespace Picky
     public partial class ControlWindow : Window
     {
         public CalibrationWindow calibrationWindow;
-        public PickToolWindow pickToolWindow;
+        public PickToolView pickToolView;
         public MessageWindow messageWindow;
 
         public ControlWindow()
@@ -33,7 +33,7 @@ namespace Picky
             downCam.Content = new CameraView(machine.downCamera);
 
             calibrationWindow = new CalibrationWindow(machine);
-            pickToolWindow = new PickToolWindow(machine);
+            pickToolView = new PickToolWindow(machine);
             messageWindow = new MessageWindow(machine);
            
         }

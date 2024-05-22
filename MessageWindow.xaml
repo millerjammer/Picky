@@ -61,8 +61,8 @@
                             <DataGridTextColumn Binding="{Binding state}" Header="State" Width="120"/>
                             <DataGridTextColumn Binding="{Binding timeout}" Header="Timeoout [ms]" Width="100"/>
                             <DataGridTextColumn Binding="{Binding delay}" Header="Delay [ms]" Width="80"/>
-                            
-                        </DataGrid.Columns>
+                            <DataGridTextColumn Binding="{Binding actual_duration}" Header="Time [ms]" Width="80"/>
+                    </DataGrid.Columns>
                         <ui:DataGrid.RowStyle>
                             <Style TargetType="DataGridRow">
                                 <Style.Triggers>

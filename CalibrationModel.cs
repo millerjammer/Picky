@@ -59,6 +59,31 @@ namespace Picky
             refObject = new OpenCvSharp.Rect(0, 0, Constants.CALIBRATION_TARGET_WIDTH_DEFAULT_PIX, Constants.CALIBRATION_TARGET_HEIGHT_DEFAULT_PIX);
         }
 
+        /* Calculate Values Based on Settings */
+        public (double x_offset, double y_offset) GetPickHeadOffsetToCamera(double targetZ)
+        /*************************************************************************************
+         * When you've centered the camera and want to pick something you need to call here 
+         * with the approximate z of the target.  This function will return the offset.  After you 
+         * pick the item you need to subtract the offset.  Do not call with the upward z.  This
+         * is a downward z only.
+         * 
+         ****/
+        {
+            double dist = MachineOriginToPickHeadZ1 - MachineOriginToPickHeadZ2;
+            if (dist == 0)
+            {
+                Console.WriteLine("Calibration Error: Z axis distances is zero");
+                return (0, 0);
+            }
+            DownCameraAngleX = Math.Atan((MachineOriginToPickHeadX1 - MachineOriginToPickHeadX2) / (dist));
+            DownCameraAngleY = Math.Atan((MachineOriginToPickHeadY1 - MachineOriginToPickHeadY2) / (dist));
+
+            DownCameraToPickHeadX = MachineOriginToPickHeadX1 - MachineOriginToDownCameraX + (Math.Sin(DownCameraAngleX) * targetZ);
+            DownCameraToPickHeadY = MachineOriginToPickHeadY1 - MachineOriginToDownCameraY + (Math.Sin(DownCameraAngleY) * targetZ);
+
+            return (DownCameraToPickHeadX, DownCameraToPickHeadY);
+        }
+
         /* Default Send Notification boilerplate - properties that notify use OnPropertyChanged */
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged(string propertyName)

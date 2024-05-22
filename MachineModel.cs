@@ -224,9 +224,13 @@ namespace Picky
                 Console.WriteLine("Can't find file: " + path + "\\" + Constants.TOOL_FILE_NAME);
                 
                 PickToolList = new ObservableCollection<PickToolModel>();
-                PickToolList.Add(new PickToolModel("Test 1"));
-                PickToolList.Add(new PickToolModel("Test 2"));
-                PickToolList.Add(new PickToolModel("Test 3"));
+            }
+            if(PickToolList.Count() < Constants.TOOL_COUNT)
+            {
+                for(int i = PickToolList.Count();i< Constants.TOOL_COUNT; i++)
+                {
+                    PickToolList.Add(new PickToolModel("untitled"));
+                }
             }
         }
 

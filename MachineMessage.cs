@@ -42,10 +42,22 @@ namespace Picky
         public MessageState state
         {
             get { return _state; }
-            set { _state = value; OnPropertyChanged(nameof(state)); }
+            set 
+            { 
+                _state = value;
+                if (_state == MessageState.Complete)
+                {
+                    DateTimeOffset now = DateTimeOffset.UtcNow;
+                    actual_duration =now.ToUnixTimeMilliseconds() - start_time;
+                }
+                OnPropertyChanged(nameof(state)); 
+            }
         }
         public int timeout { get; set; }
         public int delay { get; set; }
+        public long start_time { get; set; }
+        private long _actual_duration;
+        public long actual_duration { get { return _actual_duration; } set { _actual_duration = value; OnPropertyChanged(nameof(actual_duration)); } }
         public Part part { get; set; }
         public Feeder feeder { get; set; }
 
@@ -57,6 +69,8 @@ namespace Picky
             state = MessageState.ReadyToSend;
             delay = 1000;
             timeout = 5000;
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            start_time = now.ToUnixTimeMilliseconds();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

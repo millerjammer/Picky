@@ -1,7 +1,5 @@
 ﻿using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using Wpf.Ui.Mvvm.Interfaces;
-using Wpf.Ui.Controls;
 
 
 namespace Picky

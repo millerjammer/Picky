@@ -12,8 +12,8 @@ namespace Picky
 {
     internal class CalibrationViewModel : INotifyPropertyChanged
     {
-        public MachineModel machine;
-
+        private MachineModel machine;
+        
         /* Listen for changes on the machine properties and propagate to UI */
         public MachineModel Machine
         {
@@ -81,25 +81,25 @@ namespace Picky
         /**
 
         /* This is derived from above */
-        public double DownCameraToPickHeadX
+        private double DownCameraToPickHeadX
         {
             get { return machine.Cal.DownCameraToPickHeadX; }
             set { machine.Cal.DownCameraToPickHeadX = value; OnPropertyChanged(nameof(DownCameraToPickHeadX)); }
         }
 
-        public double DownCameraToPickHeadY
+        private double DownCameraToPickHeadY
         {
             get { return machine.Cal.DownCameraToPickHeadY; }
             set { machine.Cal.DownCameraToPickHeadY = value; OnPropertyChanged(nameof(DownCameraToPickHeadY)); }
         }
 
-        public double DownCameraAngleX
+        private double DownCameraAngleX
         {
             get { return machine.Cal.DownCameraAngleX; }
             set { machine.Cal.DownCameraAngleX = value; OnPropertyChanged(nameof(DownCameraAngleX)); }
         }
 
-        public double DownCameraAngleY
+        private double DownCameraAngleY
         {
             get { return machine.Cal.DownCameraAngleY; }
             set { machine.Cal.DownCameraAngleY = value; OnPropertyChanged(nameof(DownCameraAngleY)); }
@@ -126,7 +126,7 @@ namespace Picky
             MachineOriginToDownCameraX = machine.CurrentX;
             MachineOriginToDownCameraY = machine.CurrentY;
             MachineOriginToDownCameraZ = machine.CurrentZ;
-            calcPickHeadToCamera(Machine.CurrentZ);
+            machine.Cal.GetPickHeadOffsetToCamera(Machine.CurrentZ);
         }
 
         public ICommand MOToPHZ1 { get { return new RelayCommand(mOToPHZ1); } }
@@ -135,7 +135,7 @@ namespace Picky
             MachineOriginToPickHeadX1 = machine.CurrentX;
             MachineOriginToPickHeadY1 = machine.CurrentY;
             MachineOriginToPickHeadZ1 = machine.CurrentZ;
-            calcPickHeadToCamera(Machine.CurrentZ);
+            machine.Cal.GetPickHeadOffsetToCamera(Machine.CurrentZ);
         }
 
         public ICommand MOToPHZ2 { get { return new RelayCommand(mOToPHZ2); } }
@@ -144,28 +144,16 @@ namespace Picky
             MachineOriginToPickHeadX2 = machine.CurrentX;
             MachineOriginToPickHeadY2 = machine.CurrentY;
             MachineOriginToPickHeadZ2 = machine.CurrentZ;
-            calcPickHeadToCamera(Machine.CurrentZ);
+            machine.Cal.GetPickHeadOffsetToCamera(Machine.CurrentZ);
         }
 
         /* This is called when machine z changes */
         private void OnMachinePropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             OnPropertyChanged(nameof(Machine.CurrentZ));
-            calcPickHeadToCamera(Machine.CurrentZ);
+            machine.Cal.GetPickHeadOffsetToCamera(Machine.CurrentZ);
         }
-
-        /* Calculate Values Based on Settings */
-        private void calcPickHeadToCamera(double atZ)
-        {
-            double dist = MachineOriginToPickHeadZ1 - MachineOriginToPickHeadZ2;
-            if(dist == 0)
-                return;
-            DownCameraAngleX = Math.Atan((MachineOriginToPickHeadX1 - MachineOriginToPickHeadX2) / (dist));
-            DownCameraAngleY = Math.Atan((MachineOriginToPickHeadY1 - MachineOriginToPickHeadY2) / (dist));
-            
-            DownCameraToPickHeadX = MachineOriginToPickHeadX1 - MachineOriginToDownCameraX + (Math.Sin(DownCameraAngleX) * atZ);
-            DownCameraToPickHeadY = MachineOriginToPickHeadY1 - MachineOriginToDownCameraY + (Math.Sin(DownCameraAngleY) * atZ);
-        }
+           
 
         public ICommand MoveToPickLocation { get { return new RelayCommand(moveToPickLocation); } }
         private void moveToPickLocation()

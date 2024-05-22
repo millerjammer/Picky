@@ -50,6 +50,14 @@ namespace Picky
             
         }
 
+        private double toolStorageZ;
+        public double ToolStorageZ
+        {
+            get { return toolStorageZ; }
+            set { toolStorageZ = value; OnPropertyChanged(nameof(ToolStorageZ)); }
+
+        }
+
 
         /* Physical Traits */
         public string Description { get; set; }
@@ -59,7 +67,7 @@ namespace Picky
 
         public PickToolModel()
         {
-
+            ToolStorageZ = 125;
         }
 
         public PickToolModel(string name)
