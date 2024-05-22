@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Windows.Controls.Primitives;
 
 namespace Picky
@@ -18,7 +19,12 @@ namespace Picky
         public RelayInterface relayInterface;
 
         /* Serial Message Queue */
-        public ObservableCollection<MachineMessage> Messages { get; set; }
+        private ObservableCollection<MachineMessage> messages;
+        public ObservableCollection<MachineMessage> Messages 
+        {
+            get { return messages; }
+            set { messages = value; OnPropertyChanged(nameof(Messages)); }
+        }
 
         private MachineMessage selectedMachineMessage;
         public MachineMessage SelectedMachineMessage
@@ -39,13 +45,14 @@ namespace Picky
         /* These are temporary for use while performing calibration */
         public PickToolModel CalPick { get; set; } = new PickToolModel();
         public OpenCvSharp.Rect CalRectangle { get; set; } = new OpenCvSharp.Rect();
-       
+
         /* Current PickTools */
         public ObservableCollection<PickToolModel> PickToolList { get; set; }
+        
         public PickToolModel SelectedPickTool
         {
             get { return Cal.PickToolCal; }
-            set { Cal.PickToolCal = value; OnPropertyChanged(nameof(selectedCassette)); }
+            set { Cal.PickToolCal = value; OnPropertyChanged(nameof(SelectedPickTool)); }
         }
 
         /* Current PickList (These are the parts to place) */
@@ -271,13 +278,23 @@ namespace Picky
 
         public void SaveSettings()
         {
+            SaveCalibration();
+            SaveTools();           
+        }
+
+        public void SaveTools()
+        {
             String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            
+            File.WriteAllText(path + "\\" + Constants.TOOL_FILE_NAME, JsonConvert.SerializeObject(PickToolList, Formatting.Indented));
+            Console.WriteLine("Configuration Data Saved.");
+        }
+
+        public void SaveCalibration()
+        {
+            String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             File.WriteAllText(path + "\\" + Constants.CALIBRATION_FILE_NAME, JsonConvert.SerializeObject(Cal, Formatting.Indented));
             Console.WriteLine("Configuration Data Saved.");
 
-            File.WriteAllText(path + "\\" + Constants.TOOL_FILE_NAME, JsonConvert.SerializeObject(PickToolList, Formatting.Indented));
-            Console.WriteLine("Configuration Data Saved.");
         }
     }
 }

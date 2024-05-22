@@ -28,9 +28,15 @@ namespace Picky
             this.DataContext = messageVM;
         }
 
+        private void MachineMessageLoadingRow(object sender, DataGridRowEventArgs e)
+        {
+            //Select the last added row and scroll the window
+            messageVM.selectedMachineMessage = messageVM.Messages.Last();
+        }
+
         private void MachineMessageSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            //PickListGrid.ScrollIntoView(PickListGrid.SelectedItem);
+            MessageGrid.ScrollIntoView(MessageGrid.SelectedItem);
         }
 
         protected override void OnClosing(CancelEventArgs e)

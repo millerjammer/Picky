@@ -37,10 +37,10 @@ namespace Picky
             set { Machine.selectedPickListPart = value; OnPropertyChanged(nameof(selectedPickListPart)); }
         }
 
-        private void SelectedPickListPart_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            OnPropertyChanged(nameof(selectedPickListPart));
-        }
+        //private void SelectedPickListPart_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        //{
+        //    OnPropertyChanged(nameof(selectedPickListPart));
+        //}
 
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged(string propertyName)

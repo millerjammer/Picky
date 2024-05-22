@@ -2,13 +2,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Picky
 {
-    public class MachineMessage
+    public class MachineMessage : INotifyPropertyChanged
     {
         public enum MessageState { ReadyToSend, PendingOK, PendingPosition, Complete, Timeout, Failed }
         /*  
@@ -36,7 +38,12 @@ namespace Picky
             set { _cmd = value; cmdString = System.Text.Encoding.ASCII.GetString(_cmd); cmdString = cmdString.Substring(0, cmdString.Length - 1); }
         }
         public string cmdString { get; set; }
-        public MessageState state { get; set; }
+        private MessageState _state;
+        public MessageState state
+        {
+            get { return _state; }
+            set { _state = value; OnPropertyChanged(nameof(state)); }
+        }
         public int timeout { get; set; }
         public int delay { get; set; }
         public Part part { get; set; }
@@ -50,6 +57,12 @@ namespace Picky
             state = MessageState.ReadyToSend;
             delay = 1000;
             timeout = 5000;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

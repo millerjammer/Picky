@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Picky
 {
-    public class PickToolModel
+    public class PickToolModel : INotifyPropertyChanged
     {
     
         /* This is data for calibration circle */
@@ -30,14 +30,32 @@ namespace Picky
         public double y_offset_from_camera { get; set; }
 
         /* Measured Properties */
-        public double measured_width;
+        public double Length { get; set; }
+        public double Diameter { get; set; }
 
         /* Tool Storage, nominal and camera assisted actual */
-        public double toolStorageX { get; set; }
-        public double toolStorageY { get; set; }
+        private double toolStorageX;
+        public double ToolStorageX
+        {
+            get { return toolStorageX; }
+            set { toolStorageX = value; OnPropertyChanged(nameof(ToolStorageX)); }
+
+        }
+
+        private double toolStorageY;
+        public double ToolStorageY
+        {
+            get { return toolStorageY; }
+            set { toolStorageY = value; OnPropertyChanged(nameof(ToolStorageY)); }
+            
+        }
+
 
         /* Physical Traits */
         public string Description { get; set; }
+
+        /* Physical Traits */
+        public string Name { get; set; }
 
         public PickToolModel()
         {
@@ -47,6 +65,13 @@ namespace Picky
         public PickToolModel(string name)
         {
             Description = name;
+        }
+
+        /* Default Send Notification boilerplate - properties that notify use OnPropertyChanged */
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public Tuple<double, double> GetPickOffsetAtRotation(double angle_in_deg)

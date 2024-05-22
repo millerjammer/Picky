@@ -6,7 +6,7 @@
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:local="clr-namespace:Picky"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="800">
+             d:DesignHeight="300" d:DesignWidth="600" Height="300" Width="800">
     <Border CornerRadius="10" Background="#151f2d" Margin="0 0 0 0">
         <Grid>
             <Grid.RowDefinitions>
@@ -46,16 +46,17 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                 </Grid>
-                                <ui:DataGrid  x:Name="PickListGrid" Grid.Row="1" HorizontalAlignment="Stretch" SelectedItem="{Binding selectedPickListPart}" 
+                                <ui:Button Grid.Column="1" Content="Save" Command="{Binding SaveToolsCommand}" Icon="Save28"  Height="30" Margin="0,0,0,0" HorizontalAlignment="Right"/>
+                                <ui:DataGrid  x:Name="PickListGrid" Grid.Row="1" HorizontalAlignment="Stretch" SelectedItem="{Binding selectedPickTool}" 
                       ItemsSource="{Binding PickToolList}" AutoGenerateColumns="False" CanUserSortColumns="False"
-                      HorizontalContentAlignment="Stretch" SelectionChanged="PickToolSelectionChanged"
-                      VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="True" >
+                      HorizontalContentAlignment="Stretch" SelectionChanged="PickToolSelectionChanged" CanUserAddRows="False"
+                      VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="False" >
                                     <!-- Placement 2nd Row - Data Grid -->
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Binding="{Binding Name}" Header="Name" Width="120"/>
                                         <DataGridTextColumn Binding="{Binding Description}" Header="Description" Width="*"/>
-                                        <DataGridTextColumn Binding="{Binding StorageX}" Header="Storage-X [mm]" Width="120"/>
-                                        <DataGridTextColumn Binding="{Binding StorageY}" Header="Storage-Y [mm]" Width="120"/>
+                                        <DataGridTextColumn Binding="{Binding ToolStorageX}" Header="Storage-X [mm]" Width="120"/>
+                                        <DataGridTextColumn Binding="{Binding ToolStorageY}" Header="Storage-Y [mm]" Width="120"/>
                                         <DataGridTextColumn Binding="{Binding Length}" Header="Length [mm]" Width="110"/>
                                         <DataGridTextColumn Binding="{Binding Diameter}" Header="Diameter" Width="70"/>
                                     </DataGrid.Columns>
@@ -77,7 +78,7 @@
                                             <MenuItem Header="Retrieve Tool" Command="{Binding RetrieveTool}" />
                                             <MenuItem Header="Return Tool" Command="{Binding ReturnTool}" />
                                             <Separator Margin="2"/>
-                                            <MenuItem Header="Set As Storage Location" Command="{Binding SetAsStorageLocation}" />
+                                            <MenuItem Header="Set As Storage Location" Command="{Binding SetAsStorageLocationCommand}" />
                                         </ContextMenu>
                                     </DataGrid.ContextMenu>
                                 </ui:DataGrid>

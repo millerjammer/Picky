@@ -13,7 +13,7 @@ using System.Web.UI.WebControls.WebParts;
 
 namespace Picky
 {
-    public class CalibrationModel
+    public class CalibrationModel : INotifyPropertyChanged
     {
 
         /* Calibration Parameters - Pick Tool */
@@ -58,6 +58,13 @@ namespace Picky
             pickToolCal = new PickToolModel();
             refObject = new OpenCvSharp.Rect(0, 0, Constants.CALIBRATION_TARGET_WIDTH_DEFAULT_PIX, Constants.CALIBRATION_TARGET_HEIGHT_DEFAULT_PIX);
         }
-                
+
+        /* Default Send Notification boilerplate - properties that notify use OnPropertyChanged */
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
     }
 }
