@@ -103,7 +103,7 @@ namespace Picky
         public static MachineMessage G_ProbeZ(double z)
         {
             /******************************************************************
-            * Units are mm
+            * Units are mm, z is absolute
             * See https://marlinfw.org/docs/gcode/G038.html
             */
 
@@ -207,9 +207,9 @@ namespace Picky
             MachineMessage msg = new MachineMessage();
 
             if (open == true)
-                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M280 P0 S9\n"));
-            else
                 msg.cmd = Encoding.UTF8.GetBytes(string.Format("M280 P0 S50\n"));
+            else
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M280 P0 S9\n"));
             return msg;
         }
 
@@ -261,12 +261,21 @@ namespace Picky
         public static MachineMessage G_SetAbsolutePositioningMode(bool enabled)
         {
             MachineMessage msg = new MachineMessage();
+            msg.delay = 0;
             if (enabled == true)
                 msg.cmd = Encoding.UTF8.GetBytes(string.Format("G90\n"));
             else
                 msg.cmd = Encoding.UTF8.GetBytes(string.Format("G91\n"));
             return msg;
 
+        }
+
+        public static MachineMessage G_FinishMoves()
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.delay = 0;
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M400\n"));
+            return msg;
         }
 
         public static MachineMessage G_SetPosition(double x, double y, double z, double a, double b)

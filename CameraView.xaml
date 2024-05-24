@@ -7,29 +7,24 @@
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:local="clr-namespace:Picky"
              mc:Ignorable="d" 
-             d:DesignHeight="200" d:DesignWidth="600">
-    <Grid>
-        
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="auto" />
-                    </Grid.ColumnDefinitions>
-                    <Border x:Name="border" Grid.Column="0" ClipToBounds="True">
-                        <Image ClipToBounds="True" x:Name="FrameImage" Margin="15 5 5 5"/>
-                    </Border>
-                    <StackPanel Grid.Column="1">
+             d:DesignHeight="200" d:DesignWidth="600" Height="700" Width="1100">
+
+                <DockPanel>
+                    <StackPanel Grid.Column="1" Orientation="Vertical" DockPanel.Dock="Right" Width="150">
                         <ToggleButton x:Name="mftb" Content="Manual Focus" IsChecked="{Binding IsManualFocus}"  Margin="10 10 10 0" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
                         <Slider IsEnabled="{Binding IsChecked, ElementName=mftb}" Value="{Binding Focus}"  Minimum="0" Maximum="600" HorizontalAlignment="Stretch" Margin="20 10 15 10" />
-                        <Label Content="Detection Threshold" IsEnabled="{Binding IsCassetteFeederSelected, Mode=OneWay}" Margin="20 0 0 0"/>
-                        <Slider Value="{Binding DetectionThreshold, Mode=TwoWay}" IsEnabled="{Binding IsCassetteFeederSelected, Mode=OneWay}" Minimum="-255" Maximum="0" HorizontalAlignment="Stretch" Margin="20 10 15 10" />
+                        <TextBlock Text="Detection Threshold" IsEnabled="{Binding IsCassetteFeederSelected, Mode=OneWay}" Margin="20 0 0 0"/>
+                        <Slider Value="{Binding DetectionThreshold, Mode=TwoWay}" IsEnabled="{Binding IsCassetteFeederSelected, Mode=OneWay}" Minimum="-255" Maximum="0" HorizontalAlignment="Stretch" Margin="20 10 15 10"/>
                         <ComboBox Name="ImageType" ItemsSource="{Binding VisualizationView}" DisplayMemberPath="viewName" SelectedItem="{Binding SelectedVisualizationViewItem}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 0 15 0" />
                         <StackPanel Orientation="Horizontal" Margin="20 15 0 0">
-                            <Label Content="Part In View"/>
+                            <TextBlock Text="Part In View" />
                             <Ellipse Fill="{Binding PartInViewIconColor}" Height="15" Width="15" Margin="35 0 0 5" StrokeThickness="0" Stroke="Black"/>
                         </StackPanel>
                     </StackPanel>
-                </Grid>
+                    <Border x:Name="border" Grid.Column="0" ClipToBounds="True" DockPanel.Dock="Left">
+                        <Image ClipToBounds="True" x:Name="FrameImage" Margin="5 5 5 5"/>
+                    </Border>
+                </DockPanel>
             
-    </Grid>
+    
 </UserControl>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -8,12 +9,30 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Navigation;
 
 namespace Picky
 {
     internal class MessageViewModel : INotifyPropertyChanged
     {
         private MachineModel machine;
+
+        const string PAUSE_ICON = "\uE769";
+        const string PLAY_ICON = "\uE768";
+
+        private string _playPauseIcon;
+        public string playPauseIcon
+        {
+            get { return _playPauseIcon; }
+            set { _playPauseIcon = value; OnPropertyChanged(nameof(playPauseIcon)); }
+        }
+
+        private string _playPauseText;
+        public string playPauseText
+        {
+            get { return _playPauseText; }
+            set { _playPauseText = value; OnPropertyChanged(nameof(playPauseText)); }
+        }
 
         /* Listen for changes on the machine properties and propagate to UI */
         //public MachineModel Machine
@@ -25,6 +44,8 @@ namespace Picky
         {
             machine = mm;
             machine.Messages.CollectionChanged += OnCollectionChanged;
+            playPauseText = "Pause";
+            playPauseIcon = PAUSE_ICON;
         }
 
         public MachineMessage selectedMachineMessage
@@ -57,6 +78,32 @@ namespace Picky
             machine.SelectedMachineMessage = machine.Messages.Last();
             OnPropertyChanged(nameof(selectedMachineMessage));
 
+        }
+
+        public ICommand OnNextCommand { get { return new RelayCommand(OnNext); } }
+        private void OnNext()
+        {
+            if(machine.Messages.Count > 0)
+            {
+                machine.advanceNextMessage = true;
+            }   
+        }
+
+        public ICommand OnPlayPauseCommand { get { return new RelayCommand(OnPlayPause); } }
+        private void OnPlayPause()
+        {
+            Console.WriteLine(":" + playPauseText);
+            if (playPauseText == "Play") {
+                playPauseText = "Pause";
+                playPauseIcon = PAUSE_ICON;
+                machine.isMachinePaused = false;
+            }
+            else
+            {
+                playPauseText = "Play";
+                playPauseIcon = PLAY_ICON;
+                machine.isMachinePaused = true;
+            }
         }
     }
 }

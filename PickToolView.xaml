@@ -6,9 +6,9 @@
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:local="clr-namespace:Picky"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="600" Height="300" Width="800">
-    <Border CornerRadius="10" Background="#151f2d" Margin="0 0 0 0">
-        <Grid>
+             d:DesignHeight="300" d:DesignWidth="400" Height="300" Width="400">
+
+    <Grid Margin="10 10 10 10" VerticalAlignment="Top">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
@@ -33,7 +33,7 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Grid Grid.Column="0" Margin="5 -10 5 5" >
+                            <Grid Grid.Column="0" Margin="0 -10 0 5" >
                                 <!-- Placement 2 Rows -->
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="45" />
@@ -53,13 +53,11 @@
                       VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="False" >
                                     <!-- Placement 2nd Row - Data Grid -->
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Binding="{Binding Name}" Header="Name" Width="120"/>
                                         <DataGridTextColumn Binding="{Binding Description}" Header="Description" Width="*"/>
-                                        <DataGridTextColumn Binding="{Binding ToolStorageX}" Header="Storage-X [mm]" Width="120"/>
-                                        <DataGridTextColumn Binding="{Binding ToolStorageY}" Header="Storage-Y [mm]" Width="120"/>
-                                        <DataGridTextColumn Binding="{Binding ToolStorageY}" Header="Storage-Z [mm]" Width="120"/>
-                                        <DataGridTextColumn Binding="{Binding Length}" Header="Length [mm]" Width="110"/>
-                                        <DataGridTextColumn Binding="{Binding Diameter}" Header="Diameter" Width="70"/>
+                                        <DataGridTextColumn Binding="{Binding ToolStorageX}" Header="X [mm]" Width="55"/>
+                                        <DataGridTextColumn Binding="{Binding ToolStorageY}" Header="Y [mm]" Width="55"/>
+                                        <DataGridTextColumn Binding="{Binding ToolStorageZ}" Header="Z [mm]" Width="55"/>
+                                        <DataGridTextColumn Binding="{Binding Length}" Header="L [mm]" Width="55"/>
                                     </DataGrid.Columns>
                                     <ui:DataGrid.RowStyle>
                                         <Style TargetType="DataGridRow">
@@ -77,7 +75,7 @@
                                             <MenuItem Header="New Tool"  Command="{Binding NewTool}"/>
                                             <Separator Margin="2"/>
                                             <MenuItem Header="Retrieve Tool" Command="{Binding RetrieveToolCommand}" />
-                                            <MenuItem Header="Return Tool" Command="{Binding ReturnTool}" />
+                                            <MenuItem Header="Return Tool" Command="{Binding ReturnToolCommand}" />
                                             <Separator Margin="2"/>
                                             <MenuItem Header="Set As Storage Location" Command="{Binding SetAsStorageLocationCommand}" />
                                             <MenuItem Header="Go To Storage Location" Command="{Binding GoToStorageLocationCommand}" />
@@ -90,5 +88,5 @@
                 </Expander>
             </Grid>
         </Grid>
-    </Border>
+    
 </UserControl>

@@ -11,10 +11,10 @@ namespace Picky
     {
         private readonly PickToolViewModel pickVM;
 
-        public PickToolView(MachineModel mm)
+        public PickToolView()
         {
             InitializeComponent();
-            pickVM = new PickToolViewModel(mm);
+            pickVM = new PickToolViewModel();
             this.DataContext = pickVM;
         }
 

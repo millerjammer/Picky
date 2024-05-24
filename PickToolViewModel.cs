@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenCvSharp;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -20,9 +21,9 @@ namespace Picky
             get { return machine; }
         }
 
-        public PickToolViewModel(MachineModel mm)
+        public PickToolViewModel()
         {
-            machine = mm;
+            machine = MachineModel.Instance;
             machine.PickToolList.CollectionChanged += OnCollectionChanged;
         }
 
@@ -68,32 +69,64 @@ namespace Picky
         private void GoToStorageLocation()
         {
             machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
+            // Get Offset in terms of pixels
+            Point2f offset = machine.upCamera.FindOffsetToClosestCircle(true);
+            // Get Offset in terms of mm at z.  Movement should exatly align camera to item 
+            //var off = machine.Cal.GetItemOffsetToCamera(Machine.SelectedPickTool.ToolStorageZ);
+            
+
         }
 
         public ICommand RetrieveToolCommand { get { return new RelayCommand(RetrieveTool); } }
         private void RetrieveTool()
         {
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
             //Move to Camera Position
             machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
-            //TODO fine tune to center tool in window
-
             //Offset to Pick
             var offset = machine.Cal.GetPickHeadOffsetToCamera(Machine.SelectedPickTool.ToolStorageZ);
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.DownCameraToPickHeadX, machine.Cal.DownCameraToPickHeadY, 100, 0, 0));
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+            double x = Machine.SelectedPickTool.ToolStorageX + offset.x_offset;
+            double y = Machine.SelectedPickTool.ToolStorageY + offset.y_offset;
+            machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));
             //Drive Z w/limit
             machine.Messages.Add(GCommand.G_ProbeZ(Machine.SelectedPickTool.ToolStorageZ));
+            machine.Messages.Add(GCommand.G_FinishMoves());
             //Open Tool Caddy
             machine.Messages.Add(GCommand.G_OpenToolStorage(true));
             //Retract Tool
-            machine.Messages.Add(GCommand.G_SetPosition(machine.CurrentX, machine.CurrentY, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));
             //Close Tool Caddy
             machine.Messages.Add(GCommand.G_OpenToolStorage(false));
             //Camera to Tool (former) location
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
-            machine.Messages.Add(GCommand.G_SetPosition(-machine.Cal.DownCameraToPickHeadX, -machine.Cal.DownCameraToPickHeadY, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
+            
+
+
+        }
+
+        public ICommand ReturnToolCommand { get { return new RelayCommand(ReturnTool); } }
+        private void ReturnTool()
+        {
             machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+            //Move to Camera Position
+            machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
+            //Offset to Pick
+            var offset = machine.Cal.GetPickHeadOffsetToCamera(Machine.SelectedPickTool.ToolStorageZ);
+            double x = Machine.SelectedPickTool.ToolStorageX + offset.x_offset;
+            double y = Machine.SelectedPickTool.ToolStorageY + offset.y_offset;
+            machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));
+            //Open Tool Caddy
+            machine.Messages.Add(GCommand.G_OpenToolStorage(true));
+            //Drive Z w/limit
+            machine.Messages.Add(GCommand.G_ProbeZ(Machine.SelectedPickTool.ToolStorageZ));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            //Close Tool Caddy
+            machine.Messages.Add(GCommand.G_OpenToolStorage(false));
+            //Retract Tool
+            machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));
+            //Camera to Tool (former) location
+            machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
+
 
 
         }

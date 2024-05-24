@@ -12,9 +12,10 @@ namespace Picky
 {
     public class MachineMessage : INotifyPropertyChanged
     {
-        public enum MessageState { ReadyToSend, PendingOK, PendingPosition, Complete, Timeout, Failed }
+        public enum MessageState { ReadyToSend, PendingDelay, PendingOK, PendingPosition, Complete, Timeout, Failed }
         /*  
          *  ReadyToSend - The message has been created, is in the queue but has not been transmitted
+         *  PendingDelay - The message is waitig for it's delay to expire
          *  PendingOK   - The message has been sent but no 'ok' has been received, 
          *  PendingPosition - The message has been sent 'ok' has been received, but waiting for position to update (optional)
          *  Complete - The message has been sent, 'ok' has been recieved and processing is complete, ok to remove
@@ -68,9 +69,10 @@ namespace Picky
             cmd = new byte[64];
             state = MessageState.ReadyToSend;
             delay = 1000;
-            timeout = 5000;
-            DateTimeOffset now = DateTimeOffset.UtcNow;
-            start_time = now.ToUnixTimeMilliseconds();
+            timeout = 4000;
+            
+            MachineModel mm = MachineModel.Instance;
+            index = mm.Messages.Count();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

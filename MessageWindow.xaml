@@ -11,16 +11,16 @@
         <DockPanel>
             <!-- Buttons on the Top -->
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
-                <ui:Button Width="85" Height="80" Command="{Binding OnPlay}">
+                <ui:Button Width="85" Height="80" Command="{Binding OnPlayPauseCommand}">
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
-                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE768;" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Play" HorizontalAlignment="Center"/>
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="{Binding playPauseIcon}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding playPauseText}" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </ui:Button>
-                <ui:Button Width="85" Height="80" Command="{Binding OnStop}">
+                <ui:Button Width="85" Height="80" Command="{Binding OnNextCommand}">
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
-                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE71A;" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Stop" HorizontalAlignment="Center"/>
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE893;" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Step" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </ui:Button>
                 <ui:Button Width="85" Height="80" Command="{Binding OnLastCommand}">
@@ -29,12 +29,7 @@
                         <TextBlock Text="Last" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </ui:Button>
-                <ui:Button Width="85" Height="80" Command="{Binding OnNext}">
-                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
-                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE893;" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Step" HorizontalAlignment="Center"/>
-                    </StackPanel>
-                </ui:Button>
+                
                 <ui:Button Width="85" Height="80" Command="{Binding OnClearAll}">
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                         <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE894;" HorizontalAlignment="Center"/>

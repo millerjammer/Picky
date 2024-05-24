@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Picky" 
         mc:Ignorable="d" FontSize="12" 
-        Height="550" Width="1200" ResizeMode="CanResize"
+        Height="820" Width="1580" ResizeMode="CanResize"
         WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterScreen" Background="Transparent">
 
     <Border CornerRadius="10" Background="#151f2d" Margin="0 0 0 0">
@@ -16,14 +16,14 @@
             </Grid.ColumnDefinitions>
             <Grid Grid.Column="0">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
                     <RowDefinition Height="auto"/>
+                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <local:MachineView Grid.Row="0"/>
-                <local:PickToolView Grid.Row="1"/>
+                <local:PickToolView Grid.Row="1" VerticalAlignment="Top"/>
             </Grid>
-            
-            <TabControl Grid.Column="1" Margin="10 10 10 10">
+
+            <TabControl Grid.Column="1" Margin="5 10 10 10">
                 <TabItem Header="Up Camera" Name="upCam"/>
                 <TabItem Header="Down Camera" Name="downCam"/>
             </TabControl>

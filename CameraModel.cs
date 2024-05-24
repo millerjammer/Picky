@@ -4,10 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Controls;
+using System.Windows.Forms.VisualStyles;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
@@ -18,8 +20,8 @@ namespace Picky
     public class CameraModel : INotifyPropertyChanged
     {
         private Mat RawImage { get; set; }
-        
-        
+
+
         /* Mats for general availability */
         public Mat ColorImage { get; set; }
         public Mat GrayImage { get; set; }
@@ -27,15 +29,18 @@ namespace Picky
         public Mat EdgeImage { get; set; }
         public Mat DilatedImage { get; set; }
         public Mat PickROI { get; set; }
+        public Mat CircleROI { get; set; }
 
         /* What we are currently viewing */
         public VisualizationStyle SelectedVisualizationViewItem { get; set; }
 
         /* Mats for Part Identification */
-        private Mat grayTemplateImage; 
+        private Mat grayTemplateImage;
         private Mat matchResultImage;
+
         private bool searchQRRequest = false;
-        
+               
+
         public VideoCapture capture { get; set; }
 
         /* Properties that need to send notifications */
@@ -64,7 +69,11 @@ namespace Picky
         public bool IsManualFocus { get; set; }
         public Mat selectedViewMat { get; set; }
 
+        private Point2f lastBestCircle;
+
         private readonly BackgroundWorker bkgWorker;
+
+
 
         public CameraModel(int cameraIndex)
         {
@@ -119,7 +128,7 @@ namespace Picky
             int height = (Constants.CAMERA_FRAME_WIDTH / 18);
             OpenCvSharp.Rect roi = new OpenCvSharp.Rect(x, y, width, height);
             PickROI = new Mat(srcImage, roi);
-
+           
             // Find contours in the image
             HierarchyIndex[] hierarchy;
             Cv2.FindContours(DilatedImage, out OpenCvSharp.Point[][] contours, out hierarchy, RetrievalModes.List, ContourApproximationModes.ApproxNone);
@@ -162,6 +171,65 @@ namespace Picky
                 Console.WriteLine($"Error decoding QR code: {ex.Message}");
                 return false;
             }
+        }
+
+        public Point2f FindOffsetToClosestCircle(bool showResult)
+        {
+            // We want the center 2-%
+            int x = (Constants.CAMERA_FRAME_WIDTH / 2) - (Constants.CAMERA_FRAME_WIDTH / 10);
+            int y = (Constants.CAMERA_FRAME_HEIGHT / 2) - (Constants.CAMERA_FRAME_HEIGHT / 10); 
+            int width = 2 * (Constants.CAMERA_FRAME_WIDTH / 10);
+            int height = 2 * (Constants.CAMERA_FRAME_WIDTH / 10);
+            OpenCvSharp.Rect roi = new OpenCvSharp.Rect(x, y, width, height);
+            CircleROI = new Mat(DilatedImage, roi);
+                        
+            // Find circles using HoughCircles
+            CircleSegment[] circles = Cv2.HoughCircles(
+                CircleROI, 
+                HoughModes.Gradient,
+                dp: 1,
+                minDist: 100,
+                param1: 100,
+                param2: 20,
+                minRadius: 20,
+                maxRadius: 150);
+
+            if (circles.Length == 0)
+            {
+                Console.WriteLine("No circle found.");
+                return new Point2f(0, 0);
+            }
+
+            // Calculate the center of the image
+            Point2f imageCenter = new Point2f(CircleROI.Width / 2.0f, CircleROI.Height / 2.0f);
+
+            // Find the closest circle to the center
+            CircleSegment closestCircle = circles.OrderBy(circle =>
+                Math.Pow(circle.Center.X - imageCenter.X, 2) + Math.Pow(circle.Center.Y - imageCenter.Y, 2)).First();
+
+            // Calculate the offset of the closest circle from the center of the image
+            Point2f offset = new Point2f(closestCircle.Center.X - imageCenter.X, closestCircle.Center.Y - imageCenter.Y);
+
+            Console.WriteLine("Best Circle (offset): " + offset + " R: " + closestCircle.Radius);
+
+            if (showResult)
+            {
+                Mat ColorCircleROI = new Mat();
+                Cv2.CvtColor(CircleROI, ColorCircleROI, ColorConversionCodes.GRAY2BGR);
+                foreach (CircleSegment circle in circles)
+                {
+                    // Draw the circle outline
+                    Cv2.Circle(ColorCircleROI, (int)circle.Center.X, (int)circle.Center.Y, (int)circle.Radius, Scalar.Green, 2);
+                    // Draw the circle center
+                    Cv2.Circle(ColorCircleROI, (int)circle.Center.X, (int)circle.Center.Y, 3, Scalar.Red, 3);
+                    Console.WriteLine("Best Circle (offset): " + offset + " R: " + closestCircle.Radius);
+                }
+                Cv2.ImShow("Detected Circles", ColorCircleROI);
+                Cv2.WaitKey(1);
+            }
+
+            offset.X *= -1; //Fix sign so we can 'add'  
+            return offset;
         }
 
         private bool FindPartInImage(Part part, Mat image)
@@ -248,31 +316,33 @@ namespace Picky
             var worker = (BackgroundWorker)sender;
             while (!worker.CancellationPending)
             {
-                using (RawImage = capture.RetrieveMat())
+                
+                try
                 {
-                    try
-                    {
-                        Cv2.CopyTo(RawImage, ColorImage);
-                        Cv2.CvtColor(RawImage, GrayImage, ColorConversionCodes.BGR2GRAY);
-                        Cv2.GaussianBlur(GrayImage, GrayImage, new OpenCvSharp.Size(5, 5), 0);
-                        Cv2.Threshold(GrayImage, ThresImage, 80, 255, ThresholdTypes.Binary);
-                        Cv2.Canny(ThresImage, EdgeImage, 50, 150, 3);
-                        Cv2.Dilate(EdgeImage, DilatedImage, null, iterations: 2);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Ouchy - " + ex.ToString());
-                    }
+                    RawImage = capture.RetrieveMat();
+                    Cv2.CopyTo(RawImage, ColorImage);
+                    Cv2.CvtColor(RawImage, GrayImage, ColorConversionCodes.BGR2GRAY);
+                    Cv2.GaussianBlur(GrayImage, GrayImage, new OpenCvSharp.Size(5, 5), 0);
+                    Cv2.Threshold(GrayImage, ThresImage, 80, 255, ThresholdTypes.Binary);
+                    Cv2.Canny(ThresImage, EdgeImage, 50, 150, 3);
+                    Cv2.Dilate(EdgeImage, DilatedImage, null, iterations: 2);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Ouchy - " + ex.ToString());
+                    GC.Collect();
+                    // Wait for all finalizers to complete before continuing.
+                    GC.WaitForPendingFinalizers();
+                }
 
-                    if (PartToFind != null)
+                if (PartToFind != null)
+                {
+                    if (FindPartInImage(PartToFind, ColorImage))
                     {
-                        if (FindPartInImage(PartToFind, ColorImage))
-                        {
-                            //OpenCvSharp.Cv2.DrawMarker(ColorImage, new OpenCvSharp.Point(PartToFind.CenterX, PartToFind.CenterY), new OpenCvSharp.Scalar(0, 0, 255), OpenCvSharp.MarkerTypes.Cross, 100, 1);
-                        }
+                        //OpenCvSharp.Cv2.DrawMarker(ColorImage, new OpenCvSharp.Point(PartToFind.CenterX, PartToFind.CenterY), new OpenCvSharp.Scalar(0, 0, 255), OpenCvSharp.MarkerTypes.Cross, 100, 1);
                     }
-
-                    if (searchQRRequest)
+                }
+                if (searchQRRequest)
                     {
                         if (DecodeQRCode())
                         {
@@ -300,7 +370,7 @@ namespace Picky
                         }
                     });
                     Cv2.WaitKey(10);
-                }
+                
             }
         }
     }

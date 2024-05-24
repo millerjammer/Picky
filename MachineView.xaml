@@ -10,8 +10,8 @@
              d:DesignHeight="480" d:DesignWidth="400">
 
     <!-- Center Settings Expander -->
-    <Grid Margin="10" VerticalAlignment="Top">
-        <Expander Header="Machine" Width="380" IsExpanded="True">
+    <Grid Margin="10 10 10 10" VerticalAlignment="Top">
+        <Expander Header="Machine" IsExpanded="True">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>

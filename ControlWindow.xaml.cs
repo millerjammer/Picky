@@ -22,18 +22,17 @@ namespace Picky
     public partial class ControlWindow : Window
     {
         public CalibrationWindow calibrationWindow;
-        public PickToolView pickToolView;
         public MessageWindow messageWindow;
 
         public ControlWindow()
         {
             InitializeComponent();
+
             MachineModel machine = MachineModel.Instance;
             upCam.Content = new CameraView(machine.upCamera);
             downCam.Content = new CameraView(machine.downCamera);
 
             calibrationWindow = new CalibrationWindow(machine);
-            pickToolView = new PickToolWindow(machine);
             messageWindow = new MessageWindow(machine);
            
         }
@@ -47,5 +46,9 @@ namespace Picky
             this.Hide();
         }
 
+        private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
     }
 }

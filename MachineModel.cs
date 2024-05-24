@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Windows.Controls.Primitives;
+using System.Windows.Forms;
 
 namespace Picky
 {
@@ -33,6 +34,8 @@ namespace Picky
             set { selectedMachineMessage = value; OnPropertyChanged(nameof(SelectedMachineMessage)); }
         }
 
+        public bool isAbsoluteMode = true;
+        public bool advanceNextMessage = false;
         public bool isMachinePaused { get; set; }
                 
         /* Calibration Stuff */
