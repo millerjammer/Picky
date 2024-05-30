@@ -37,11 +37,6 @@ namespace Picky
             set { Machine.selectedPickListPart = value; OnPropertyChanged(nameof(selectedPickListPart)); }
         }
 
-        //private void SelectedPickListPart_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        //{
-        //    OnPropertyChanged(nameof(selectedPickListPart));
-        //}
-
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged(string propertyName)
         {
@@ -62,7 +57,7 @@ namespace Picky
                 return;
             }
             Feeder fdr = new Feeder();
-            fdr.width = Constants.FEEDER_THICKNESS;
+            fdr.width = Feeder.FEEDER_8MM_WIDTH_MILS;
             fdr.part = Machine.selectedPickListPart;
             Machine.selectedCassette.Feeders.Add(fdr);
             Machine.selectedPickListPart.cassette = Machine.selectedCassette;
@@ -71,12 +66,10 @@ namespace Picky
         public ICommand GoToPartLocationCommand { get { return new RelayCommand(GoToPartLocation); } }
         private void GoToPartLocation()
         {
-            Machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-            Machine.Messages.Add(GCommand.G_GetPosition());
-           // Machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(Machine.PCB_OriginX + (Convert.ToDouble(selectedPickListPart.CenterX) * Constants.MIL_TO_MM), Machine.PCB_OriginY + (Convert.ToDouble(selectedPickListPart.CenterY) * Constants.MIL_TO_MM)));
-            Machine.Messages.Add(GCommand.G_GetPosition());
-            Machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-            Machine.Messages.Add(GCommand.G_GetPosition());
+            Machine.Messages.Add(GCommand.G_SetPosition(Machine.CurrentX, Machine.CurrentY, 0, 0, 0));
+            double part_x = Machine.Board.PcbOriginX + (Convert.ToDouble(selectedPickListPart.CenterX) * Constants.MIL_TO_MM);
+            double part_y = Machine.Board.PcbOriginY + (Convert.ToDouble(selectedPickListPart.CenterY) * Constants.MIL_TO_MM);
+            Machine.Messages.Add(GCommand.G_SetPosition(part_x, part_y, 0, 0, 0));
         }
 
         public ICommand OpenPickListCommand { get { return new RelayCommand(OpenPickList); } }

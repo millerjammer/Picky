@@ -79,15 +79,16 @@ namespace Picky
 
         private void UpdateFeederLocationsWithinCassette()
         {
+            double offset = 0;
             for (int i = 0; i < feeders.Count; i++)
             {
-                feeders.ElementAt(i).z_origin = Constants.SAFE_TRANSIT_Z;
-                feeders.ElementAt(i).y_origin = y_origin + Constants.CASSETTE_TO_INITIAL_FEEDER_YOFFSET;
-                feeders.ElementAt(i).x_origin = x_origin + ((Constants.FEEDER_THICKNESS * i) + Constants.CASSETTE_TO_INITIAL_FEEDER_XOFFSET);
+                feeders.ElementAt(i).z_origin = 0;
+                feeders.ElementAt(i).y_origin = y_origin;
+                feeders.ElementAt(i).x_origin = x_origin + offset + (feeders.ElementAt(i).thickness/2);
+                offset += feeders.ElementAt(i).thickness;
 
-                feeders.ElementAt(i).z_drive = Constants.FEEDER_DRIVE_ABSOLUTE_Z;
-                feeders.ElementAt(i).y_drive = feeders.ElementAt(i).y_origin + Constants.FEEDER_ORIGIN_TO_DRIVE_YOFFSET;
-                feeders.ElementAt(i).x_drive = feeders.ElementAt(i).x_origin + Constants.FEEDER_ORIGIN_TO_DRIVE_XOFFSET;
+                feeders.ElementAt(i).y_drive = feeders.ElementAt(i).y_origin + Feeder.FEEDER_ORIGIN_TO_DRIVE_YOFFSET_MM;
+                feeders.ElementAt(i).x_drive = feeders.ElementAt(i).x_origin + Feeder.FEEDER_ORIGIN_TO_DRIVE_XOFFSET_MM;
             }
         }
 
@@ -103,10 +104,8 @@ namespace Picky
         public ICommand GoToCassetteCommand { get { return new RelayCommand(GoToCassette); } }
         public void GoToCassette()
         {
-            machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-            machine.Messages.Add(GCommand.G_GetPosition());
-            machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(x_origin, y_origin));
-            machine.Messages.Add(GCommand.G_GetPosition());
+            Console.WriteLine("Go To Cassette Position: " + x_origin + " mm " + y_origin + " mm");
+            machine.Messages.Add(GCommand.G_SetPosition(x_origin, y_origin,0 ,0 ,0 ));
         }
 
         public ICommand SetCassetteHomeCommand { get { return new RelayCommand(SetCassetteHome); } }

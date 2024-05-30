@@ -27,15 +27,15 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal"  Margin="2">
                     <Label Content="X:" VerticalAlignment="Center" Padding="3 0 5 0"/>
-                    <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.PCB_OriginX, StringFormat={}{0:0.00}}"/>
+                    <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.Board.PcbOriginX, StringFormat={}{0:0.00}}"/>
                 </StackPanel>
                 <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 2 2 2">
                     <Label Content="Y:" VerticalAlignment="Center" Padding="3 0 5 0"/>
-                    <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.PCB_OriginY, StringFormat={}{0:0.00}}"/>
+                    <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.Board.PcbOriginY, StringFormat={}{0:0.00}}"/>
                 </StackPanel>
                 <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 2 2 2">
-                    <Label Content="Z:" VerticalAlignment="Center" Padding="3 0 5 0"/>
-                    <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.PCB_OriginZ, StringFormat={}{0:0.00}}"/>
+                    <Label Content="Thickness:" VerticalAlignment="Center" Padding="3 0 5 0"/>
+                    <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.Board.PcbThickness, StringFormat={}{0:0.00}}"/>
                 </StackPanel>
                 <Grid.ContextMenu>
                     <ContextMenu>

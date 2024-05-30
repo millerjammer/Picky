@@ -35,10 +35,7 @@ namespace Picky
 
         public MachineViewModel()
         {
-            machine.Messages.Add(GCommand.G_GetPosition());
-            machine.Messages.Add(GCommand.G_GetPosition());
-            machine.relayInterface.SetIlluminatorOn(true);
-            
+                   
         }
 
         public ICommand ButtonXLeftCommand { get { return new RelayCommand(ButtonXLeft); } }
@@ -77,7 +74,7 @@ namespace Picky
         public ICommand ButtonXYHomeCommand { get { return new RelayCommand(ButtonXYHome); } }
         private void ButtonXYHome()
         {
-            machine.Messages.Add(GCommand.G_SetZPosition(Constants.Z_AXIS_MAX));
+            machine.Messages.Add(GCommand.G_SetPosition(machine.CurrentX, machine.CurrentY, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FindMachineHome());
             
         }
@@ -162,71 +159,6 @@ namespace Picky
                 machine.Messages.Add(GCommand.G_OpenToolStorage(false));
             else
                 machine.Messages.Add(GCommand.G_OpenToolStorage(true));
-        }
-
-        public ICommand ButtonBUpCommand { get { return new RelayCommand(ButtonBUp); } }
-        private void ButtonBUp()
-        {
-            machine.Messages.Add(GCommand.G_SetRelativeAngle(distanceToAdvance));
-            machine.Messages.Add(GCommand.G_GetPosition());
-        }
-
-        public ICommand ButtonBHomeCommand { get { return new RelayCommand(ButtonBHome); } }
-        private void ButtonBHome()
-        {
-            machine.Messages.Add(GCommand.G_SetAbsoluteAngle(0.00));
-            machine.Messages.Add(GCommand.G_GetPosition());
-        }
-        public ICommand ButtonBDownCommand { get { return new RelayCommand(ButtonBDown); } }
-        private void ButtonBDown()
-        {
-            machine.Messages.Add(GCommand.G_SetRelativeAngle(-distanceToAdvance));
-            machine.Messages.Add(GCommand.G_GetPosition());
-        }
-
-        public ICommand ButtonAUpCommand { get { return new RelayCommand(ButtonAUp); } }
-        private void ButtonAUp()
-        {
-            machine.Messages.Add(GCommand.G_SetRelativeAPosition(distanceToAdvance));
-            machine.Messages.Add(GCommand.G_GetPosition());
-        }
-
-        public ICommand ButtonAHomeCommand { get { return new RelayCommand(ButtonAHome); } }
-        void ButtonAHome()
-        {
-
-        }
-
-        public ICommand ButtonADownCommand { get { return new RelayCommand(ButtonADown); } }
-        private void ButtonADown()
-        {
-            machine.Messages.Add(GCommand.G_SetRelativeAPosition(-distanceToAdvance));
-            machine.Messages.Add(GCommand.G_GetPosition());
-        }
-
-        public ICommand EditPickToolCommand { get { return new RelayCommand(EditPickTool); } }
-        private void EditPickTool()
-        {
-            Console.WriteLine("Edit Pick Tool");
-        }
-
-        public ICommand GoToPCBOriginCommand { get { return new RelayCommand(GoToPCBOrigin); } }
-        private void GoToPCBOrigin()
-        {
-            Console.WriteLine("GoTo PCB");
-            //machine.Messages.Add(GCommand.G_SetPosition(machine.PCB_OriginX, machine.PCB_OriginY, 0, 0, 0));
-           
-        }
-        
-        public ICommand SetAsPCBOriginCommand { get { return new RelayCommand(SetAsPCBOrigin); } }
-        private void SetAsPCBOrigin()
-        {
-            Console.WriteLine("SetAs PCB Origin");
-            //machine.PCB_OriginX = machine.CurrentX;
-            //machine.PCB_OriginY = machine.CurrentY;
-           // machine.PCB_OriginZ = machine.CurrentZ;
-            //machine.SaveibrationSettings();
-
         }
     }
 }

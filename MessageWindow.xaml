@@ -30,7 +30,7 @@
                     </StackPanel>
                 </ui:Button>
                 
-                <ui:Button Width="85" Height="80" Command="{Binding OnClearAll}">
+                <ui:Button Width="85" Height="80" Command="{Binding OnClearAllCommand}">
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                         <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE894;" HorizontalAlignment="Center"/>
                         <TextBlock Text="Clear All" HorizontalAlignment="Center"/>

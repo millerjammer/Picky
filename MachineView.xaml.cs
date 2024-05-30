@@ -9,14 +9,14 @@ namespace Picky
     /// </summary>
     public partial class MachineView : UserControl
     {
-        private readonly MachineViewModel machine;
+        private readonly MachineViewModel mvm;
 
         public MachineView()
         {
             InitializeComponent();
-            machine = new MachineViewModel();
-            this.DataContext = machine;
-            zSlider.Maximum = Constants.Z_AXIS_MAX;
+            mvm = new MachineViewModel();
+            this.DataContext = mvm;
+            zSlider.Maximum = 500;
         }
 
         public void SliderZ(object sender, DragCompletedEventArgs e)

@@ -89,6 +89,15 @@ namespace Picky
             }   
         }
 
+        public ICommand OnClearAllCommand { get { return new RelayCommand(OnClearAll); } }
+        private void OnClearAll()
+        {
+            machine.IsSerialMessageResetRequested = true;
+            machine.Messages.Clear();
+            machine.IsSerialMessageResetRequested = false;
+            Console.WriteLine("Machine Message Queue Reset Complete. Count:" + machine.Messages.Count());
+        }
+
         public ICommand OnPlayPauseCommand { get { return new RelayCommand(OnPlayPause); } }
         private void OnPlayPause()
         {

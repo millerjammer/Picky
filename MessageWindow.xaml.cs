@@ -36,7 +36,10 @@ namespace Picky
 
         private void MachineMessageSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            MessageGrid.ScrollIntoView(MessageGrid.SelectedItem);
+            if (MessageGrid.SelectedItem != null)
+            {
+                MessageGrid.ScrollIntoView(MessageGrid.SelectedItem);
+            }
         }
 
         protected override void OnClosing(CancelEventArgs e)

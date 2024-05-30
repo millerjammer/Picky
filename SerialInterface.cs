@@ -1,20 +1,10 @@
-﻿using Microsoft.VisualStudio.OLE.Interop;
-using OpenCvSharp;
+﻿using OpenCvSharp;
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.IO.Ports;
 using System.Linq;
-using System.Net.NetworkInformation;
-using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Timers;
-using System.Windows.Forms;
-using System.Windows.Interop;
 
 /*For S3G Serial Commands See: https://github.com/makerbot/s3g/blob/master/doc/s3gProtocol.md */
 
@@ -24,14 +14,12 @@ namespace Picky
     {
         private static byte[] serial_buffer = new byte[Constants.MAX_BUFFER_SIZE];
         private static int s_in = 0;
-        private int tick = 0;
-
+      
         MachineModel machine = MachineModel.Instance;
 
         private static MachineMessage.Pos lastPos = new MachineMessage.Pos();
-        public int rx_msgCount { get; set; }
-        public int tx_msgCount { get; set; }
-
+        private int rx_msgCount { get; set; }
+        
         static SerialPort serialPort;
 
         public SerialInterface()
@@ -66,11 +54,8 @@ namespace Picky
             msgTimer.Interval = Constants.QUEUE_SERVICE_INTERVAL;
             msgTimer.Enabled = true;
 
+            /* Initial Command Queue */
             machine.Messages.Add(GCommand.G_SetAutoPositionReporting(true));
-            machine.CurrentZ = Constants.Z_AXIS_MAX;
-            machine.Messages.Add(GCommand.G_SetZPosition(machine.CurrentZ));
-            machine.CurrentA = 90;
-            machine.Messages.Add(GCommand.G_SetRPosition(machine.CurrentA));
             machine.Messages.Add(GCommand.G_EnableIlluminator(false));
             machine.Messages.Add(GCommand.G_GetStepsPerUnit());
 
@@ -83,10 +68,15 @@ namespace Picky
          * complete message in the queue to process. 
          * **********************************************************/
         {
+            if(machine.IsSerialMessageResetRequested == true)
+            {
+                rx_msgCount = 0;
+                return;
+            }
             ServiceInboundMessages();
             if (machine.Messages.Count() > 0 && machine.Messages.Count() > rx_msgCount)
             {
-                MachineMessage msg = machine.Messages?.ElementAt(rx_msgCount);
+                MachineMessage msg = machine.Messages.ElementAt(rx_msgCount);
                 ServiceOutboundMessage(msg);
             }
         }
@@ -395,7 +385,6 @@ namespace Picky
                     machine.advanceNextMessage = false;
                     msg.state = MachineMessage.MessageState.PendingOK;
                     msg.delay = 0;
-                    tx_msgCount++;
                 }
             }
             return true;

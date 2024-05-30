@@ -24,8 +24,8 @@
             </Grid>
 
             <TabControl Grid.Column="1" Margin="5 10 10 10">
-                <TabItem Header="Up Camera" Name="upCam"/>
                 <TabItem Header="Down Camera" Name="downCam"/>
+                <TabItem Header="Up Camera" Name="upCam"/>
             </TabControl>
          </Grid>
     </Border>

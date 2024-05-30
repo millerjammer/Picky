@@ -15,22 +15,7 @@ namespace Picky
 {
     public class CalibrationModel : INotifyPropertyChanged
     {
-
-        /* Calibration Parameters - Pick Tool */
-        private PickToolModel pickToolCal;
-        public PickToolModel PickToolCal
-        {
-            get { return pickToolCal; }
-            set { pickToolCal = value; }
-        }
         
-        /* Calibration Parameters - mm/steps*/
-        private OpenCvSharp.Rect refObject;
-        public OpenCvSharp.Rect RefObject
-        {
-            get { return refObject; }
-            set { Console.WriteLine("Reference Updated. Old: " + refObject.Width + " " + refObject.Height + " new: " + value.Width + " " + value.Height); refObject = value;  }
-        }
 
         /* Resolution */
         private double pcbMMToPixX;
@@ -111,21 +96,21 @@ namespace Picky
        
         public CalibrationModel() 
         {
-            pickToolCal = new PickToolModel();
-            refObject = new OpenCvSharp.Rect(0, 0, Constants.CALIBRATION_TARGET_WIDTH_DEFAULT_PIX, Constants.CALIBRATION_TARGET_HEIGHT_DEFAULT_PIX);
+            
         }
 
         private void calcResolution()
         {
             if ((Monument11Y > Monument00Y) && (Monument11X > Monument00X))
             {
-                StepsPerUnitX = (Constants.CALIBRATED_X_DIMENSION_MILS * Constants.MIL_TO_MM) / (Monument11X - Monument00X);
-                StepsPerUnitY = (Constants.CALIBRATED_Y_DIMENSION_MILS * Constants.MIL_TO_MM) / (Monument11Y - Monument00Y);
-                DistErrorX = (Constants.CALIBRATED_X_DIMENSION_MILS * Constants.MIL_TO_MM) - (Monument11X - Monument00X);
-                DistErrorY = (Constants.CALIBRATED_Y_DIMENSION_MILS * Constants.MIL_TO_MM) - (Monument11Y - Monument00Y);
+                StepsPerUnitX = (CalTargetModel.TARGET_GRID_X_MILS * Constants.MIL_TO_MM) / (Monument11X - Monument00X);
+                StepsPerUnitY = (CalTargetModel.TARGET_GRID_Y_MILS * Constants.MIL_TO_MM) / (Monument11Y - Monument00Y);
+                DistErrorX = (CalTargetModel.TARGET_GRID_X_MILS * Constants.MIL_TO_MM) - (Monument11X - Monument00X);
+                DistErrorY = (CalTargetModel.TARGET_GRID_Y_MILS * Constants.MIL_TO_MM) - (Monument11Y - Monument00Y);
                 Console.WriteLine("aa: " + StepsPerUnitX + " " + StepsPerUnitY);
             }
         }
+
 
         /* Calculate Values Based on Settings */
         public (double x_offset, double y_offset) GetPickHeadOffsetToCamera(double targetZ)

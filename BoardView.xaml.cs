@@ -18,11 +18,17 @@ namespace Picky
     /// <summary>
     /// Interaction logic for BoardView.xaml
     /// </summary>
+    /// 
     public partial class BoardView : UserControl
     {
+        private readonly BoardViewModel bvm;
+
         public BoardView()
         {
             InitializeComponent();
+            bvm = new BoardViewModel();
+            this.DataContext = bvm;
+   
         }
     }
 }
