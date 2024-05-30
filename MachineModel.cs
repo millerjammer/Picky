@@ -37,6 +37,7 @@ namespace Picky
         public bool isAbsoluteMode = true;
         public bool advanceNextMessage = false;
         public bool isMachinePaused { get; set; }
+        public CircleSegment CurrentCircleTarget = new CircleSegment();
                 
         /* Calibration Stuff */
         public CalibrationModel Cal {  get; set; }
@@ -202,8 +203,8 @@ namespace Picky
             PickList = new ObservableCollection<Part>();
             relayInterface = new RelayInterface();
 
-            downCamera = new CameraModel(2);
-            upCamera = new CameraModel(0);
+            downCamera = new CameraModel(0);
+            upCamera = new CameraModel(2);
 
 
             String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);

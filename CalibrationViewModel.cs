@@ -13,72 +13,13 @@ namespace Picky
     internal class CalibrationViewModel : INotifyPropertyChanged
     {
         private MachineModel machine;
-        
+        Point2d itemLocation = new Point2d();
+
         /* Listen for changes on the machine properties and propagate to UI */
         public MachineModel Machine
         {
             get { return machine; }
         }
-
-        /* Camera/Pick Physics */
-
-        /**/
-        public double MachineOriginToDownCameraX
-        {
-            get { return machine.Cal.MachineOriginToDownCameraX; }
-            set { machine.Cal.MachineOriginToDownCameraX = value; OnPropertyChanged(nameof(MachineOriginToDownCameraX)); }
-        }
-        
-        public double MachineOriginToDownCameraY
-        {
-            get { return machine.Cal.MachineOriginToDownCameraY; }
-            set { machine.Cal.MachineOriginToDownCameraY = value; OnPropertyChanged(nameof(MachineOriginToDownCameraY)); }
-        }
-        public double MachineOriginToDownCameraZ
-        {
-            get { return machine.Cal.MachineOriginToDownCameraZ; }
-            set { machine.Cal.MachineOriginToDownCameraZ = value; OnPropertyChanged(nameof(MachineOriginToDownCameraZ)); }
-        }
-
-        /**/
-        public double MachineOriginToPickHeadX1
-        {
-            get { return machine.Cal.MachineOriginToPickHeadX1; }
-            set { machine.Cal.MachineOriginToPickHeadX1 = value; OnPropertyChanged(nameof(MachineOriginToPickHeadX1)); }
-        }
-
-        public double MachineOriginToPickHeadY1
-        {
-            get { return machine.Cal.MachineOriginToPickHeadY1; }
-            set { machine.Cal.MachineOriginToPickHeadY1 = value; OnPropertyChanged(nameof(MachineOriginToPickHeadY1)); }
-        }
-
-        public double MachineOriginToPickHeadZ1
-        {
-            get { return machine.Cal.MachineOriginToPickHeadZ1; }
-            set { machine.Cal.MachineOriginToPickHeadZ1 = value; OnPropertyChanged(nameof(MachineOriginToPickHeadZ1)); }
-        }
-
-        /**/
-        public double MachineOriginToPickHeadX2
-        {
-            get { return machine.Cal.MachineOriginToPickHeadX2; }
-            set { machine.Cal.MachineOriginToPickHeadX2 = value; OnPropertyChanged(nameof(MachineOriginToPickHeadX2)); }
-        }
-
-        public double MachineOriginToPickHeadY2
-        {
-            get { return machine.Cal.MachineOriginToPickHeadY2; }
-            set { machine.Cal.MachineOriginToPickHeadY2 = value; OnPropertyChanged(nameof(MachineOriginToPickHeadY2)); }
-        }
-
-        public double MachineOriginToPickHeadZ2
-        {
-            get { return machine.Cal.MachineOriginToPickHeadZ2; }
-            set { machine.Cal.MachineOriginToPickHeadZ2 = value; OnPropertyChanged(nameof(MachineOriginToPickHeadZ2)); }
-        }
-
-        /**
 
         /* This is derived from above */
         private double DownCameraToPickHeadX
@@ -105,6 +46,18 @@ namespace Picky
             set { machine.Cal.DownCameraAngleY = value; OnPropertyChanged(nameof(DownCameraAngleY)); }
         }
 
+        private double StepsPerUnitX
+        {
+            get { return machine.Cal.StepsPerUnitX; }
+            set { machine.Cal.StepsPerUnitX = value; OnPropertyChanged(nameof(StepsPerUnitX)); }
+        }
+
+        private double StepsPerUnitY
+        {
+            get { return machine.Cal.StepsPerUnitY; }
+            set { machine.Cal.StepsPerUnitY = value; OnPropertyChanged(nameof(StepsPerUnitY)); }
+        }
+
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -119,31 +72,71 @@ namespace Picky
             machine.PropertyChanged += OnMachinePropertyChanged;
 
         }
+        
+        public ICommand GoMonument00Command { get { return new RelayCommand(GoMonument00); } }
+        private void GoMonument00()
+        {
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.Monument00X, machine.Cal.Monument00Y, 0, 0, 0));
+                      
+        }
+        
+        public ICommand GoMonument11Command { get { return new RelayCommand(GoMonument11); } }
+        private void GoMonument11()
+        {
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.Monument11X, machine.Cal.Monument11Y, 0, 0, 0));
+        }
+
+        public ICommand GetMonument00Command { get { return new RelayCommand(GetMonument00); } }
+        private void GetMonument00()
+        {
+            machine.Cal.Monument00X = machine.CurrentX;
+            machine.Cal.Monument00Y = machine.CurrentY;
+          
+        }
+
+        public ICommand GetMonument11Command { get { return new RelayCommand(GetMonument11); } }
+        private void GetMonument11()
+        {
+            machine.Cal.Monument11X = machine.CurrentX;
+            machine.Cal.Monument11Y = machine.CurrentY;
+        }
+
+        public ICommand WriteStepPerUnitCommand { get { return new RelayCommand(WriteStepPerUnit); } }
+        private void WriteStepPerUnit()
+        {
+            machine.Messages.Add(GCommand.G_SetStepsPerUnit(machine.Cal.StepsPerUnitX, machine.Cal.StepsPerUnitY));
+        }
+
+        public ICommand ReadStepPerUnitCommand { get { return new RelayCommand(ReadStepPerUnit); } }
+        private void ReadStepPerUnit()
+        {
+            machine.Messages.Add(GCommand.G_GetStepsPerUnit());
+        }
 
         public ICommand MOToDC { get { return new RelayCommand(mOToDC); } }
         private void mOToDC()
         {
-            MachineOriginToDownCameraX = machine.CurrentX;
-            MachineOriginToDownCameraY = machine.CurrentY;
-            MachineOriginToDownCameraZ = machine.CurrentZ;
+            machine.Cal.MachineOriginToDownCameraX = machine.CurrentX;
+            machine.Cal.MachineOriginToDownCameraY = machine.CurrentY;
+            machine.Cal.MachineOriginToDownCameraZ = machine.CurrentZ;
             machine.Cal.GetPickHeadOffsetToCamera(Machine.CurrentZ);
         }
 
         public ICommand MOToPHZ1 { get { return new RelayCommand(mOToPHZ1); } }
         private void mOToPHZ1()
         {
-            MachineOriginToPickHeadX1 = machine.CurrentX;
-            MachineOriginToPickHeadY1 = machine.CurrentY;
-            MachineOriginToPickHeadZ1 = machine.CurrentZ;
+            machine.Cal.MachineOriginToPickHeadX1 = machine.CurrentX;
+            machine.Cal.MachineOriginToPickHeadY1 = machine.CurrentY;
+            machine.Cal.MachineOriginToPickHeadZ1 = machine.CurrentZ;
             machine.Cal.GetPickHeadOffsetToCamera(Machine.CurrentZ);
         }
 
         public ICommand MOToPHZ2 { get { return new RelayCommand(mOToPHZ2); } }
         private void mOToPHZ2()
         {
-            MachineOriginToPickHeadX2 = machine.CurrentX;
-            MachineOriginToPickHeadY2 = machine.CurrentY;
-            MachineOriginToPickHeadZ2 = machine.CurrentZ;
+            machine.Cal.MachineOriginToPickHeadX2 = machine.CurrentX;
+            machine.Cal.MachineOriginToPickHeadY2 = machine.CurrentY;
+            machine.Cal.MachineOriginToPickHeadZ2 = machine.CurrentZ;
             machine.Cal.GetPickHeadOffsetToCamera(Machine.CurrentZ);
         }
 
@@ -153,8 +146,44 @@ namespace Picky
             OnPropertyChanged(nameof(Machine.CurrentZ));
             machine.Cal.GetPickHeadOffsetToCamera(Machine.CurrentZ);
         }
-           
+        
+        public ICommand GetResolutionAtPCBCommand { get { return new RelayCommand(GetResolutionAtPCB); } }
+        private void GetResolutionAtPCB()
+        {
+            double cal_target_x = 238.48;
+            double cal_target_y = 127.690;
 
+            GetResolution(cal_target_x, cal_target_y, Constants.CAL_TYPE_RESOLUTION_AT_PCB, Constants.CAL_TYPE_Z_DISTANCE_AT_PCB);
+        }
+
+        public ICommand GetResolutionAtToolCommand { get { return new RelayCommand(GetResolutionAtTool); } }
+        private void GetResolutionAtTool()
+        {
+            double cal_target_x = 238.48;
+            double cal_target_y = 127.690;
+
+            GetResolution(cal_target_x, cal_target_y, Constants.CAL_TYPE_RESOLUTION_AT_TOOL, Constants.CAL_TYPE_Z_DISTANCE_AT_TOOL);
+        }
+
+        public ICommand GetResolutionAtFeederCommand { get { return new RelayCommand(GetResolutionAtFeeder); } }
+        private void GetResolutionAtFeeder()
+        {
+        }
+
+        private void GetResolution(double x, double y, byte type, byte type2)
+        {
+            machine.Messages.Add(GCommand.G_EnableIlluminator(true));
+            machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));
+            machine.Messages.Add(GCommand.C_LocateCircle(new OpenCvSharp.Rect(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT)));
+            machine.Messages.Add(GCommand.X_SetCalFactor(type));
+            machine.Messages.Add(GCommand.G_ProbeZ(300));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            machine.Messages.Add(GCommand.X_SetCalFactor(type2));
+            machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetItemLocation());
+            machine.Messages.Add(GCommand.G_EnableIlluminator(false));
+        }
+                
         public ICommand MoveToPickLocation { get { return new RelayCommand(moveToPickLocation); } }
         private void moveToPickLocation()
         {

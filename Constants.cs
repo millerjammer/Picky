@@ -11,6 +11,9 @@ namespace Picky
     internal class Constants
     {
         public static int TOOL_COUNT = 4;
+        public static double CALIBRATED_X_DIMENSION_MILS = 5000;
+        public static double CALIBRATED_Y_DIMENSION_MILS = 5000;
+
         public static int CAMERA_FRAME_WIDTH = 2592;
         public static int CAMERA_FRAME_HEIGHT = 1944;
         public static int CAMERA_FPS = 15;
@@ -84,6 +87,14 @@ namespace Picky
         public static byte JRM_CALIBRATION_CHECK_PICK = 0x95;
         public static byte JRM_CALIBRATION_CHECK_PICK1 = 0x94;
         public static byte JRM_SET_PICKLIST_INDEX = 0x93;
+
+        public static byte X_SET_CAL_FACTOR = 0x22;
+        public static byte C_ITEM_LOCATION = 0x23;
+
+        public static byte CAL_TYPE_RESOLUTION_AT_PCB = 0x10;
+        public static byte CAL_TYPE_Z_DISTANCE_AT_PCB = 0x11;
+        public static byte CAL_TYPE_RESOLUTION_AT_TOOL = 0x12;
+        public static byte CAL_TYPE_Z_DISTANCE_AT_TOOL = 0x13;
 
         public static byte JRM_SET_ABSOLUTE_XY_POSITION_OPTICALLY = 0x92;
 

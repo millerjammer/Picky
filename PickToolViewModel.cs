@@ -68,13 +68,17 @@ namespace Picky
         public ICommand GoToStorageLocationCommand { get { return new RelayCommand(GoToStorageLocation); } }
         private void GoToStorageLocation()
         {
+            machine.Messages.Add(GCommand.G_EnableIlluminator(true));
+            // Optically Correct location
             machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
-            // Get Offset in terms of pixels
-            Point2f offset = machine.upCamera.FindOffsetToClosestCircle(true);
-            // Get Offset in terms of mm at z.  Movement should exatly align camera to item 
-            //var off = machine.Cal.GetItemOffsetToCamera(Machine.SelectedPickTool.ToolStorageZ);
-            
-
+            int x = (Constants.CAMERA_FRAME_WIDTH / 2) - (Constants.CAMERA_FRAME_WIDTH / 10);
+            int y = (Constants.CAMERA_FRAME_HEIGHT / 2) - (Constants.CAMERA_FRAME_HEIGHT / 10);
+            int width = 2 * (Constants.CAMERA_FRAME_WIDTH / 10);
+            int height = 2 * (Constants.CAMERA_FRAME_WIDTH / 10);
+            OpenCvSharp.Rect roi = new OpenCvSharp.Rect(x, y, width, height);
+            machine.Messages.Add(GCommand.C_LocateCircle(roi));
+            machine.Messages.Add(GCommand.G_SetItemLocation());
+            machine.Messages.Add(GCommand.G_EnableIlluminator(false));
         }
 
         public ICommand RetrieveToolCommand { get { return new RelayCommand(RetrieveTool); } }

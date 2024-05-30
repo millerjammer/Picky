@@ -6,6 +6,8 @@
 
 
 
+using Microsoft.VisualStudio.Shell.Interop;
+using OpenCvSharp;
 using System;
 using System.Text;
 using System.Windows.Forms.VisualStyles;
@@ -99,6 +101,24 @@ namespace Picky
             return msg;
         }
 
+        public static MachineMessage C_LocateCircle(Rect roi)
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.roi = roi;
+            msg.cmd[0] = Constants.C_ITEM_LOCATION;
+            return msg;
+        }
+
+        
+        public static MachineMessage X_SetCalFactor(int typeOfCal)
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.cmd[0] = Constants.X_SET_CAL_FACTOR;
+            msg.calType = typeOfCal;
+            return msg;
+        }
+
+       
 
         public static MachineMessage G_ProbeZ(double z)
         {
@@ -213,6 +233,21 @@ namespace Picky
             return msg;
         }
 
+        public static MachineMessage G_GetStepsPerUnit()
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M92\n"));
+            return msg;
+        }
+
+        public static MachineMessage G_SetStepsPerUnit(double x_steps_per_unit, double y_steps_per_unit)
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M92 X{0} Y{1}\n", x_steps_per_unit, y_steps_per_unit));
+            return msg;
+        }
+               
+
         public static MachineMessage G_SetAutoPositionReporting(bool enabled)
         {
 
@@ -292,7 +327,13 @@ namespace Picky
 
             msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} Z{2} A{3}\n", x, y, z, a ));
             return msg;  
+        }
 
+        public static MachineMessage G_SetItemLocation()
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 *\n"));
+            return msg;
         }
 
         public static MachineMessage G_GetPosition()

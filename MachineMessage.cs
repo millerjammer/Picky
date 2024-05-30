@@ -1,4 +1,5 @@
 ﻿using EnvDTE80;
+using OpenCvSharp;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -33,12 +34,21 @@ namespace Picky
         }
         public int index { get; set; }
         public Pos target;
+        public Rect roi;
+        public int calType;
+
+                
         private byte[] _cmd;
         public byte[] cmd {
             get { return _cmd; }
             set { _cmd = value; cmdString = System.Text.Encoding.ASCII.GetString(_cmd); cmdString = cmdString.Substring(0, cmdString.Length - 1); }
         }
-        public string cmdString { get; set; }
+        private string _cmdString;
+        public string cmdString
+        {
+            get { return _cmdString; }
+            set { _cmdString = value; OnPropertyChanged(nameof(cmdString)); }
+        }
         private MessageState _state;
         public MessageState state
         {
@@ -62,15 +72,14 @@ namespace Picky
         public Part part { get; set; }
         public Feeder feeder { get; set; }
 
-
-
         public MachineMessage() 
         {
             cmd = new byte[64];
             state = MessageState.ReadyToSend;
             delay = 1000;
             timeout = 4000;
-            
+            calType = 0x00;
+
             MachineModel mm = MachineModel.Instance;
             index = mm.Messages.Count();
         }

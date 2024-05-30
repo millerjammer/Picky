@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.OLE.Interop;
+using OpenCvSharp;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -19,21 +20,22 @@ using System.Windows.Interop;
 
 namespace Picky
 {
-    public class SerialInterface 
+    public class SerialInterface
     {
-       private static byte[] serial_buffer = new byte[Constants.MAX_BUFFER_SIZE];
-       private static int s_in = 0;
-       private int tick = 0;
+        private static byte[] serial_buffer = new byte[Constants.MAX_BUFFER_SIZE];
+        private static int s_in = 0;
+        private int tick = 0;
 
-       MachineModel machine = MachineModel.Instance;
+        MachineModel machine = MachineModel.Instance;
 
-       private static MachineMessage.Pos lastPos = new MachineMessage.Pos();
-       public int rx_msgCount { get; set; }
-       public int tx_msgCount { get; set; }
+        private static MachineMessage.Pos lastPos = new MachineMessage.Pos();
+        public int rx_msgCount { get; set; }
+        public int tx_msgCount { get; set; }
 
-       static SerialPort serialPort;
+        static SerialPort serialPort;
 
-       public SerialInterface() {
+        public SerialInterface()
+        {
 
             /* Open Port */
             serialPort = new SerialPort();
@@ -57,7 +59,7 @@ namespace Picky
                 serialPort.ReadExisting();
                 Console.WriteLine("Machine Serial Port Opened. " + System.Environment.CurrentDirectory);
             }
-                     
+
             /* Start a Timer to Handle Message Queue */
             System.Timers.Timer msgTimer = new System.Timers.Timer();
             msgTimer.Elapsed += new ElapsedEventHandler(OnTimer);
@@ -70,6 +72,7 @@ namespace Picky
             machine.CurrentA = 90;
             machine.Messages.Add(GCommand.G_SetRPosition(machine.CurrentA));
             machine.Messages.Add(GCommand.G_EnableIlluminator(false));
+            machine.Messages.Add(GCommand.G_GetStepsPerUnit());
 
         }
 
@@ -80,12 +83,15 @@ namespace Picky
          * complete message in the queue to process. 
          * **********************************************************/
         {
-            ServicePickPort();
-            ServiceOutboundMessageQueue();
-            
+            ServiceInboundMessages();
+            if (machine.Messages.Count() > 0 && machine.Messages.Count() > rx_msgCount)
+            {
+                MachineMessage msg = machine.Messages?.ElementAt(rx_msgCount);
+                ServiceOutboundMessage(msg);
+            }
         }
 
-        private bool ServicePickPort()
+        private bool ServiceInboundMessages()
         /********************************************************************
          * Checks and processes serial data from the machine.
          * Returns true if a command was successfully parsed.
@@ -96,14 +102,14 @@ namespace Picky
             int bytes_read;
             MachineMessage msg;
             byte[] sbuf = new byte[1024];
-                        
+
             if (serialPort.IsOpen)
             {
                 /**** Read the port, stick it at end of the main buffer *****/
                 bytes_read = serialPort.Read(sbuf, 0, serialPort.BytesToRead);
                 for (i = 0; i < bytes_read; i++)
                     serial_buffer[s_in++] = sbuf[i];
-                
+
                 //Try to read messages if we got a \n in the buffer
                 while (Array.IndexOf(serial_buffer, (byte)'\n') >= 0)
                 {
@@ -111,13 +117,14 @@ namespace Picky
 
                     //There are enough bytes to parse a message, first, write what we got
                     //for (j = 0; j < length; j++)
-                    //    Console.Write((char)serial_buffer[j]);
+                    //Console.Write((char)serial_buffer[j]);
 
                     //Check return message, OK message is always the last to send
                     if (machine.Messages.Count > 0 && machine.Messages.Count > rx_msgCount)
                     {
-                        msg = machine.Messages.ElementAt(rx_msgCount);      // msg = machine.Messages.First();
-                        if (msg.state == MachineMessage.MessageState.PendingOK) {
+                        msg = machine.Messages.ElementAt(rx_msgCount);
+                        if (msg.state == MachineMessage.MessageState.PendingOK)
+                        {
                             if (serial_buffer[0] == (byte)'o' && serial_buffer[1] == (byte)'k')
                             {
                                 for (j = 0; j < length; j++)
@@ -126,6 +133,13 @@ namespace Picky
                                 if (msg.cmd[0] == 'G' && msg.cmd[1] == '0')
                                 {
                                     msg.state = MachineMessage.MessageState.PendingPosition;
+                                }
+                                // Parse Steps per Unit
+                                else if (msg.cmd[0] == 'M' && msg.cmd[1] == '9' && msg.cmd[2] == '2')
+                                {
+                                    // The OK comes out AFTER the result - result parsed below
+                                    msg.state = MachineMessage.MessageState.Complete;
+                                    rx_msgCount++;
                                 }
                                 // Parse Illuminator Status
                                 else if (msg.cmd[0] == 'M' && msg.cmd[1] == '2' && msg.cmd[2] == '6' && msg.cmd[3] == '0')
@@ -242,7 +256,6 @@ namespace Picky
                                     msg.state = MachineMessage.MessageState.Complete;
                                     rx_msgCount++;
                                 }
-
                                 else
                                 {
                                     //Some message we don't care about, mark it complete
@@ -250,14 +263,57 @@ namespace Picky
                                     rx_msgCount++;
                                 }
                             }
+                            // These commands do not output an OK to the serial port
+                            else if (msg.cmd[0] == Constants.C_ITEM_LOCATION)
+                            {
+                                if (machine.downCamera.IsCircleSearchActive() == false)
+                                {
+                                    msg.state = MachineMessage.MessageState.Complete;
+                                    rx_msgCount++;
+                                }
+                            }
+                            else if ((msg.cmd[0] == Constants.X_SET_CAL_FACTOR) )
+                            {
+                                CircleSegment cs = machine.downCamera.GetBestCircle();
+                                if (msg.calType == Constants.CAL_TYPE_RESOLUTION_AT_PCB)
+                                {
+                                    machine.Cal.PcbMMToPixX = (1000 * 0.0254) / cs.Radius; //  [mm/pic]
+                                    machine.Cal.PcbMMToPixY = (1000 * 0.0254) / cs.Radius;
+                                }
+                                else if(msg.calType == Constants.CAL_TYPE_RESOLUTION_AT_TOOL)
+                                {
+                                    machine.Cal.ToolMMToPixX = (1000 * 0.0254) / cs.Radius; //  [mm/pic]
+                                    machine.Cal.ToolMMToPixY = (1000 * 0.0254) / cs.Radius;
+                                }
+                                else if(msg.calType == Constants.CAL_TYPE_Z_DISTANCE_AT_PCB)
+                                {
+                                    machine.Cal.PcbZHeight = machine.CurrentZ;
+                                }
+                                else if (msg.calType == Constants.CAL_TYPE_Z_DISTANCE_AT_TOOL)
+                                {
+                                    machine.Cal.ToolZHeight = machine.CurrentZ;
+                                }
+                                msg.state = MachineMessage.MessageState.Complete;
+                                rx_msgCount++;
+                            }
                         }
 
                         if (serial_buffer[0] == (byte)'X' && serial_buffer[1] == (byte)':')
                         {
                             getPositionFromMessage();
                         }
+                        else if (serial_buffer[2] == (byte)'M' && serial_buffer[3] == (byte)'9' && serial_buffer[4] == (byte)'2')
+                        {
+                            // Define a regular expression pattern for extracting doubles
+                            string pattern = @"(\d+\.\d+)";
+                            Regex regex = new Regex(pattern);
+                            MatchCollection matches = regex.Matches(Encoding.UTF8.GetString(serial_buffer));
+                            machine.Cal.StepsPerUnitX = double.Parse(matches[0].Value);
+                            machine.Cal.StepsPerUnitY = double.Parse(matches[1].Value);
+                            Console.WriteLine("Steps per MM: " + machine.Cal.StepsPerUnitX + " " + machine.Cal.StepsPerUnitY);
+                        }
                     }
-                    
+
                     //Fixup the byte buffer by moving unread bytes and the pointer
                     for (k = 0; k < Constants.MAX_BUFFER_SIZE - length; k++)
                     {
@@ -270,203 +326,76 @@ namespace Picky
             return false;
         }
 
-      
-        private bool ServiceOutboundMessageQueue()
+
+        private bool ServiceOutboundMessage(MachineMessage msg)
         /********************************************************************
         * This is outbound messages to the machine.  If there is still a pending 
         * message, no new message is sent
         * Returns 'true' if a message was sent.
         *********************************************************************/
         {
-            if (machine.Messages.Count() > 0 && machine.Messages.Count > rx_msgCount)
+
+            if (msg.state == MachineMessage.MessageState.Complete)
+                return false;
+            if (msg.part != null)
             {
-                MachineMessage msg = machine.Messages.ElementAt(rx_msgCount);
-                if (msg.cmd[0] == Constants.JRM_CALIBRATION_CHECK_XY)
+                machine.selectedPickListPart = msg.part;
+                Console.WriteLine("using part: " + msg.part.Description);
+            }
+            if (msg.state == MachineMessage.MessageState.ReadyToSend)
+            {
+                machine.SelectedMachineMessage = machine.Messages.ElementAt(machine.Messages.IndexOf(msg));
+                if (machine.isMachinePaused == false || machine.advanceNextMessage == true)
                 {
-                    Console.WriteLine("Calibration XY Check: " + machine.LastEndStopState);
-                    if (((machine.LastEndStopState & Constants.X_AXIS_MAX_SW) == Constants.X_AXIS_MAX_SW) && ((machine.LastEndStopState & Constants.Y_AXIS_MAX_SW) == Constants.Y_AXIS_MAX_SW))
+                    msg.delay -= Constants.QUEUE_SERVICE_INTERVAL;
+                    if (msg.delay <= 0)
                     {
-                        machine.CalibrationStatusString = "Calibration XY: Successful";
-                        machine.Messages.RemoveAt(0);
-                    }
-                    else
-                    {
-                        machine.PositionCalibrationState = MachineModel.CalibrationState.Failed;
-                        machine.CalibrationStatusString = "Calibration XY: Failed (Timeout?)";
-                        machine.Messages.Clear();
+                        msg.state = MachineMessage.MessageState.PendingDelay;
                     }
                 }
-                else if (msg.cmd[0] == Constants.JRM_SET_ABSOLUTE_XY_POSITION_OPTICALLY)
-                {
-                   Tuple<double, double> offset = machine.SelectedPickTool.GetPickOffsetAtRotation(0);
-                   double pickX = msg.feeder.x_next_part + Constants.PICK_DISTORTION_OFFSET_X_MM - (offset.Item1 * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z));
-                   double pickY = msg.feeder.y_next_part + Constants.PICK_DISTORTION_OFFSET_Y_MM - (offset.Item2 * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z));
-                    if (msg.feeder.x_next_part != 0 && msg.feeder.y_next_part != 0)
-                    {   
-                        Console.WriteLine("Valid Imagery - Next Pick: " + pickX + " mm " + pickY + " mm");
-                        MachineMessage next = GCommand.G_SetAbsolutePosition((byte)~(Constants.X_AXIS | Constants.Y_AXIS), pickX, pickY, 0, 0, 0);
-                        machine.Messages.RemoveAt(0);
-                        machine.Messages.Insert(0, next);
-                    }
-                }
-                else if (msg.cmd[0] == Constants.JRM_CALIBRATION_CHECK_Z)
-                {
-                    Console.WriteLine("Calibration Z Check: " + machine.LastEndStopState);
-                    if ((machine.LastEndStopState & (Constants.Z_AXIS_MIN_SW)) == (Constants.Z_AXIS_MIN_SW))
-                    {
-                        machine.PositionCalibrationState = MachineModel.CalibrationState.Complete;
-                        machine.CalibrationStatusString = "Calibration Z: Successful";
-                        machine.Messages.RemoveAt(0);
-                    }
-                    else
-                    {
-                        machine.PositionCalibrationState = MachineModel.CalibrationState.Failed;
-                        machine.CalibrationStatusString = "Calibration Z: Failed (Timeout?)";
-                        machine.Messages.Clear();
-                    }
-                }
-                else if (msg.cmd[0] == Constants.JRM_CALIBRATION_ITEM_RESOLUTION)
-                {
-                    Console.WriteLine("In position, resolution cal started.");
-                    tick = 10;
-                    machine.Messages.Add(GCommand.JRM_CalibrationCalculateItemResolution1());
-                    machine.Messages.RemoveAt(0);
+            }
+            if (msg.state == MachineMessage.MessageState.PendingDelay)
+            {
+                if (machine.isMachinePaused == false || machine.advanceNextMessage == true)
+                    msg.delay -= Constants.QUEUE_SERVICE_INTERVAL;
 
-                }
-                else if (msg.cmd[0] == Constants.JRM_CALIBRATION_ITEM_RESOLUTION1)
+                if (msg.delay <= 0)
                 {
-                    if (--tick == 0)
+                    // Set message start time
+                    DateTimeOffset now = DateTimeOffset.UtcNow;
+                    msg.start_time = now.ToUnixTimeMilliseconds();
+                    // Send Message, if this is a G-Code
+                    if ((msg.cmd[0] == 'G') || (msg.cmd[0] == 'M'))
                     {
-                        if ((machine.CalRectangle.Width < Constants.CALIBRATION_TARGET_WIDTH_DEFAULT_PIX + 80) && (machine.CalRectangle.Width > Constants.CALIBRATION_TARGET_WIDTH_DEFAULT_PIX - 80))
+                        if (msg.cmd[3] == '*')
                         {
-                            if ((machine.CalRectangle.Height < Constants.CALIBRATION_TARGET_HEIGHT_DEFAULT_PIX + 80) && (machine.CalRectangle.Height > Constants.CALIBRATION_TARGET_HEIGHT_DEFAULT_PIX - 80))
-                            {
-                                
-                                Console.WriteLine("Final Target (w,h): " + machine.CalRectangle.Width + "px " + machine.CalRectangle.Height + "px");
-                                Console.WriteLine("Item Resolution: X: " + machine.GetImageScaleAtDistanceX(machine.CurrentZ) + "mm/px Y:" + machine.GetImageScaleAtDistanceY(machine.CurrentZ) + "mm/px");
-                                machine.CalibrationStatusString = "Item Resolution: Successful";
-                                machine.SetCalRectangle(machine.CalRectangle);
-                                machine.CameraCalibrationState = MachineModel.CalibrationState.Complete;
-                                machine.Messages.RemoveAt(0);
-                                /* Now head to a corner, change the z and compensate for focus */
-                                double left_mm = machine.CurrentX - (((Constants.CAMERA_FRAME_WIDTH/2) - machine.CalRectangle.Left) * machine.GetImageScaleAtDistanceX(25));
-                                double right_mm = machine.CurrentX + ((machine.CalRectangle.Right - (Constants.CAMERA_FRAME_WIDTH / 2)) * machine.GetImageScaleAtDistanceX(25));
-                                double bottom_mm = machine.CurrentY - ((machine.CalRectangle.Bottom - (Constants.CAMERA_FRAME_HEIGHT / 2)) * machine.GetImageScaleAtDistanceY(25));
-                                double top_mm = machine.CurrentY + (((Constants.CAMERA_FRAME_HEIGHT/2) - machine.CalRectangle.Top)  * machine.GetImageScaleAtDistanceY(25));
-                                machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(25.0));
-                                machine.Messages.Add(GCommand.G_GetPosition());
-                                machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(left_mm, top_mm));
-                                machine.Messages.Add(GCommand.G_GetPosition()); 
-                                machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(right_mm,top_mm));
-                                machine.Messages.Add(GCommand.G_GetPosition());
-                                machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(right_mm, bottom_mm));
-                                machine.Messages.Add(GCommand.G_GetPosition());
-                                machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(left_mm, bottom_mm));
-                                machine.Messages.Add(GCommand.G_GetPosition());
+                            //Convert circle target to location
+                            Point2d offset = new Point2d(machine.Cal.PcbMMToPixX * machine.downCamera.GetBestCircle().Center.X, machine.Cal.PcbMMToPixY * machine.downCamera.GetBestCircle().Center.Y);
+                            msg.target.x = (-1 * (offset.X/2)) + machine.CurrentX; msg.target.y = (offset.Y/2) + machine.CurrentY;
+                            msg.target.z = machine.CurrentZ; msg.target.a = machine.CurrentA;
+                            msg.target.b = machine.CurrentB;
+                            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} Z{2} A{3}\n", msg.target.x, msg.target.y, msg.target.z, msg.target.a));
+                            Console.WriteLine("Going to item at: " +msg.target.x + " " + msg.target.y);
+                        }
 
-                            }
-                            else
-                            {
-                                machine.CameraCalibrationState = MachineModel.CalibrationState.Failed;
-                                machine.CalibrationStatusString = "Item Resolution: Bad Height (Using default)";
-                                machine.Messages.Clear();
-                            }
-                        }
-                        else
-                        {
-                            machine.CameraCalibrationState = MachineModel.CalibrationState.Failed;
-                            machine.CalibrationStatusString = "Item Resolution: Bad Width (Using default)";
-                            machine.Messages.Clear();
-                        }
+                        int len = Array.LastIndexOf(msg.cmd, (byte)'\n');
+                        serialPort.Write(msg.cmd, 0, len + 1);
                     }
-                    else
+                    else if (msg.cmd[0] == Constants.C_ITEM_LOCATION)
                     {
-                        Console.WriteLine("Target Rect (w,h) [" + tick + "]: " + machine.CalRectangle.Width + "px " + machine.CalRectangle.Height + "px");
+                        machine.downCamera.RequestCircleLocation(msg.roi);
                     }
-                }
-                else if (msg.cmd[0] == Constants.JRM_CALIBRATION_CHECK_PICK)
-                {
-                    Console.WriteLine("Rotation Start");
-                    machine.CalPick.Initialize();
-                    //machine.Messages.Add(Command.S3G_SetAbsoluteAngle(50));
-                    //machine.Messages.Add(Command.S3G_GetPosition());
-                    //machine.Messages.Add(Command.S3G_SetAbsoluteAngle(100));
-                    //machine.Messages.Add(Command.S3G_GetPosition());
-                    //machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0));
-                    //machine.Messages.Add(Command.S3G_GetPosition());
-                    machine.Messages.Add(GCommand.JRM_CalibrationCalculatePick1());
-                    machine.Messages.RemoveAt(0);
-                }
-                else if (msg.cmd[0] == Constants.JRM_CALIBRATION_CHECK_PICK1)
-                {
-                    Tuple<double, double> temp;
-                    double radius_h, radius_x, offset_h, offset_x;
-                    Console.WriteLine("Calculate Correction xmin: " + machine.CalPick.x_min + "@" + machine.CalPick.x_min_angle + " max: " + machine.CalPick.x_max + "@" + machine.CalPick.x_max_angle + " hmin: " + machine.CalPick.h_min + "@" + machine.CalPick.h_min_angle + " hmax: " + machine.CalPick.h_max + "@" + machine.CalPick.h_max_angle);
-                    /* Show excentricity,from center of pick */
-                    radius_x = (machine.CalPick.x_max - machine.CalPick.x_min) / 2;
-                    radius_h = (machine.CalPick.h_max - machine.CalPick.h_min) / 2;
-                    Console.WriteLine("Max X Variance: " + radius_x + "px " + (radius_x * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z)) + "mm ");
-                    Console.WriteLine("Max H Variance: " + radius_x + "px " + (radius_x * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z)) + "mm ");
-                    /* Show offset from center of image to center of pick uncertaintly circle */
-                    offset_x = (radius_x + machine.CalPick.x_min);
-                    offset_h = (radius_h + machine.CalPick.h_min);
-                    Console.WriteLine("X Offset: " + offset_x + "px " + (offset_x * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z)) + "mm ");
-                    Console.WriteLine("H Offset: " + offset_h + "px " + (offset_h * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z)) + "mm ");
-                    Console.WriteLine("-- Angle -x-- Offset --y-- @ Z Park Pickup");
-                    for (int i = 0; i < 360; i += 10)
+                    // Calculate target position in relative mode
+                    if (machine.isAbsoluteMode == false)
                     {
-                        temp = machine.SelectedPickTool.GetPickOffsetAtRotation(i);
-                        Console.WriteLine("   " + i + "    " + (temp.Item1 * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z)) + " mm   " + (temp.Item2 * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z)) + " mm");
+                        msg.target.x += machine.CurrentX; msg.target.y += machine.CurrentY; msg.target.z += machine.CurrentZ;
+                        msg.target.a += machine.CurrentA; msg.target.b += machine.CurrentB;
                     }
-                    machine.CalibrationStatusString = "Pick Tool Cal: Successful";
-                    machine.SetCalPickTool(machine.CalPick);
-                    machine.PickCalibrationState = MachineModel.CalibrationState.Complete;
-                    machine.Messages.RemoveAt(0);
-                }
-                else
-                {
-                    if(msg.part != null)
-                    {
-                        machine.selectedPickListPart = msg.part;
-                        Console.WriteLine("using part: " + msg.part.Description);
-                    }
-                    if (msg.state == MachineMessage.MessageState.ReadyToSend)
-                    {
-                        machine.SelectedMachineMessage = machine.Messages.ElementAt(machine.Messages.IndexOf(msg));
-                        if (machine.isMachinePaused == false || machine.advanceNextMessage == true)
-                        {
-                            msg.delay -= Constants.QUEUE_SERVICE_INTERVAL;
-                            if (msg.delay <= 0)
-                            {
-                                msg.state = MachineMessage.MessageState.PendingDelay;
-                            }
-                        }
-                    }
-                    if(msg.state == MachineMessage.MessageState.PendingDelay) {
-                        if (machine.isMachinePaused == false || machine.advanceNextMessage == true)
-                            msg.delay -= Constants.QUEUE_SERVICE_INTERVAL;
-                        
-                        if (msg.delay <= 0)
-                        {
-                            // Set message start time
-                            DateTimeOffset now = DateTimeOffset.UtcNow;
-                            msg.start_time = now.ToUnixTimeMilliseconds();
-                            // Send Message
-                            int len = Array.LastIndexOf(msg.cmd, (byte)'\n');
-                            serialPort.Write(msg.cmd, 0, len + 1);
-                            // Calculate target position in relative mode
-                            if (machine.isAbsoluteMode == false)
-                            {
-                                msg.target.x += machine.CurrentX; msg.target.y += machine.CurrentY; msg.target.z += machine.CurrentZ;
-                                msg.target.a += machine.CurrentA; msg.target.b += machine.CurrentB;
-                            }
-                            // Reset the Next button
-                            machine.advanceNextMessage = false;
-                            msg.state = MachineMessage.MessageState.PendingOK;
-                            msg.delay = 0;
-                            tx_msgCount++;
-                        }
-                    }
+                    // Reset the Next button
+                    machine.advanceNextMessage = false;
+                    msg.state = MachineMessage.MessageState.PendingOK;
+                    msg.delay = 0;
+                    tx_msgCount++;
                 }
             }
             return true;
@@ -478,9 +407,9 @@ namespace Picky
          * Return true if no error
          *********************************************************************/
         {
-          
+
             bool isGood = false;
-            
+
             // Define a regular expression pattern for extracting doubles
             string pattern = @"(\d+\.\d+)";
             Regex regex = new Regex(pattern);
@@ -496,7 +425,7 @@ namespace Picky
             if (machine.Messages.Count == 0)
                 return true;
             MachineMessage msg = machine.Messages.ElementAt(rx_msgCount);
-            
+
             // Make sure machine has stopped
             if ((machine.CurrentX == lastPos.x) && (machine.CurrentY == lastPos.y) && (machine.CurrentZ == lastPos.z) && (machine.CurrentA == lastPos.a) && (machine.CurrentB == lastPos.b))
             {
@@ -528,7 +457,7 @@ namespace Picky
                     rx_msgCount++;
                 }
             }
-                     
+
             return true;
         }
     }
