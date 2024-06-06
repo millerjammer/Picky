@@ -5,45 +5,54 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Picky"
              mc:Ignorable="d" 
-             d:DesignHeight="75" d:DesignWidth="300">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="30"/>
-            <RowDefinition Height="auto"/>
-        </Grid.RowDefinitions>
-        <Grid Grid.Row="0">
-            <Label Content="PCB Origin: " Margin="2 2 0 0"/>
-        </Grid>
-        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" CornerRadius="4">
-            <Grid Margin="15 10 0 10" HorizontalAlignment="Stretch">
-                <!-- PCB Origin -->
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                </Grid.RowDefinitions>
+             d:DesignHeight="100" d:DesignWidth="300">
+    <Expander IsExpanded="True" Margin="10 5 10 5">
+        <Expander.Header>
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal"  Margin="2">
-                    <Label Content="X:" VerticalAlignment="Center" Padding="3 0 5 0"/>
-                    <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.Board.PcbOriginX, StringFormat={}{0:0.00}}"/>
-                </StackPanel>
-                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 2 2 2">
-                    <Label Content="Y:" VerticalAlignment="Center" Padding="3 0 5 0"/>
-                    <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.Board.PcbOriginY, StringFormat={}{0:0.00}}"/>
-                </StackPanel>
-                <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 2 2 2">
-                    <Label Content="Thickness:" VerticalAlignment="Center" Padding="3 0 5 0"/>
-                    <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.Board.PcbThickness, StringFormat={}{0:0.00}}"/>
-                </StackPanel>
-                <Grid.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Header="Go to PCB Origin" Command="{Binding GoToPCBOriginCommand}" />
-                        <MenuItem Header="Set As PCB Origin" Command="{Binding SetAsPCBOriginCommand}" />
-                    </ContextMenu>
-                </Grid.ContextMenu>
+                <TextBlock Grid.Column="0" Text="Board" Margin="0,0,0,0" HorizontalAlignment="Left" TextAlignment="Left" />
             </Grid>
-        </Border>
-    </Grid>
+        </Expander.Header>
+        <Expander.Content>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="1" CornerRadius="4">
+                    <Grid Margin="5 5 5 5" HorizontalAlignment="Stretch">
+                        <!-- PCB Origin -->
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal"  Margin="2">
+                            <Label Content="X:" VerticalAlignment="Center" Padding="3 0 5 0"/>
+                            <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding PcbOriginX, StringFormat={}{0:0.00}}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 2 2 2">
+                            <Label Content="Y:" VerticalAlignment="Center" Padding="3 0 5 0"/>
+                            <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding PcbOriginY, StringFormat={}{0:0.00}}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 2 2 2">
+                            <Label Content="Thickness:" VerticalAlignment="Center" Padding="3 0 5 0"/>
+                            <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding PcbThickness, StringFormat={}{0:0.00}}"/>
+                        </StackPanel>
+                        <Grid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Go to PCB Origin" Command="{Binding GoToPCBOriginCommand}" />
+                                <MenuItem Header="Set As PCB Origin" Command="{Binding SetAsPCBOriginCommand}" />
+                            </ContextMenu>
+                        </Grid.ContextMenu>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Expander.Content>
+    </Expander>
 </UserControl>

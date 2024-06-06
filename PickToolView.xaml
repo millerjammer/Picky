@@ -6,9 +6,9 @@
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:local="clr-namespace:Picky"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="400" Height="300" Width="400">
+             d:DesignHeight="150" d:DesignWidth="400">
 
-    <Grid Margin="10 10 10 10" VerticalAlignment="Top">
+    <Grid Margin="10 5 10 5" VerticalAlignment="Top">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
@@ -48,16 +48,16 @@
                                 </Grid>
                                 <ui:Button Grid.Column="1" Content="Save" Command="{Binding SaveToolsCommand}" Icon="Save28"  Height="30" Margin="0,0,0,0" HorizontalAlignment="Right"/>
                                 <ui:DataGrid  x:Name="PickListGrid" Grid.Row="1" HorizontalAlignment="Stretch" SelectedItem="{Binding selectedPickTool}" 
-                      ItemsSource="{Binding PickToolList}" AutoGenerateColumns="False" CanUserSortColumns="False"
+                      ItemsSource="{Binding PickToolList}" AutoGenerateColumns="False" CanUserSortColumns="False" Width="350"
                       HorizontalContentAlignment="Stretch" SelectionChanged="PickToolSelectionChanged" CanUserAddRows="False"
                       VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="False" >
                                     <!-- Placement 2nd Row - Data Grid -->
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Binding="{Binding Description}" Header="Description" Width="*"/>
-                                        <DataGridTextColumn Binding="{Binding ToolStorageX}" Header="X [mm]" Width="55"/>
-                                        <DataGridTextColumn Binding="{Binding ToolStorageY}" Header="Y [mm]" Width="55"/>
-                                        <DataGridTextColumn Binding="{Binding ToolStorageZ}" Header="Z [mm]" Width="55"/>
-                                        <DataGridTextColumn Binding="{Binding Length}" Header="L [mm]" Width="55"/>
+                                        <DataGridTextColumn Binding="{Binding ToolStorageX}" Header="X [mm]" Width="50"/>
+                                        <DataGridTextColumn Binding="{Binding ToolStorageY}" Header="Y [mm]" Width="50"/>
+                                        <DataGridTextColumn Binding="{Binding ToolStorageZ}" Header="Z [mm]" Width="50"/>
+                                        <DataGridTextColumn Binding="{Binding Length}" Header="L [mm]" Width="50"/>
                                     </DataGrid.Columns>
                                     <ui:DataGrid.RowStyle>
                                         <Style TargetType="DataGridRow">

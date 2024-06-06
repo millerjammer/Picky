@@ -156,29 +156,7 @@ namespace Picky
             set { isCameraCalibrated = value; OnPropertyChanged(nameof(IsCameraCalibrated)); }
         }
 
-        /* Calibration */
-        public enum CalibrationState { NotCalibrated, InProcess, Complete, Failed }
-        private CalibrationState cameraCalibrationState;
-        public CalibrationState CameraCalibrationState
-        {
-            get { return cameraCalibrationState; }
-            set { cameraCalibrationState = value; OnPropertyChanged(nameof(CameraCalibrationState)); }
-        }
-
-        private CalibrationState positionCalibrationState;
-        public CalibrationState PositionCalibrationState
-        {
-            get { return positionCalibrationState; }
-            set { positionCalibrationState = value; OnPropertyChanged(nameof(PositionCalibrationState)); }
-        }
-
-        private CalibrationState pickCalibrationState;
-        public CalibrationState PickCalibrationState
-        {
-            get { return pickCalibrationState; }
-            set { pickCalibrationState = value; OnPropertyChanged(nameof(PickCalibrationState)); }
-        }
-
+        
         public event NotifyCollectionChangedEventHandler CollectionChanged;
         private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
@@ -198,8 +176,10 @@ namespace Picky
             Cassettes = new ObservableCollection<Cassette>();
             PickList = new ObservableCollection<Part>();
 
-            downCamera = new CameraModel(0);
-            upCamera = new CameraModel(2);
+            Board = new BoardModel();
+            
+            downCamera = new CameraModel(0, this);
+            upCamera = new CameraModel(2, this);
 
 
             String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
@@ -240,6 +220,7 @@ namespace Picky
                 return lazy.Value;
             }
         }
+           
 
         public void SaveSettings()
         {

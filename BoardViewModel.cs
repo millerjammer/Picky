@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,13 +8,38 @@ using System.Windows.Input;
 
 namespace Picky
 {
-    public class BoardViewModel
+    public class BoardViewModel : INotifyPropertyChanged
     {
         MachineModel machine = MachineModel.Instance;
 
         public BoardViewModel()
         {
 
+        }
+                
+        public double PcbOriginX
+        {
+            get { return machine.Board.PcbOriginX; }
+            set { machine.Board.PcbOriginX = value; OnPropertyChanged(nameof(PcbOriginX)); }
+        }
+                
+        public double PcbOriginY
+        {
+            get { return machine.Board.PcbOriginY; }
+            set { machine.Board.PcbOriginY = value; OnPropertyChanged(nameof(PcbOriginY)); }
+        }
+               
+        public double PcbThickness
+        {
+            get { return machine.Board.PcbThickness; }
+            set { machine.Board.PcbThickness = value; OnPropertyChanged(nameof(PcbThickness)); }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public ICommand GoToPCBOriginCommand { get { return new RelayCommand(GoToPCBOrigin); } }
@@ -27,8 +53,8 @@ namespace Picky
         private void SetAsPCBOrigin()
         {
             Console.WriteLine("Set As PCB Origin");
-            machine.Board.PcbOriginX = machine.CurrentX;
-            machine.Board.PcbOriginY = machine.CurrentY;
+            PcbOriginX = machine.CurrentX;
+            PcbOriginY = machine.CurrentY;
         }
     }
 }

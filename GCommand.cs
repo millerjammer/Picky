@@ -30,6 +30,22 @@ namespace Picky
             return msg;
         }
 
+        public static MachineMessage G_AlignToCircle(CircleSegment estimate, Circle3d result, int max_iterations)
+        {
+
+            MachineMessage msg = new MachineMessage();
+            msg.iterationCount = max_iterations;
+            msg.cmd = Encoding.ASCII.GetBytes("J100\n");
+            msg.roi = new OpenCvSharp.Rect(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
+            msg.target.x = estimate.Center.X; msg.target.y = estimate.Center.Y;
+            msg.circleToFind = estimate;
+
+            msg.bestLocation = result;
+
+                                                    
+            return msg;
+        }
+
         /***********************************************************
          * 
          *  CONFIGURATION AND SETTINGS COMMANDS
@@ -89,7 +105,7 @@ namespace Picky
             MachineMessage msg = new MachineMessage();
             msg.target.x = x; msg.target.y = y;
             msg.target.z = z; msg.target.a = a;
-            msg.target.b = b; msg.target.axis = 0x00;
+            msg.target.b = b; 
 
             msg.cmd = Encoding.UTF8.GetBytes(string.Format("G92 X{0} Y{1} Z{2}\n", x, y, z));
             return(msg);
@@ -242,8 +258,6 @@ namespace Picky
         {
 
             MachineMessage msg = new MachineMessage();
-            msg.target.axis = 0x00;
-
             msg.cmd = Encoding.UTF8.GetBytes(string.Format("M114_DETAIL D\n"));
             msg.delay = 1000;
             msg.timeout = 5000;

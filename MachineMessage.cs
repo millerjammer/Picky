@@ -1,5 +1,7 @@
-﻿using OpenCvSharp;
+﻿using Microsoft.VisualStudio.CommandBars;
+using OpenCvSharp;
 using System;
+using System.CodeDom;
 using System.ComponentModel;
 using System.Linq;
 
@@ -7,12 +9,13 @@ namespace Picky
 {
     public class MachineMessage : INotifyPropertyChanged
     {
-        public enum MessageState { ReadyToSend, PendingDelay, PendingOK, PendingPosition, Complete, Timeout, Failed }
+        public enum MessageState { ReadyToSend, PendingDelay, PendingOK, PendingPosition, PendingImagery, Complete, Timeout, Failed }
         /*  
          *  ReadyToSend - The message has been created, is in the queue but has not been transmitted
          *  PendingDelay - The message is waitig for it's delay to expire
          *  PendingOK   - The message has been sent but no 'ok' has been received, 
          *  PendingPosition - The message has been sent 'ok' has been received, but waiting for position to update (optional)
+         *  PendingImagery - For camera messages, after request has been made, message will park here (optional)
          *  Complete - The message has been sent, 'ok' has been recieved and processing is complete, ok to remove
          *  Timeout - A timeout occurred waiting for 'ok'.  Maybe resend
          *  Failed - An 'err' was recieved.  Maybe restart
@@ -24,16 +27,33 @@ namespace Picky
             public double z;
             public double a;
             public double b;
-            public byte axis;
         }
         public int index { get; set; }
         public Pos target;
         public Rect roi;
         public int calType;
+        public int iterationCount;
+        public CircleSegment circleToFind;
 
-                
+        private Circle3d _bestLocation;
+        public Circle3d bestLocation
+        {
+            get { return _bestLocation; }
+            set { _bestLocation = value; OnPropertyChanged(nameof(bestLocation)); }
+        }
+
+        public void SetBestLocation(CircleSegment cir)
+        {
+            bestLocation.Radius = cir.Radius;
+            bestLocation.X = cir.Center.X;
+            bestLocation.Y = cir.Center.Y;
+            
+        }
+
+                      
         private byte[] _cmd;
-        public byte[] cmd {
+        public byte[] cmd 
+        {
             get { return _cmd; }
             set { _cmd = value; cmdString = System.Text.Encoding.ASCII.GetString(_cmd); cmdString = cmdString.Substring(0, cmdString.Length - 1); }
         }
@@ -73,7 +93,7 @@ namespace Picky
             delay = 1000;
             timeout = 4000;
             calType = 0x00;
-
+            iterationCount = 1;
             MachineModel mm = MachineModel.Instance;
             index = mm.Messages.Count();
         }

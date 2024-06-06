@@ -1,13 +1,69 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Shell.Interop;
+using OpenCvSharp;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Markup;
 
 namespace Picky
 {
+    public class Circle3d : INotifyPropertyChanged
+    {
+        private double radius;
+        public double Radius
+        {
+             get { return radius; }
+             set { radius = value; OnPropertyChanged(nameof(Radius)); }
+        }
+        private double x;
+        public double X
+        {
+            get { return x; }
+            set { x = value; OnPropertyChanged(nameof(X)); }
+        }
+        private double y;
+        public double Y
+        {
+            get { return y; }
+            set { y = value; OnPropertyChanged(nameof(Y)); }
+        }
+        private bool isValid;
+        public bool IsValid
+        {
+            get { return isValid; }
+            set { isValid = value; OnPropertyChanged(nameof(IsValid)); }
+        }
+
+
+        public Circle3d() {
+            Radius = 0;
+            X = Y = 0;
+        }
+        public Circle3d(double center_x, double center_y, double radius) 
+        {
+            Radius = radius;
+            X = center_x; Y = center_y;
+            IsValid = false;
+     
+        }
+        
+        public override string  ToString()
+        {
+            return string.Format("Circle3d: Point2d.X: {0} X: {1} Y: {2} IsValid: {3}", Radius, X, Y, IsValid);
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
     internal class Constants
     {
         
@@ -28,7 +84,8 @@ namespace Picky
         /* In mm */
         
         public static int TOOL_COUNT = 4;
-        
+        public static double TOOL_CENTER_RADIUS_MILS = 80;
+
         public static int    DEFAULT_PART_DETECTION_THRESHOLD = 160;
         public static double CASSETTE_ORIGIN_X = -261.56;
         public static double CASSETTE_ORIGIN_Y = -115.24;
@@ -44,6 +101,8 @@ namespace Picky
 
         /* Camera Messages */
         public static byte C_ITEM_LOCATION = 0x23;
+        public static byte C_ALIGN_TO_CIRCLE = 0x21;
+        public static byte C_ALIGN_TO_CIRCLE_IMAGE = 0x24;
 
         /* Calibration sub-type Messages */
         public static byte CAL_TYPE_RESOLUTION_AT_PCB = 0x10;

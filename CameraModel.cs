@@ -20,8 +20,8 @@ namespace Picky
 {
     public class CameraModel : INotifyPropertyChanged
     {
+        private MachineModel machine;
         private Mat RawImage { get; set; }
-
 
         /* Mats for general availability */
         public Mat ColorImage { get; set; }
@@ -43,6 +43,7 @@ namespace Picky
 
         private bool searchCircleRequest = false;
         private OpenCvSharp.Rect searchCircleROI;
+        private CircleSegment searchCircleToFind;
         private CircleSegment bestCircle;
 
         public bool searchQRRequest = false;
@@ -78,8 +79,9 @@ namespace Picky
 
         private readonly BackgroundWorker bkgWorker;
 
-        public CameraModel(int cameraIndex)
+        public CameraModel(int cameraIndex, MachineModel mm)
         {
+            machine = mm;
 
             RawImage = new Mat();
             ColorImage = new Mat();
@@ -128,6 +130,7 @@ namespace Picky
 
         public CircleSegment GetBestCircle()
         {
+            Console.WriteLine("Best Circle: " + bestCircle.ToString());
             return bestCircle;
         }
 
@@ -136,10 +139,12 @@ namespace Picky
             return searchCircleRequest;
         }
 
-        public void RequestCircleLocation(OpenCvSharp.Rect roi)
+        public void RequestCircleLocation(OpenCvSharp.Rect roi, CircleSegment sc)
         {
+            //sc is in MM
             searchCircleRequest = true;
             searchCircleROI = roi;
+            searchCircleToFind = sc; 
         }
 
         /** Public methods for QR Code **/
@@ -207,18 +212,30 @@ namespace Picky
              * RequestCircleLocation(OpenCvSharp.Rect roi) to start search of ROI
              * 
              *****************************************************************************/
+
+            //Force GC
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
             CircleROI = new Mat(DilatedImage, searchCircleROI);
+
+            //Convert the estimated circle (in MM?) to search criteria (in Pix) based on z?
+            int minR = (int)((searchCircleToFind.Radius) / machine.Cal.PcbMMToPixX);
+            int maxR = (int)((searchCircleToFind.Radius * 4) / machine.Cal.PcbMMToPixX);
+
+            //Set Min distance between matches
+            int minDist = (int)((searchCircleToFind.Radius / machine.Cal.PcbMMToPixX) * 10);
 
             // Find circles using HoughCircles
             CircleSegment[] circles = Cv2.HoughCircles(
                 CircleROI,
                 HoughModes.Gradient,
                 dp: 1.5,
-                minDist: searchCircleROI.Height / 2,   //Was 800, formally set to 2xmin raduis
+                minDist: minDist,   //Was 800, formally set to 2xmin raduis
                 param1: 50,     //smaller means more false circles
                 param2: 40,    //smaller means more false circles
-                minRadius: searchCircleROI.Height / 2, // Was 600,
-                maxRadius: searchCircleROI.Height);  // Was 1200
+                minRadius: minR, // Was 600,
+                maxRadius: maxR);  // Was 1200
 
             if (circles.Length == 0)
             {
@@ -238,9 +255,7 @@ namespace Picky
             Point2f CircleToFind = new Point2f(closestCircle.Center.X - imageCenter.X, closestCircle.Center.Y - imageCenter.Y);
             bestCircle = closestCircle;
             bestCircle.Center = CircleToFind;
-            Console.WriteLine("Best Circle (offset from ROI center): " + bestCircle.ToString());
-            Console.WriteLine("ROI: " + searchCircleROI.ToString());
-
+           
             if (showResult)
                 showCircleResult(CircleROI, circles);
 
@@ -258,7 +273,6 @@ namespace Picky
                 Cv2.Circle(ColorCircleROI, (int)circle.Center.X, (int)circle.Center.Y, (int)circle.Radius, Scalar.Green, 2);
                 // Draw the circle center
                 Cv2.Circle(ColorCircleROI, (int)circle.Center.X, (int)circle.Center.Y, 3, Scalar.Red, 3);
-                Console.WriteLine("Circle: " + circle.ToString());
             }
             Cv2.ImShow("Detected Circles", ColorCircleROI);
             Cv2.WaitKey(1);

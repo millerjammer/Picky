@@ -1,4 +1,5 @@
 ﻿
+using OpenCvSharp;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -79,9 +80,15 @@ namespace Picky
         public ICommand RetrieveToolCommand { get { return new RelayCommand(RetrieveTool); } }
         private void RetrieveTool()
         {
+
             machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
-            //Move to Camera Position
-            machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
+            //Move to Camera Position (either optically or by position)
+            //machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
+            CircleSegment tool = new CircleSegment();
+            tool.Center = new Point2f((float)Machine.SelectedPickTool.ToolStorageX, (float)Machine.SelectedPickTool.ToolStorageY);
+            tool.Radius = ((float)(Constants.TOOL_CENTER_RADIUS_MILS * Constants.MIL_TO_MM));
+            Circle3d dest = new Circle3d();
+            machine.Messages.Add(GCommand.G_AlignToCircle(tool, dest, 6));
             //Offset to Pick
             var offset = machine.Cal.GetPickHeadOffsetToCamera(Machine.SelectedPickTool.ToolStorageZ);
             double x = Machine.SelectedPickTool.ToolStorageX + offset.x_offset;

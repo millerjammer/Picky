@@ -13,8 +13,8 @@ namespace Picky
     internal class CalibrationViewModel : INotifyPropertyChanged
     {
         private MachineModel machine;
-        Point2d itemLocation = new Point2d();
-
+        public CalTargetModel target { get; set; } 
+        
         /* Listen for changes on the machine properties and propagate to UI */
         public MachineModel Machine
         {
@@ -22,37 +22,37 @@ namespace Picky
         }
 
         /* This is derived from above */
-        private double DownCameraToPickHeadX
+        public double DownCameraToPickHeadX
         {
             get { return machine.Cal.DownCameraToPickHeadX; }
             set { machine.Cal.DownCameraToPickHeadX = value; OnPropertyChanged(nameof(DownCameraToPickHeadX)); }
         }
 
-        private double DownCameraToPickHeadY
+        public double DownCameraToPickHeadY
         {
             get { return machine.Cal.DownCameraToPickHeadY; }
             set { machine.Cal.DownCameraToPickHeadY = value; OnPropertyChanged(nameof(DownCameraToPickHeadY)); }
         }
 
-        private double DownCameraAngleX
+        public double DownCameraAngleX
         {
             get { return machine.Cal.DownCameraAngleX; }
             set { machine.Cal.DownCameraAngleX = value; OnPropertyChanged(nameof(DownCameraAngleX)); }
         }
 
-        private double DownCameraAngleY
+        public double DownCameraAngleY
         {
             get { return machine.Cal.DownCameraAngleY; }
             set { machine.Cal.DownCameraAngleY = value; OnPropertyChanged(nameof(DownCameraAngleY)); }
         }
 
-        private double StepsPerUnitX
+        public double StepsPerUnitX
         {
             get { return machine.Cal.StepsPerUnitX; }
             set { machine.Cal.StepsPerUnitX = value; OnPropertyChanged(nameof(StepsPerUnitX)); }
         }
 
-        private double StepsPerUnitY
+        public double StepsPerUnitY
         {
             get { return machine.Cal.StepsPerUnitY; }
             set { machine.Cal.StepsPerUnitY = value; OnPropertyChanged(nameof(StepsPerUnitY)); }
@@ -66,41 +66,31 @@ namespace Picky
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public CalibrationViewModel(MachineModel machineCal)
+        public CalibrationViewModel(MachineModel mm)
         {
-            machine = machineCal;
+            machine = mm;
             machine.PropertyChanged += OnMachinePropertyChanged;
-
+            target = new CalTargetModel();
         }
-        
+
+        public ICommand PerformCalibrationCommand { get { return new RelayCommand(PerformCalibration); } }
+        private void PerformCalibration()
+        {
+            target.PerformCalibration(machine);
+        }
+
         public ICommand GoMonument00Command { get { return new RelayCommand(GoMonument00); } }
         private void GoMonument00()
         {
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.Monument00X, machine.Cal.Monument00Y, 0, 0, 0));
-                      
+            machine.Messages.Add(GCommand.G_SetPosition(target.Grid00Location.X, target.Grid00Location.Y, 0, 0, 0));
         }
-        
+
         public ICommand GoMonument11Command { get { return new RelayCommand(GoMonument11); } }
         private void GoMonument11()
         {
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.Monument11X, machine.Cal.Monument11Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(target.Grid11Location.X, target.Grid11Location.Y, 0, 0, 0));
         }
-
-        public ICommand GetMonument00Command { get { return new RelayCommand(GetMonument00); } }
-        private void GetMonument00()
-        {
-            machine.Cal.Monument00X = machine.CurrentX;
-            machine.Cal.Monument00Y = machine.CurrentY;
-          
-        }
-
-        public ICommand GetMonument11Command { get { return new RelayCommand(GetMonument11); } }
-        private void GetMonument11()
-        {
-            machine.Cal.Monument11X = machine.CurrentX;
-            machine.Cal.Monument11Y = machine.CurrentY;
-        }
-
+            
         public ICommand WriteStepPerUnitCommand { get { return new RelayCommand(WriteStepPerUnit); } }
         private void WriteStepPerUnit()
         {
