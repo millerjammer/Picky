@@ -9,7 +9,7 @@ namespace Picky
 {
     public class MachineMessage : INotifyPropertyChanged
     {
-        public enum MessageState { ReadyToSend, PendingDelay, PendingOK, PendingPosition, PendingImagery, Complete, Timeout, Failed }
+        public enum MessageState { ReadyToSend, PendingDelay, PendingOK, PendingPosition, PendingImagery, Complete, Timeout, Aborted, Failed }
         /*  
          *  ReadyToSend - The message has been created, is in the queue but has not been transmitted
          *  PendingDelay - The message is waitig for it's delay to expire
@@ -18,6 +18,7 @@ namespace Picky
          *  PendingImagery - For camera messages, after request has been made, message will park here (optional)
          *  Complete - The message has been sent, 'ok' has been recieved and processing is complete, ok to remove
          *  Timeout - A timeout occurred waiting for 'ok'.  Maybe resend
+         *  Aborted - Request places head out of bounds.  Command not executed, mostly for manual moves
          *  Failed - An 'err' was recieved.  Maybe restart
          */
 

@@ -426,6 +426,7 @@ namespace Picky
                     {
                         msg.target.x += machine.CurrentX; msg.target.y += machine.CurrentY; msg.target.z += machine.CurrentZ;
                         msg.target.a += machine.CurrentA; msg.target.b += machine.CurrentB;
+                        
                     }
                     // Reset the Next button
                     machine.advanceNextMessage = false;
