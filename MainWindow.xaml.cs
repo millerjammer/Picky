@@ -7,6 +7,7 @@ using System.Windows.Media;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Input;
 
 /********************************************************************
  * Notes:
@@ -25,30 +26,46 @@ namespace Picky
     {
                
         private readonly CassetteView cassetteView;
-        private readonly MachineView machineView;
-        private readonly ControlView controlsView;
-        private readonly CameraView cameraView;
         private readonly SerialInterface serialInterface;
+
+        private readonly ControlWindow controlWindow;
+        private readonly PickListView pickListView;
 
 
         public MainWindow()
         {
-            
+
             InitializeComponent();
             serialInterface = new SerialInterface();
-           
-            machineView = new MachineView();
-            mView.Children.Add(machineView);
-            
+
             cassetteView = new CassetteView();
             cView.Children.Add(cassetteView);
 
-            controlsView = new ControlView();
-            ctrlView.Children.Add(controlsView);
+            pickListView = new PickListView();
+            lView.Children.Add(pickListView);
 
-            cameraView = new CameraView();
-            camView.Children.Add(cameraView);
-
+            controlWindow = new ControlWindow();
+            DataContext = this;
         }
+           
+
+        public ICommand OnControlsCommand { get { return new RelayCommand(onControl); } }
+        private void onControl()
+        {
+            controlWindow.Show();
+        }
+
+        public ICommand OnCalibrateCommand { get { return new RelayCommand(onCalibrate); } }
+        private void onCalibrate()
+        {
+            controlWindow.calibrationWindow.Show();
+        }
+               
+        public ICommand OnAssembleCommand { get { return new RelayCommand(onAssemble); } }
+        private void onAssemble()
+        {
+            controlWindow.messageWindow.Show();
+        }
+
     }
 }

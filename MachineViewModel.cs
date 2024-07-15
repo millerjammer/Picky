@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 
 namespace Picky
@@ -34,140 +35,130 @@ namespace Picky
 
         public MachineViewModel()
         {
-            machine.Messages.Add(Command.S3G_Initialize());
-            machine.Messages.Add(Command.S3G_Initialize());
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.relayInterface.SetIlluminatorOn(true);
-            
+                   
         }
 
         public ICommand ButtonXLeftCommand { get { return new RelayCommand(ButtonXLeft); } }
         private void ButtonXLeft()
         {
-            machine.Messages.Add(Command.S3G_SetRelativeXYPosition(-distanceToAdvance, 0));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
+            machine.Messages.Add(GCommand.G_SetPosition( distanceToAdvance, 0, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
         }
 
         public ICommand ButtonXRightCommand { get { return new RelayCommand(ButtonXRight); } }
         private void ButtonXRight()
         {
-            machine.Messages.Add(Command.S3G_SetRelativeXYPosition(distanceToAdvance, 0));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
+            machine.Messages.Add(GCommand.G_SetPosition(-distanceToAdvance, 0, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
         }
 
         public ICommand ButtonYUpCommand { get { return new RelayCommand(ButtonYUp); } }
         private void ButtonYUp()
         {
-            machine.Messages.Add(Command.S3G_SetRelativeXYPosition(0, distanceToAdvance));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
+            machine.Messages.Add(GCommand.G_SetPosition(0, -distanceToAdvance, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
         }
 
         public ICommand ButtonYDownCommand { get { return new RelayCommand(ButtonYDown); } }
         private void ButtonYDown()
         {
-            machine.Messages.Add(Command.S3G_SetRelativeXYPosition(0, -distanceToAdvance));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
+            machine.Messages.Add(GCommand.G_SetPosition(0, distanceToAdvance, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+
         }
 
         public ICommand ButtonXYHomeCommand { get { return new RelayCommand(ButtonXYHome); } }
         private void ButtonXYHome()
         {
-            machine.Messages.Add(Command.S3G_Initialize());
-            machine.Messages.Add(Command.S3G_FindXYMaximums());
-            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetPosition(machine.CurrentX, machine.CurrentY, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_FindMachineHome());
+            
         }
 
-
+        /**  Z-Axis *******************************/
         public ICommand ButtonZUpCommand { get { return new RelayCommand(ButtonZUp); } }
         private void ButtonZUp()
         {
-            machine.Messages.Add(Command.S3G_SetRelativeZPosition(distanceToAdvance));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
+            machine.Messages.Add(GCommand.G_SetPosition(0, 0, -distanceToAdvance, 0, 0));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+
         }
 
-        public ICommand ButtonZHomeCommand { get { return new RelayCommand(ButtonZHome); } }
-        private void ButtonZHome()
-        {
-            machine.Messages.Add(Command.S3G_FindZMinimum());
-            machine.Messages.Add(Command.S3G_GetPosition());
-        }
-
+           
         public ICommand ButtonZDownCommand { get { return new RelayCommand(ButtonZDown); } }
         private void ButtonZDown()
         {
-            machine.Messages.Add(Command.S3G_SetRelativeZPosition(-distanceToAdvance));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
+            machine.Messages.Add(GCommand.G_ProbeZ(+distanceToAdvance));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
         }
 
-        public ICommand ButtonBUpCommand { get { return new RelayCommand(ButtonBUp); } }
-        private void ButtonBUp()
+        /**  R-Axis *******************************/
+        public ICommand ButtonRLeftCommand { get { return new RelayCommand(ButtonRLeft); } }
+        private void ButtonRLeft()
         {
-            machine.Messages.Add(Command.S3G_SetRelativeAngle(distanceToAdvance));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
+            machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, distanceToAdvance, 0));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
         }
 
-        public ICommand ButtonBHomeCommand { get { return new RelayCommand(ButtonBHome); } }
-        private void ButtonBHome()
+        public ICommand ButtonRRightCommand { get { return new RelayCommand(ButtonRRight); } }
+        private void ButtonRRight()
         {
-            machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0.00));
-            machine.Messages.Add(Command.S3G_GetPosition());
-        }
-        public ICommand ButtonBDownCommand { get { return new RelayCommand(ButtonBDown); } }
-        private void ButtonBDown()
-        {
-            machine.Messages.Add(Command.S3G_SetRelativeAngle(-distanceToAdvance));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
+            machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, -distanceToAdvance, 0));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
         }
 
-        public ICommand ButtonAUpCommand { get { return new RelayCommand(ButtonAUp); } }
-        private void ButtonAUp()
+        /**  Toggle Switches *******************************/
+        public ICommand ButtonLightCommand { get { return new RelayCommand(ButtonLight); } }
+        private void ButtonLight()
         {
-            machine.Messages.Add(Command.S3G_SetRelativeAPosition(distanceToAdvance));
-            machine.Messages.Add(Command.S3G_GetPosition());
+           if(machine.IsIlluminatorActive == true)
+                machine.Messages.Add(GCommand.G_EnableIlluminator(false));
+           else
+                machine.Messages.Add(GCommand.G_EnableIlluminator(true));
         }
 
-        public ICommand ButtonAHomeCommand { get { return new RelayCommand(ButtonAHome); } }
-        void ButtonAHome()
+        public ICommand ButtonUpLightCommand { get { return new RelayCommand(ButtonUpLight); } }
+        private void ButtonUpLight()
         {
-
+            if (machine.IsUpIlluminatorActive == true)
+                machine.Messages.Add(GCommand.G_EnableUpIlluminator(false));
+            else
+                machine.Messages.Add(GCommand.G_EnableUpIlluminator(true));
         }
 
-        public ICommand ButtonADownCommand { get { return new RelayCommand(ButtonADown); } }
-        private void ButtonADown()
+        public ICommand ButtonPumpCommand { get { return new RelayCommand(ButtonPump); } }
+        private void ButtonPump()
         {
-            machine.Messages.Add(Command.S3G_SetRelativeAPosition(-distanceToAdvance));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            if (machine.IsPumpActive == true)
+                machine.Messages.Add(GCommand.G_EnablePump(false));
+            else
+                machine.Messages.Add(GCommand.G_EnablePump(true));
         }
 
-        public ICommand EditPickToolCommand { get { return new RelayCommand(EditPickTool); } }
-        private void EditPickTool()
+        public ICommand ButtonValveCommand { get { return new RelayCommand(ButtonValve); } }
+        private void ButtonValve()
         {
-            Console.WriteLine("Edit Pick Tool");
+            if (machine.IsValveActive == true)
+                machine.Messages.Add(GCommand.G_EnableValve(false));
+            else
+                machine.Messages.Add(GCommand.G_EnableValve(true));
         }
 
-        public ICommand GoToPCBOriginCommand { get { return new RelayCommand(GoToPCBOrigin); } }
-        private void GoToPCBOrigin()
+        public ICommand ButtonOpenToolCommand { get { return new RelayCommand(ButtonTool); } }
+        private void ButtonTool()
         {
-            Console.WriteLine("GoTo PCB");
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(machine.PCB_OriginX, machine.PCB_OriginY));
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(machine.PCB_OriginZ));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0));
-            machine.Messages.Add(Command.S3G_GetPosition());
-        }
-        
-        public ICommand SetAsPCBOriginCommand { get { return new RelayCommand(SetAsPCBOrigin); } }
-        private void SetAsPCBOrigin()
-        {
-            Console.WriteLine("SetAs PCB Origin");
-            machine.PCB_OriginX = machine.CurrentX;
-            machine.PCB_OriginY = machine.CurrentY;
-            machine.PCB_OriginZ = machine.CurrentZ;
-            machine.SaveCalibrationSettings();
-
+            if (machine.IsToolStorageOpen == true)
+                machine.Messages.Add(GCommand.G_OpenToolStorage(false));
+            else
+                machine.Messages.Add(GCommand.G_OpenToolStorage(true));
         }
     }
 }

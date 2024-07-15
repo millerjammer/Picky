@@ -1,53 +1,131 @@
-﻿using Microsoft.VisualStudio.OLE.Interop;
-using Newtonsoft.Json;
-using OpenCvSharp;
+﻿using OpenCvSharp;
+using OpenCvSharp.Dnn;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web.UI.WebControls.WebParts;
+
 
 namespace Picky
 {
-    internal class CalibrationModel
+    public class CalibrationModel : INotifyPropertyChanged
     {
 
-        /* Calibration Parameters - Pick Tool */
-        private PickModel pickToolCal;
-        public PickModel PickToolCal
+
+        /* Resolution */
+        public double PcbMMToPixX { get; set; }
+        public double PcbMMToPixY { get; set; }
+        public double PcbZHeight { get; set; }
+
+        public double ToolMMToPixX { get; set; }
+        public double ToolMMToPixY { get; set; }
+        public double ToolZHeight { get; set; }
+
+        public double FeederMMToPixX { get; set; }
+        public double FeederMMToPixY { get; set; }
+        public double FeederZHeight { get; set; }
+
+
+        /* Camera/Pick Physics */
+        public double MachineOriginToDownCameraX { get; set; }
+        public double MachineOriginToDownCameraY { get; set; }
+        public double MachineOriginToDownCameraZ { get; set; }
+
+        public double MachineOriginToPickHeadX1 { get; set; }
+        public double MachineOriginToPickHeadY1 { get; set; }
+        public double MachineOriginToPickHeadZ1 { get; set; }
+
+        public double MachineOriginToPickHeadX2 { get; set; }
+        public double MachineOriginToPickHeadY2 { get; set; }
+        public double MachineOriginToPickHeadZ2 { get; set; }
+
+        /* Steps Per Unit */
+        public double StepsPerUnitX { get; set; }
+        public double StepsPerUnitY { get; set; }
+
+        private double calculatedStepsPerUnitX;
+        public double CalculatedStepsPerUnitX
         {
-            get { return pickToolCal; }
-            set { pickToolCal = value; }
+            get { return calculatedStepsPerUnitX; }
+            set { calculatedStepsPerUnitX = value; OnPropertyChanged(nameof(CalculatedStepsPerUnitX)); }
         }
 
-        /* Calibration Parameters - Scale */
-        private OpenCvSharp.Rect refObject;
-        public OpenCvSharp.Rect RefObject
+        private double calculatedStepsPerUnitY;
+        public double CalculatedStepsPerUnitY
         {
-            get { return refObject; }
-            set { Console.WriteLine("Reference Updated. Old: " + refObject.Width + " " + refObject.Height + " new: " + value.Width + " " + value.Height); refObject = value;  }
+            get { return calculatedStepsPerUnitY; }
+            set { calculatedStepsPerUnitY = value; OnPropertyChanged(nameof(CalculatedStepsPerUnitY)); }
         }
 
-        public double pCB_OriginX { get; set; }
-        public double pCB_OriginY { get; set; }
-        public double pCB_OriginZ { get; set; }
 
-        public CalibrationModel() 
+        /*Calculated */
+        public double DownCameraToItemX { get; set; }
+        public double DownCameraToItemY { get; set; }
+
+        public double DownCameraToPickHeadX { get; set; }
+        public double DownCameraToPickHeadY { get; set; }
+
+        public double DownCameraAngleX { get; set; }
+        public double DownCameraAngleY { get; set; }
+
+
+        public CalibrationModel()
         {
-            pickToolCal = new PickModel();
-            refObject = new OpenCvSharp.Rect(0, 0, Constants.CALIBRATION_TARGET_WIDTH_DEFAULT_PIX, Constants.CALIBRATION_TARGET_HEIGHT_DEFAULT_PIX);
+
         }
 
-        public void SaveCal()
+        /* Calculate Values Based on Settings */
+        public (double x_offset, double y_offset) GetPickHeadOffsetToCamera(double targetZ)
+        /*************************************************************************************
+         * When you've centered the camera and want to pick something you need to call here 
+         * with the approximate z of the target.  This function will return the offset.  After you 
+         * pick the item you need to subtract the offset.  Do not call with the upward z.  This
+         * is a downward z only.
+         * 
+         ****/
         {
-            String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            String FullFileName = path + "\\" + Constants.CALIBRATION_FILE_NAME;
-            File.WriteAllText(FullFileName, JsonConvert.SerializeObject(this, Formatting.Indented));
-            Console.WriteLine("Calibration Data Saved.");
+            DownCameraToPickHeadX = -1 * (MachineOriginToPickHeadX1 - MachineOriginToDownCameraX + (Math.Sin(DownCameraAngleX) * targetZ));
+            DownCameraToPickHeadY = MachineOriginToPickHeadY1 - MachineOriginToDownCameraY + (Math.Sin(DownCameraAngleY) * targetZ);
+
+            return (DownCameraToPickHeadX, DownCameraToPickHeadY);
         }
+
+        public (double x_offset, double y_offset) GetItemOffsetToCamera(Point2f itemPixelLocation, double targetZ)
+        /*************************************************************************************
+         * When you've centered the camera but it's not quite aligned you need to call here 
+         * with the approximate z of the target.  This function will return the offset.   
+         ****/
+        {
+            DownCameraToItemX = -1 * (MachineOriginToPickHeadX1 - MachineOriginToDownCameraX + (Math.Sin(DownCameraAngleX) * targetZ));
+            DownCameraToItemY = MachineOriginToPickHeadY1 - MachineOriginToDownCameraY + (Math.Sin(DownCameraAngleY) * targetZ);
+
+            return (DownCameraToItemX, DownCameraToItemY);
+        }
+
+        private bool calcDownAngles()
+        {
+            /****************************************************************************************
+             * Update calculation angles.  Don't call directly
+             * 
+             *****/
+
+            double dist = MachineOriginToPickHeadZ1 - MachineOriginToPickHeadZ2;
+            if (dist == 0)
+            {
+                Console.WriteLine("Calibration Error: Z axis distances is zero");
+                return false;
+            }
+            DownCameraAngleX = Math.Atan((MachineOriginToPickHeadX1 - MachineOriginToPickHeadX2) / (dist));
+            DownCameraAngleY = Math.Atan((MachineOriginToPickHeadY1 - MachineOriginToPickHeadY2) / (dist));
+            Console.WriteLine("Down Angles Updated. DownCameraAngleX: " + DownCameraAngleX + " Y: " + DownCameraAngleY);
+            return true;
+        }
+
+
+        /* Default Send Notification boilerplate - properties that notify use OnPropertyChanged */
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
     }
 }

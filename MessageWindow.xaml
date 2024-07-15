@@ -1,0 +1,75 @@
+﻿<Window x:Class="Picky.MessageWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        xmlns:local="clr-namespace:Picky"
+        mc:Ignorable="d"
+        d:DesignHeight="300" d:DesignWidth="600" Width="800">
+    <Border CornerRadius="10" Background="#151f2d" Margin="0 0 0 0">
+        <DockPanel>
+            <!-- Buttons on the Top -->
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                <ui:Button Width="85" Height="80" Command="{Binding OnPlayPauseCommand}">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="{Binding playPauseIcon}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding playPauseText}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </ui:Button>
+                <ui:Button Width="85" Height="80" Command="{Binding OnNextCommand}">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE893;" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Step" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </ui:Button>
+                <ui:Button Width="85" Height="80" Command="{Binding OnLastCommand}">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xEB9D;" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Last" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </ui:Button>
+                
+                <ui:Button Width="85" Height="80" Command="{Binding OnClearAllCommand}">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE894;" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Clear All" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </ui:Button>
+            </StackPanel>
+            <Grid DockPanel.Dock="Bottom">
+
+                <ui:DataGrid  x:Name="MessageGrid" Grid.Row="1" HorizontalAlignment="Stretch" SelectedItem="{Binding selectedMachineMessage}" 
+  ItemsSource="{Binding Messages}" AutoGenerateColumns="False" CanUserSortColumns="False"
+  HorizontalContentAlignment="Stretch" SelectionChanged="MachineMessageSelectionChanged" LoadingRow="MachineMessageLoadingRow"
+  VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="True">
+                        <!-- Placement 2nd Row - Data Grid -->
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Binding="{Binding index}" Header="Index" Width="50">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Center" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Binding="{Binding cmdString}" Header="Command" Width="*"/>
+                            <DataGridTextColumn Binding="{Binding state}" Header="State" Width="120"/>
+                            <DataGridTextColumn Binding="{Binding timeout}" Header="Timeoout [ms]" Width="100"/>
+                            <DataGridTextColumn Binding="{Binding delay}" Header="Delay [ms]" Width="80"/>
+                            <DataGridTextColumn Binding="{Binding actual_duration}" Header="Time [ms]" Width="80"/>
+                    </DataGrid.Columns>
+                        <ui:DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="#80B9EE"/>
+                                        <Setter Property="Foreground" Value="Black"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ui:DataGrid.RowStyle>
+                    </ui:DataGrid>
+               </Grid>
+        </DockPanel>
+    </Border>
+</Window>

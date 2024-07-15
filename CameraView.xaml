@@ -3,48 +3,28 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             d:DataContext="{d:DesignInstance Type=local:CameraViewModel}"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:local="clr-namespace:Picky"
              mc:Ignorable="d" 
-             d:DesignHeight="480" d:DesignWidth="800">
-    <Grid>
-        <Expander Width="auto" IsExpanded="True" VerticalAlignment="Top">
-            <Expander.Header>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <!-- Expander header content -->
-                        <ColumnDefinition Width="Auto" />
-                        <!-- Button -->
-                    </Grid.ColumnDefinitions>
-                    <!-- Left column for Expander header content -->
-                    <TextBlock Grid.Column="0" Text="Camera" VerticalAlignment="Center" />
-                    <!-- Right column for the button -->
-                    <ui:Button Grid.Column="1" Icon="FullScreenMaximize24" Command="{Binding FullScreenCommand}" Margin="20 0 10 0" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                </Grid>
-            </Expander.Header>
-            <Expander.Content>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="650" />
-                        <ColumnDefinition Width="150" />
-                    </Grid.ColumnDefinitions>
-                    <Border x:Name="border" Grid.Column="0" ClipToBounds="True">
-                        <Image ClipToBounds="True" x:Name="FrameImage"/>
-                    </Border>
-                    <StackPanel Grid.Column="2">
-                        <ToggleButton x:Name="mftb" Content="Manual Focus" IsChecked="{Binding IsManualFocus}"  Margin="10 0 0 0" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+             d:DesignHeight="500" d:DesignWidth="600" Height="800" Width="1200">
+
+                <DockPanel>
+                    <StackPanel Grid.Column="1" Orientation="Vertical" DockPanel.Dock="Right" Width="150">
+                        <ToggleButton x:Name="mftb" Content="Manual Focus" IsChecked="{Binding IsManualFocus}"  Margin="10 10 10 0" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
                         <Slider IsEnabled="{Binding IsChecked, ElementName=mftb}" Value="{Binding Focus}"  Minimum="0" Maximum="600" HorizontalAlignment="Stretch" Margin="20 10 15 10" />
-                        <Label Content="Detection Threshold" IsEnabled="{Binding IsCassetteFeederSelected, Mode=OneWay}" Margin="20 0 0 0"/>
-                        <Slider Value="{Binding DetectionThreshold, Mode=TwoWay}" IsEnabled="{Binding IsCassetteFeederSelected, Mode=OneWay}" Minimum="-255" Maximum="0" HorizontalAlignment="Stretch" Margin="20 10 15 10" />
-                        <ComboBox Name="ImageType" ItemsSource="{Binding VisualizationView}" DisplayMemberPath="viewName" SelectedItem="{Binding SelectedVisualizationViewItem}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 0 0 0" />
+                        <TextBlock Text="Detection Threshold" IsEnabled="{Binding IsCassetteFeederSelected, Mode=OneWay}" Margin="20 0 0 0"/>
+                        <Slider Value="{Binding DetectionThreshold, Mode=TwoWay}" IsEnabled="{Binding IsCassetteFeederSelected, Mode=OneWay}" Minimum="-255" Maximum="0" HorizontalAlignment="Stretch" Margin="20 10 15 10"/>
+                        <ComboBox Name="ImageType" ItemsSource="{Binding VisualizationView}" DisplayMemberPath="viewName" SelectedItem="{Binding SelectedVisualizationViewItem}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 0 15 0" />
                         <StackPanel Orientation="Horizontal" Margin="20 15 0 0">
-                            <Label Content="Part In View"/>
-                            <Ellipse Fill="{Binding PartInViewIconColor}" Height="15" Width="15" Margin="35 0 0 5" StrokeThickness="0" Stroke="Black"/>
+                            <TextBlock Text="Part In View"/>
+                            <Ellipse Fill="{Binding PartInViewIconColor}" Height="15" Width="15" Margin="3 0 0 5" StrokeThickness="0" Stroke="Black"/>
                         </StackPanel>
                     </StackPanel>
-                </Grid>
-            </Expander.Content>
-        </Expander>
-    </Grid>
+                    <Border x:Name="border" Grid.Column="0" ClipToBounds="True" DockPanel.Dock="Left" HorizontalAlignment="Left">
+                        <Image ClipToBounds="True" x:Name="FrameImage" Margin="5 5 5 5"/>
+                    </Border>
+                </DockPanel>
+            
+    
 </UserControl>

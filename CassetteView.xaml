@@ -7,7 +7,7 @@
              xmlns:local="clr-namespace:Picky"
              d:DataContext="{d:DesignInstance Type=local:CassetteViewModel}"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="600">
 
 
     <Expander IsExpanded="True" Padding="10" >
@@ -17,64 +17,16 @@
                     <ColumnDefinition Width="auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Component Placement" Margin="0,0,0,0" HorizontalAlignment="Left" TextAlignment="Left" />
+                <TextBlock Grid.Column="0" Text="Cassette Configuration" Margin="0,0,0,0" HorizontalAlignment="Left" TextAlignment="Left" />
             </Grid>
         </Expander.Header>
         <Expander.Content>
-            <Grid Margin="0 0 0 0">
+            <Grid>
                 <!-- Placement and Cassettte 2 Cols -->
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Grid Grid.Column="0" Margin="5 -10 5 5" >
-                    <!-- Placement 2 Rows -->
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="45" />
-                        <RowDefinition Height="300" />
-                    </Grid.RowDefinitions>
-                    <Grid Grid.Row="0" Margin="10 0 10 0" >
-                        <!-- Placement 1 Row - Title and Basic Controls -->
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Part Pick List" Margin="10,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"  TextAlignment="Left" />
-                        <ui:Button Grid.Column="1" Content="Open..." Command="{Binding OpenPickListCommand}" Icon="Folder32"  Height="30" Margin="0,0,0,0" HorizontalAlignment="Right"/>
-                    </Grid>
-                    <ui:DataGrid  x:Name="PickListGrid" Grid.Row="1" HorizontalAlignment="Stretch" SelectedItem="{Binding selectedPickListPart}" 
-                                      ItemsSource="{Binding PickList}" AutoGenerateColumns="False" CanUserSortColumns="False"
-                                      HorizontalContentAlignment="Stretch" SelectionChanged="PickListSelectionChanged"
-                                      VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="True" >
-                        <!-- Placement 2nd Row - Data Grid -->
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Binding="{Binding Designator}" Header="Designator" Width="80"/>
-                            <DataGridTextColumn Binding="{Binding Description}" Header="Description" Width="auto"/>
-                            <DataGridTextColumn Binding="{Binding CenterX}" Header="Center-X" Width="70"/>
-                            <DataGridTextColumn Binding="{Binding CenterY}" Header="Center-Y" Width="70"/>
-                            <DataGridTextColumn Binding="{Binding Rotation}" Header="Rotation" Width="70"/>
-                            <DataGridTextColumn Binding="{Binding cassette.name}" Header="Cassette" Width="70"/>
-                        </DataGrid.Columns>
-                        <ui:DataGrid.RowStyle>
-                            <Style TargetType="DataGridRow">
-                                <Style.Triggers>
-                                    <Trigger Property="IsSelected" Value="True">
-                                        <Setter Property="Background" Value="#80B9EE"/>
-                                        <Setter Property="Foreground" Value="Black"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ui:DataGrid.RowStyle>
-                        <DataGrid.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Go to Location"  Command="{Binding GoToPartLocationCommand}"/>
-                                <MenuItem Header="Place at Location"  Command="{Binding feeder.PlacePartAtLocationCommand}"/>
-                                <Separator Margin="2"/>
-                                <MenuItem Header="Add to Cassette" Command="{Binding AddPartToCassetteCommand}" />
-                            </ContextMenu>
-                        </DataGrid.ContextMenu>
-                    </ui:DataGrid>
-                </Grid>
+                
                 <Grid Grid.Column="1" Margin="5 -10 5 5" HorizontalAlignment="Stretch">
                     <!-- Cassette 2 Rows -->
                     <Grid.RowDefinitions>
@@ -88,7 +40,7 @@
                             <ColumnDefinition Width="auto"/>
                             <ColumnDefinition Width="auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Cassette Contents" Margin="5,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"  TextAlignment="Left" />
+                        <TextBlock Grid.Column="0" Text="" Margin="5,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"  TextAlignment="Left" />
                         <ui:Button Grid.Column="1" Content="Load..." Icon="Folder32" Height="30" Margin="0,0,5,0" Command="{Binding LoadCassetteCommand}" HorizontalAlignment="Right"/>
                         <ui:Button Grid.Column="2" Content="New..." Icon="New24" Height="30" Margin="0,0,0,0" Command="{Binding AddCassetteCommand}" HorizontalAlignment="Right"/>
                     </Grid>

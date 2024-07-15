@@ -13,6 +13,11 @@ namespace Picky
 {
     public class Feeder : INotifyPropertyChanged
     {
+        /* Calibration Grid Size and Location of 1st */
+        public static double FEEDER_8MM_WIDTH_MILS = 500;
+        public static double FEEDER_ORIGIN_TO_DRIVE_YOFFSET_MM = 50;
+        public static double FEEDER_ORIGIN_TO_DRIVE_XOFFSET_MM = 2;
+
         MachineModel machine = MachineModel.Instance;
 
         private Part _part;
@@ -100,18 +105,7 @@ namespace Picky
 
         public bool SetCandidateNextPartLocation(double x, double y)
         {
-            /* See if this falls in the correct range */
-            double left = x_origin - (width / 2);
-            double right = x_origin + (width / 2);
-            if( x > left && x < right) 
-            {
-                if( y < (y_origin + Constants.FEEDER_ORIGIN_TO_PART_TRAY_START) && y > (y_origin + Constants.FEEDER_ORIGIN_TO_PART_TRAY_END)){
-                    x_next_part = x; y_next_part = y;
-                    return true;
-                }
-            }
-            x_next_part = 0; y_next_part = 0;
-            return false; ;
+            return false;
         }
 
         private void OnPartPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -129,46 +123,21 @@ namespace Picky
         public ICommand GoToFeederCommand { get { return new RelayCommand(GoToFeeder); } }
         public void GoToFeeder()
         {
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(x_origin, y_origin));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            Console.WriteLine("Go To Feeder Position: " + x_origin + " mm " + y_origin + " mm");
+            machine.Messages.Add(GCommand.G_SetPosition(x_origin, y_origin, 0, 0, 0));
         }
 
         public ICommand GoToFeederDriveCommand { get { return new RelayCommand(GoToFeederDrive); } }
         private void GoToFeederDrive()
         {
             Console.WriteLine("Go To Feeder Drive Position: " + x_drive + " mm " + y_drive + " mm");
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(x_drive, y_drive));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(z_drive));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetPosition(x_drive, y_drive, 0, 0, 0));
         }
 
         public ICommand PlacePartAtLocationCommand { get { return new RelayCommand(PlacePartAtLocation); } }
         public void PlacePartAtLocation()
         {
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-            machine.Messages.Add(Command.S3G_GetPosition());
-
-            double partx = machine.PCB_OriginX + (Convert.ToDouble(machine.selectedPickListPart.CenterX) * Constants.MIL_TO_MM);
-            double party = machine.PCB_OriginY + (Convert.ToDouble(machine.selectedPickListPart.CenterY) * Constants.MIL_TO_MM);
-            double angle = Convert.ToDouble(machine.selectedPickListPart.Rotation);
-            double z = 14;
-            Tuple<double, double> offset = machine.SelectedPickTool.GetPickOffsetAtRotation(angle);
-            /* TODO is this the right z to use?  Or, perhaps use 'z' above? */
             
-            partx += Constants.PLACE_DISTORTION_OFFSET_X_MM - (offset.Item1 * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z));
-            party += Constants.PLACE_DISTORTION_OFFSET_Y_MM - (offset.Item2 * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z));
-            
-            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(partx, party));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteAngle(angle / Constants.B_DEGREES_PER_MM));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(z));
-            machine.Messages.Add(Command.S3G_GetPosition());
         }
 
         public ICommand RemoveFeederFromCassetteCommand { get { return new RelayCommand(RemoveFeederFromCassette); } }
@@ -185,45 +154,22 @@ namespace Picky
         public ICommand GoToNextComponentCommand { get { return new RelayCommand(GoToNextComponent); } }
         private void GoToNextComponent()
         {
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            if (x_next_part != 0 && y_next_part != 0)
-            {
-                machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(x_next_part, y_next_part));
-                machine.Messages.Add(Command.S3G_GetPosition());
-            }
+            
         }
 
         public ICommand PickNextComponentCommand { get { return new RelayCommand(PickNextComponent); } }
         public void PickNextComponent()
-        {
-            double pickX, pickY;
-            Tuple<double, double> offset = machine.SelectedPickTool.GetPickOffsetAtRotation(0);
-            
+        {                     
             if (x_next_part != 0 && y_next_part != 0)
             {
-                pickX = x_next_part + Constants.PICK_DISTORTION_OFFSET_X_MM - (offset.Item1 * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z));
-                pickY = y_next_part + Constants.PICK_DISTORTION_OFFSET_Y_MM - (offset.Item2 * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z));
-                Console.WriteLine("HEY offset is: " + (offset.Item1 * machine.GetImageScaleAtDistanceX(Constants.PART_TO_PICKUP_Z)) + " mm " + (offset.Item2 * machine.GetImageScaleAtDistanceY(Constants.PART_TO_PICKUP_Z)));
-                Console.WriteLine("Pick next: " + pickX + " mm " + pickY + " mm");
-                machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(pickX, pickY));
-                machine.Messages.Add(Command.S3G_GetPosition());
-                machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0));
-                machine.Messages.Add(Command.S3G_GetPosition());
-                machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.PART_TO_PICKUP_Z));
-                machine.Messages.Add(Command.S3G_GetPosition());
+                
             }
         }
 
         public void PickNextComponentOptically()
         {
             /* This function loads commands to cause the serial command dispatcher to use values from the camera as the component's x, y */
-            machine.Messages.Add(Command.S3G_SetAbsoluteXYPositionOptically(this));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.PART_TO_PICKUP_Z));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            
         }
 
         public ICommand SetPartTemplateCommand { get { return new RelayCommand(SetPartTemplate); } }
@@ -232,13 +178,13 @@ namespace Picky
             Console.WriteLine("Set Part Template");
             using (Window window = new Window("Select ROI"))
             {
-                window.Image = machine.currentRawImage;
+                window.Image = machine.downCamera.ColorImage;
 
                 // Use SelectROI to interactively select a region
-                OpenCvSharp.Rect roi = Cv2.SelectROI("Select ROI", machine.currentRawImage);
+                OpenCvSharp.Rect roi = Cv2.SelectROI("Select ROI", machine.downCamera.ColorImage);
 
                 // Capture the selected ROI
-                part.Template = new Mat(machine.currentRawImage, roi);
+                part.Template = new Mat(machine.downCamera.ColorImage, roi);
 
                 // Write part template to file
                 DateTime now = DateTime.Now;

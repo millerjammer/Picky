@@ -1,0 +1,34 @@
+﻿<Window x:Class="Picky.ControlWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Picky" 
+        mc:Ignorable="d" FontSize="12" 
+        Height="950" Width="1650" ResizeMode="CanResize"
+        WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterScreen" Background="Transparent">
+
+    <Border CornerRadius="10" Background="#151f2d" Margin="0 0 0 0">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <local:MachineView Grid.Row="0"/>
+                <local:PickToolView Grid.Row="1" VerticalAlignment="Top"/>
+                <local:BoardView Grid.Row="2" VerticalAlignment="Top"/>
+            </Grid>
+
+            <TabControl Grid.Column="1" Margin="5 10 15 15">
+                <TabItem Header="Down Camera" Name="downCam"/>
+                <TabItem Header="Up Camera" Name="upCam"/>
+            </TabControl>
+         </Grid>
+    </Border>
+</Window>

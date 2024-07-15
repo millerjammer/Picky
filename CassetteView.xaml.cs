@@ -27,9 +27,6 @@ namespace Picky
 
         }   
         
-        private void PickListSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            PickListGrid.ScrollIntoView(PickListGrid.SelectedItem);
-        }
+        
     }
 }

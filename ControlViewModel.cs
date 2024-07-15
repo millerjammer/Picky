@@ -89,13 +89,13 @@ namespace Picky
         {
             machine.CameraCalibrationState = MachineModel.CalibrationState.InProcess;
             Console.WriteLine("Cal Camera Started. Target Centered @:" + Constants.CALIBRATION_TARGET_LOCATION_X_MM + " mm " + Constants.CALIBRATION_TARGET_LOCATION_Y_MM + " mm");
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(Constants.CALIBRATION_TARGET_LOCATION_X_MM, Constants.CALIBRATION_TARGET_LOCATION_Y_MM));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.CALIBRATION_TARGET_DIST_MM));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.JRM_CalibrationCalculateItemResolution());
+            machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
+            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(Constants.CALIBRATION_TARGET_LOCATION_X_MM, Constants.CALIBRATION_TARGET_LOCATION_Y_MM));
+            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(Constants.CALIBRATION_TARGET_DIST_MM));
+            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.JRM_CalibrationCalculateItemResolution());
             
         }
         public ICommand CalibratePositionCommand { get { return new RelayCommand(Home); } }
@@ -103,33 +103,33 @@ namespace Picky
         {
             // First, ensure the needle is safe
             machine.PositionCalibrationState = MachineModel.CalibrationState.InProcess;
-            machine.Messages.Add(Command.S3G_SetRelativeZPosition(30));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_FindXYMaximums());
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.JRM_CalibrationCheckXY());
-            machine.Messages.Add(Command.S3G_FindZMinimum());
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetPositionAs(0, 0, 0, 0, 0));
-            machine.Messages.Add(Command.JRM_CalibrationCheckZ());
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0));
-            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(-50, -50));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetRelativeZPosition(30));
+            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.G_FindXYMaximums());
+            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.JRM_CalibrationCheckXY());
+            machine.Messages.Add(GCommand.G_FindZMinimum());
+            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetPositionAs(0, 0, 0, 0, 0));
+            machine.Messages.Add(GCommand.JRM_CalibrationCheckZ());
+            machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
+            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteAngle(0));
+            machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(-50, -50));
+            machine.Messages.Add(GCommand.G_GetPosition());
         }
         public ICommand CalibratePickCommand { get { return new RelayCommand(CalibratePick); } }
         private void CalibratePick()
         {
             machine.PickCalibrationState = MachineModel.CalibrationState.InProcess;
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(-(Constants.PCB_MAX_DIMENSION_X / 2), -10.0));
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.CALIBRATION_PICK_HEIGHT_MM));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.JRM_CalibrationCheckPick()); 
+            machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
+            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(-(Constants.PCB_MAX_DIMENSION_X / 2), -10.0));
+            machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(Constants.CALIBRATION_PICK_HEIGHT_MM));
+            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteAngle(0));
+            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.JRM_CalibrationCheckPick()); 
         }
         public ICommand SelfCheckCommand { get { return new RelayCommand(SelfCheck); } }
         private void SelfCheck()
@@ -150,7 +150,7 @@ namespace Picky
         private void Stop()
         {
             machine.Messages.Clear();
-            machine.Messages.Add(Command.S3G_EnableSteppers((byte)(Constants.A_AXIS | Constants.B_AXIS | Constants.X_AXIS | Constants.Y_AXIS | Constants.Z_AXIS), false));
+            machine.Messages.Add(GCommand.G_EnableSteppers((byte)(Constants.A_AXIS | Constants.B_AXIS | Constants.X_AXIS | Constants.Y_AXIS | Constants.Z_AXIS), false));
             machine.CameraCalibrationState = MachineModel.CalibrationState.NotCalibrated;
             machine.CalibrationStatusString = "Re-Calibration Required";
         }
@@ -177,13 +177,13 @@ namespace Picky
             Console.WriteLine("Generating Job..");
             /* Start at PCB Origin */
             
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteXYPosition(machine.PCB_OriginX, machine.PCB_OriginY));
-            machine.Messages.Add(Command.S3G_SetAbsoluteZPosition(machine.PCB_OriginZ));
-            machine.Messages.Add(Command.S3G_GetPosition());
-            machine.Messages.Add(Command.S3G_SetAbsoluteAngle(0));
-            machine.Messages.Add(Command.S3G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(Constants.SAFE_TRANSIT_Z));
+            machine.Messages.Add(GCommand.G_GetPosition());
+            //machine.Messages.Add(GCommand.G_SetAbsoluteXYPosition(machine.PCB_OriginX, machine.PCB_OriginY));
+           // machine.Messages.Add(GCommand.G_SetAbsoluteZPosition(machine.PCB_OriginZ));
+            machine.Messages.Add(GCommand.G_GetPosition());
+            machine.Messages.Add(GCommand.G_SetAbsoluteAngle(0));
+            machine.Messages.Add(GCommand.G_GetPosition());
             
             /* Go to Cassette */
             foreach (Cassette cassette in machine.Cassettes)
