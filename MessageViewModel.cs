@@ -68,7 +68,7 @@ namespace Picky
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged(string propertyName)
         {
-            Console.WriteLine("Property Change: " + propertyName);
+            //Console.WriteLine("Property Change: " + propertyName);
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 

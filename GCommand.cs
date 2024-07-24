@@ -26,12 +26,20 @@ namespace Picky
         {
             MachineMessage msg = new MachineMessage();
             msg.roi = roi;
-            msg.cmd[0] = Constants.C_ITEM_LOCATION;
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("L0 CIR X{0} Y{1} W{2} H{3}\n", roi.X, roi.Y, roi.Width, roi.Height));
             return msg;
         }
 
-        public static MachineMessage G_AlignToCircle(CircleSegment estimate, Circle3d result, int max_iterations)
+        public static MachineMessage G_IterativeAlignToCircle(CircleSegment estimate, Circle3d result, int max_iterations)
         {
+        /*---------------------------------------------------------------
+         * This function moves the head to a circle that looks like the
+         * 'estimated' circle using iteration.  This is used when you don't 
+         * know mm/pixel at the current Z.  This is typically used for 
+         * calibration only.  Starts as a J100(position) -> J200(imaging)
+         * then repeats.  After this runs the best circle will be found 
+         * at GetBestCircle() in the down camera object.
+         * -------------------------------------------------------------*/
 
             MachineMessage msg = new MachineMessage();
             msg.iterationCount = max_iterations;
@@ -39,10 +47,7 @@ namespace Picky
             msg.roi = new OpenCvSharp.Rect(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
             msg.target.x = estimate.Center.X; msg.target.y = estimate.Center.Y;
             msg.circleToFind = estimate;
-
-            msg.bestLocation = result;
-
-                                                    
+                                                                
             return msg;
         }
 

@@ -23,14 +23,13 @@ namespace Picky
         public static double TARGET_GRID_ORIGIN_Y_MM = 12.89;
         /* Calibration Circle at Tool Z */
         public static double TARGET_TOOL_Z_MILS = 540;
-        public static double TARGET_TOOL_RADIUS_MILS = 1000;
-        public static double TARGET_TOOL_POS_X_MILS = 3600;
-        public static double TARGET_TOOL_POS_Y_MILS = 4900;
+        public static double TARGET_RESOLUTION_RADIUS_MILS = 1000;
+        public static double TARGET_TOOL_POS_X_MM = 103.00;
+        public static double TARGET_TOOL_POS_Y_MM = 65;
         /* Calibration Circle at PCB Z */
         public static double TARGET_PCB_Z_MILS = 70;
-        public static double TARGET_PCB_RADIUS_MILS = 1000;
-        public static double TARGET_PCB_POS_X_MILS = 1200;
-        public static double TARGET_PCB_POS_Y_MILS = 4900;
+        public static double TARGET_PCB_POS_X_MM = 42.01;
+        public static double TARGET_PCB_POS_Y_MM = 65.00;
 
         bool isGrid00Valid, isGrid01Valid, isGrid10Valid, isGrid11Valid;
 
@@ -59,7 +58,13 @@ namespace Picky
             get { return grid11Location; }
             set { grid11Location = value; OnPropertyChanged(nameof(Grid11Location)); }
         }
-        
+        private Circle3d calCircle;
+        public Circle3d CalCircle
+        {
+            get { return calCircle; }
+            set { calCircle = value; OnPropertyChanged(nameof(CalCircle)); }
+        }
+
         public CalTargetModel()
         {
             Grid00Location = new Circle3d();
@@ -115,25 +120,25 @@ namespace Picky
             CircleSegment calCircle00 = new CircleSegment();
             calCircle00.Center = new Point2f((float)(CalTargetModel.TARGET_GRID_ORIGIN_X_MM), (float)(CalTargetModel.TARGET_GRID_ORIGIN_Y_MM));
             calCircle00.Radius = ((float)(CalTargetModel.TARGET_GRID_RADIUS_MILS * Constants.MIL_TO_MM));
-            machine.Messages.Add(GCommand.G_AlignToCircle(calCircle00, Grid00Location, 10));
+            machine.Messages.Add(GCommand.G_IterativeAlignToCircle(calCircle00, Grid00Location, 10));
 
             //For the x = 1, y = 0 position
             CircleSegment calCircle10 = new CircleSegment();
             calCircle10.Center = new Point2f((float)(CalTargetModel.TARGET_GRID_ORIGIN_X_MM + (CalTargetModel.TARGET_GRID_X_MILS * Constants.MIL_TO_MM)), (float)(CalTargetModel.TARGET_GRID_ORIGIN_Y_MM));
             calCircle10.Radius = ((float)(CalTargetModel.TARGET_GRID_RADIUS_MILS * Constants.MIL_TO_MM));
-            machine.Messages.Add(GCommand.G_AlignToCircle(calCircle10, Grid10Location, 10));
+            machine.Messages.Add(GCommand.G_IterativeAlignToCircle(calCircle10, Grid10Location, 10));
 
             //For the x = 0, y = 1 position
             CircleSegment calCircle01 = new CircleSegment();
             calCircle01.Center = new Point2f((float)(CalTargetModel.TARGET_GRID_ORIGIN_X_MM), (float)(CalTargetModel.TARGET_GRID_ORIGIN_Y_MM + (CalTargetModel.TARGET_GRID_Y_MILS * Constants.MIL_TO_MM)));
             calCircle01.Radius = ((float)(CalTargetModel.TARGET_GRID_RADIUS_MILS * Constants.MIL_TO_MM));
-            machine.Messages.Add(GCommand.G_AlignToCircle(calCircle01, Grid01Location, 10));
+            machine.Messages.Add(GCommand.G_IterativeAlignToCircle(calCircle01, Grid01Location, 10));
 
             //For the x = 1, y = 1 position
             CircleSegment calCircle11 = new CircleSegment();
             calCircle11.Center = new Point2f((float)(CalTargetModel.TARGET_GRID_ORIGIN_X_MM + (CalTargetModel.TARGET_GRID_X_MILS * Constants.MIL_TO_MM)), (float)(CalTargetModel.TARGET_GRID_ORIGIN_Y_MM + (CalTargetModel.TARGET_GRID_Y_MILS * Constants.MIL_TO_MM)));
             calCircle11.Radius = ((float)(CalTargetModel.TARGET_GRID_RADIUS_MILS * Constants.MIL_TO_MM));
-            machine.Messages.Add(GCommand.G_AlignToCircle(calCircle11, Grid11Location, 10));
+            machine.Messages.Add(GCommand.G_IterativeAlignToCircle(calCircle11, Grid11Location, 10));
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

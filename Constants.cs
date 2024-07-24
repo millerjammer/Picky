@@ -100,7 +100,6 @@ namespace Picky
         public static byte X_SET_CAL_FACTOR = 0x22;
 
         /* Camera Messages */
-        public static byte C_ITEM_LOCATION = 0x23;
         public static byte C_ALIGN_TO_CIRCLE = 0x21;
         public static byte C_ALIGN_TO_CIRCLE_IMAGE = 0x24;
 

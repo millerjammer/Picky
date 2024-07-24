@@ -140,8 +140,8 @@ namespace Picky
         public ICommand GetResolutionAtPCBCommand { get { return new RelayCommand(GetResolutionAtPCB); } }
         private void GetResolutionAtPCB()
         {
-            double cal_target_x = 238.48;
-            double cal_target_y = 127.690;
+            double cal_target_x = CalTargetModel.TARGET_PCB_POS_X_MM;
+            double cal_target_y = CalTargetModel.TARGET_PCB_POS_Y_MM;
 
             GetResolution(cal_target_x, cal_target_y, Constants.CAL_TYPE_RESOLUTION_AT_PCB, Constants.CAL_TYPE_Z_DISTANCE_AT_PCB);
         }
@@ -149,8 +149,8 @@ namespace Picky
         public ICommand GetResolutionAtToolCommand { get { return new RelayCommand(GetResolutionAtTool); } }
         private void GetResolutionAtTool()
         {
-            double cal_target_x = 238.48;
-            double cal_target_y = 127.690;
+            double cal_target_x = CalTargetModel.TARGET_TOOL_POS_X_MM;
+            double cal_target_y = CalTargetModel.TARGET_TOOL_POS_Y_MM;
 
             GetResolution(cal_target_x, cal_target_y, Constants.CAL_TYPE_RESOLUTION_AT_TOOL, Constants.CAL_TYPE_Z_DISTANCE_AT_TOOL);
         }
@@ -164,30 +164,30 @@ namespace Picky
         {
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));
-            machine.Messages.Add(GCommand.C_LocateCircle(new OpenCvSharp.Rect(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT)));
+
+            CircleSegment calCircle = new CircleSegment();
+            calCircle.Center = new Point2f((float)x, (float)y);
+            calCircle.Radius = ((float)(CalTargetModel.TARGET_RESOLUTION_RADIUS_MILS * Constants.MIL_TO_MM));
+            machine.Messages.Add(GCommand.G_IterativeAlignToCircle(calCircle, target.CalCircle, 10));
             machine.Messages.Add(GCommand.X_SetCalFactor(type));
             machine.Messages.Add(GCommand.G_ProbeZ(300));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.X_SetCalFactor(type2));
             machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_SetItemLocation());
-            machine.Messages.Add(GCommand.G_EnableIlluminator(false));
         }
                 
         public ICommand MoveToPickLocation { get { return new RelayCommand(moveToPickLocation); } }
         private void moveToPickLocation()
         {
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
-            machine.Messages.Add(GCommand.G_SetPosition(DownCameraToPickHeadX, DownCameraToPickHeadY, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+            MachineMessage.Pos dest = machine.Messages.Last().target;
+            machine.Messages.Add(GCommand.G_SetPosition(dest.x + DownCameraToPickHeadX, dest.y + DownCameraToPickHeadY, 0, 0, 0));
         }
 
         public ICommand MoveToCameraLocation { get { return new RelayCommand(moveToCameraLocation); } }
         private void moveToCameraLocation()
         {
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
-            machine.Messages.Add(GCommand.G_SetPosition(-DownCameraToPickHeadX, -DownCameraToPickHeadY, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+            MachineMessage.Pos dest = machine.Messages.Last().target;
+            machine.Messages.Add(GCommand.G_SetPosition(dest.x - DownCameraToPickHeadX, dest.y - DownCameraToPickHeadY, 0, 0, 0));
         }
 
         public ICommand OkCommand { get { return new RelayCommand(okCommand); } }

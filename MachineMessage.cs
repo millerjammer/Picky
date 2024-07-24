@@ -36,22 +36,7 @@ namespace Picky
         public int iterationCount;
         public CircleSegment circleToFind;
 
-        private Circle3d _bestLocation;
-        public Circle3d bestLocation
-        {
-            get { return _bestLocation; }
-            set { _bestLocation = value; OnPropertyChanged(nameof(bestLocation)); }
-        }
-
-        public void SetBestLocation(CircleSegment cir)
-        {
-            bestLocation.Radius = cir.Radius;
-            bestLocation.X = cir.Center.X;
-            bestLocation.Y = cir.Center.Y;
-            
-        }
-
-                      
+                       
         private byte[] _cmd;
         public byte[] cmd 
         {
@@ -91,12 +76,14 @@ namespace Picky
         {
             cmd = new byte[64];
             state = MessageState.ReadyToSend;
-            delay = 1000;
+            delay = 0;
             timeout = 4000;
             calType = 0x00;
             iterationCount = 1;
             MachineModel mm = MachineModel.Instance;
             index = mm.Messages.Count();
+            if(index != 0)
+                target = mm.Messages.Last().target;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

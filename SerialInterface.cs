@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Timers;
+using static Picky.MachineMessage;
 
 /*For S3G Serial Commands See: https://github.com/makerbot/s3g/blob/master/doc/s3gProtocol.md */
 
@@ -19,8 +20,7 @@ namespace Picky
 
         private static MachineMessage.Pos lastPos = new MachineMessage.Pos();
         private int rx_msgCount { get; set; }
-        bool isPositionGood = false;
-
+       
         static SerialPort serialPort;
 
         public SerialInterface()
@@ -59,6 +59,7 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetAutoPositionReporting(true));
             machine.Messages.Add(GCommand.G_EnableIlluminator(false));
             machine.Messages.Add(GCommand.G_GetStepsPerUnit());
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
 
         }
 
@@ -107,8 +108,8 @@ namespace Picky
                     length = Array.IndexOf(serial_buffer, (byte)'\n') + 1;
 
                     //There are enough bytes to parse a message, first, write what we got
-                    //for (j = 0; j < length; j++)
-                    //Console.Write((char)serial_buffer[j]);
+                    for (j = 0; j < length; j++)
+                    Console.Write((char)serial_buffer[j]);
 
                     //Check return message, OK message is always the last to send
                     if (machine.Messages.Count > 0 && machine.Messages.Count > rx_msgCount)
@@ -121,7 +122,7 @@ namespace Picky
                                 for (j = 0; j < length; j++)
                                     Console.Write((char)serial_buffer[j]);
                                 // Parse position message an wait till position is good.
-                                if (msg.cmdString.StartsWith("G0") || msg.cmdString.StartsWith("J100"))
+                                if (msg.cmdString.StartsWith("J100"))
                                 {
                                     msg.state = MachineMessage.MessageState.PendingPosition;
                                 }
@@ -254,7 +255,7 @@ namespace Picky
                                     rx_msgCount++;
                                 }
                             }
-                            // Handle commands do not output an OK to the serial port
+                            // Handle commands do not output an OK to the serial port - J200 is an imager request
                             else if (msg.cmdString.StartsWith("J200"))
                             {
                                 if(machine.downCamera.IsCircleSearchActive() == false)
@@ -264,14 +265,11 @@ namespace Picky
                                     msg.cmd = Encoding.ASCII.GetBytes(string.Format("J100 Position Error [mm] X: {0:F3} Y: {1:F3}\n", offset.X, offset.Y));
                                     msg.state = MachineMessage.MessageState.ReadyToSend;
                                     // Use 1/2 the offset to calculate next location
-                                    msg.target.x = ((-1 * (offset.X / 2)) / 2) + machine.CurrentX; 
-                                    msg.target.y = ((offset.Y / 2) / 2) + machine.CurrentY;
+                                    msg.target.x += ((-1 * (offset.X / 2)) / 2); 
+                                    msg.target.y += ((offset.Y / 2) / 2);
                                     
                                     if ((msg.iterationCount--) <= 0)
                                     {
-                                        msg.bestLocation.X = msg.target.x;
-                                        msg.bestLocation.Y = msg.target.y;
-                                        msg.bestLocation.IsValid = true;
                                         Console.WriteLine("J200 Command Complete: Best Circle: " + machine.downCamera.GetBestCircle().ToString());
                                         msg.state = MachineMessage.MessageState.Complete;
                                         rx_msgCount++;
@@ -279,7 +277,7 @@ namespace Picky
                                     msg.delay = 0;
                                 }
                             }
-                            else if (msg.cmd[0] == Constants.C_ITEM_LOCATION)
+                            else if (msg.cmdString.StartsWith("L0"))
                             {
                                 if (machine.downCamera.IsCircleSearchActive() == false)
                                 {
@@ -312,9 +310,10 @@ namespace Picky
                                 rx_msgCount++;
                             }
                         }
-                        // Handle messages waiting for valid position = target position
-                        else if (msg.state == MachineMessage.MessageState.PendingPosition && isPositionGood)
+                        // Commands that don't return ok - messages waiting for valid position = target position
+                        if (msg.state == MachineMessage.MessageState.PendingPosition && isPositionGood(msg))
                         {
+                            // Make sure we get another position report before checking here 
                             if (msg.cmdString.StartsWith("J100"))
                             {
                                 // Restart as a new message
@@ -328,15 +327,10 @@ namespace Picky
                                 rx_msgCount++;
                             }
                         }
-                        // Handle other 
-                        if (serial_buffer[0] == (byte)'X' && serial_buffer[1] == (byte)':')
-                        {
-                            getPositionFromMessage(msg);
-                        }
+                        //Get Steps Response from query
                         else if (serial_buffer[2] == (byte)'M' && serial_buffer[3] == (byte)'9' && serial_buffer[4] == (byte)'2')
                         {
-                            // Define a regular expression pattern for extracting doubles
-                            string pattern = @"(\d+\.\d+)";
+                            string pattern = @"(\d+\.\d+)";     // Define a regular expression pattern for extracting doubles
                             Regex regex = new Regex(pattern);
                             MatchCollection matches = regex.Matches(Encoding.UTF8.GetString(serial_buffer));
                             machine.Cal.StepsPerUnitX = double.Parse(matches[0].Value);
@@ -344,7 +338,11 @@ namespace Picky
                             Console.WriteLine("Steps per MM: " + machine.Cal.StepsPerUnitX + " " + machine.Cal.StepsPerUnitY);
                         }
                     }
-
+                    //Handle Unsolicited Messages
+                    if (serial_buffer[0] == (byte)'X' && serial_buffer[1] == (byte)':')
+                    {
+                        getPositionFromMessage();
+                    }
                     //Fixup the byte buffer by moving unread bytes and the pointer
                     for (k = 0; k < Constants.MAX_BUFFER_SIZE - length; k++)
                     {
@@ -406,7 +404,6 @@ namespace Picky
                             msg.target.z = machine.CurrentZ; msg.target.a = machine.CurrentA;
                             msg.target.b = machine.CurrentB;
                             msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} Z{2} A{3}\n", msg.target.x, msg.target.y, msg.target.z, msg.target.a));
-                            Console.WriteLine("Going to item at: " + msg.target.x + " " + msg.target.y);
                         }
                         int len = Array.LastIndexOf(msg.cmd, (byte)'\n');
                         serialPort.Write(msg.cmd, 0, len + 1);
@@ -415,18 +412,12 @@ namespace Picky
                     {
                         machine.downCamera.RequestCircleLocation(msg.roi, msg.circleToFind);
                     }
+                    //Send Message - NOT G Code
                     else if (msg.cmdString.StartsWith("J100"))
                     {
                         byte[] cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} Z{2} A{3}\n", msg.target.x, msg.target.y, msg.target.z, msg.target.a));
                         int len = Array.LastIndexOf(cmd, (byte)'\n');
                         serialPort.Write(cmd, 0, len + 1);
-                    }
-                    // Calculate target position in relative mode
-                    if (machine.isAbsoluteMode == false)
-                    {
-                        msg.target.x += machine.CurrentX; msg.target.y += machine.CurrentY; msg.target.z += machine.CurrentZ;
-                        msg.target.a += machine.CurrentA; msg.target.b += machine.CurrentB;
-                        
                     }
                     // Reset the Next button
                     machine.advanceNextMessage = false;
@@ -437,14 +428,11 @@ namespace Picky
             return true;
         }
 
-        private bool getPositionFromMessage(MachineMessage msg)
+        private bool getPositionFromMessage()
         /********************************************************************
-         * Helper - Updates current position and message, if message available
-         * Return true if no error
+         * Helper - Updates current position and message
          *********************************************************************/
         {
-            bool pOK = false;
-
             // Define a regular expression pattern for extracting doubles
             string pattern = @"(\d+\.\d+)";
             Regex regex = new Regex(pattern);
@@ -456,6 +444,17 @@ namespace Picky
             machine.CurrentY = double.Parse(matches[1].Value);
             machine.CurrentZ = double.Parse(matches[2].Value);
             machine.CurrentA = double.Parse(matches[3].Value);
+                        
+            return true;
+        }
+
+        private bool isPositionGood(MachineMessage msg)
+        /********************************************************************
+        * Helper - Checks if the machine has arrived and location is stable. 
+        * Generally used by morph commands that can't use FinishMoves()
+        *********************************************************************/
+        {
+            bool pOK = false;
 
             // Make sure machine has stopped
             if ((machine.CurrentX == lastPos.x) && (machine.CurrentY == lastPos.y) && (machine.CurrentZ == lastPos.z) && (machine.CurrentA == lastPos.a) && (machine.CurrentB == lastPos.b))
@@ -479,8 +478,7 @@ namespace Picky
             }
 
             lastPos.x = machine.CurrentX; lastPos.y = machine.CurrentY; lastPos.z = machine.CurrentZ; lastPos.a = machine.CurrentA; lastPos.b = machine.CurrentB;
-            isPositionGood = pOK;
-            return true;
+            return pOK;
         }
     }
 }

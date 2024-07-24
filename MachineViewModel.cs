@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 
@@ -41,40 +42,36 @@ namespace Picky
         public ICommand ButtonXLeftCommand { get { return new RelayCommand(ButtonXLeft); } }
         private void ButtonXLeft()
         {
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
-            machine.Messages.Add(GCommand.G_SetPosition( distanceToAdvance, 0, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+            MachineMessage.Pos dest = machine.Messages.Last().target;
+            machine.Messages.Add(GCommand.G_SetPosition( dest.x + distanceToAdvance, dest.y, dest.z, dest.a, dest.b));
         }
 
         public ICommand ButtonXRightCommand { get { return new RelayCommand(ButtonXRight); } }
         private void ButtonXRight()
         {
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
-            machine.Messages.Add(GCommand.G_SetPosition(-distanceToAdvance, 0, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+            MachineMessage.Pos dest = machine.Messages.Last().target;
+            machine.Messages.Add(GCommand.G_SetPosition(dest.x - distanceToAdvance, dest.y, dest.z, dest.a, dest.b));
         }
 
         public ICommand ButtonYUpCommand { get { return new RelayCommand(ButtonYUp); } }
         private void ButtonYUp()
         {
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
-            machine.Messages.Add(GCommand.G_SetPosition(0, -distanceToAdvance, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+            MachineMessage.Pos dest = machine.Messages.Last().target;
+            machine.Messages.Add(GCommand.G_SetPosition(dest.x, dest.y - distanceToAdvance, dest.z, dest.a, dest.b));
         }
 
         public ICommand ButtonYDownCommand { get { return new RelayCommand(ButtonYDown); } }
         private void ButtonYDown()
         {
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
-            machine.Messages.Add(GCommand.G_SetPosition(0, distanceToAdvance, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
-
+            MachineMessage.Pos dest = machine.Messages.Last().target;
+            machine.Messages.Add(GCommand.G_SetPosition(dest.x, dest.y + distanceToAdvance, dest.z, dest.a, dest.b));
         }
 
         public ICommand ButtonXYHomeCommand { get { return new RelayCommand(ButtonXYHome); } }
         private void ButtonXYHome()
         {
-            machine.Messages.Add(GCommand.G_SetPosition(machine.CurrentX, machine.CurrentY, 0, 0, 0));
+            MachineMessage.Pos dest = machine.Messages.Last().target;
+            machine.Messages.Add(GCommand.G_SetPosition(dest.x, dest.y, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FindMachineHome());
             
         }
@@ -83,36 +80,31 @@ namespace Picky
         public ICommand ButtonZUpCommand { get { return new RelayCommand(ButtonZUp); } }
         private void ButtonZUp()
         {
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
-            machine.Messages.Add(GCommand.G_SetPosition(0, 0, -distanceToAdvance, 0, 0));
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
-
+            MachineMessage.Pos dest = machine.Messages.Last().target;
+            machine.Messages.Add(GCommand.G_SetPosition(dest.x, dest.y, dest.z - distanceToAdvance, dest.a, dest.b));
         }
 
            
         public ICommand ButtonZDownCommand { get { return new RelayCommand(ButtonZDown); } }
         private void ButtonZDown()
         {
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
-            machine.Messages.Add(GCommand.G_ProbeZ(+distanceToAdvance));
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+            MachineMessage.Pos dest = machine.Messages.Last().target;
+            machine.Messages.Add(GCommand.G_ProbeZ(dest.z + distanceToAdvance));
         }
 
         /**  R-Axis *******************************/
         public ICommand ButtonRLeftCommand { get { return new RelayCommand(ButtonRLeft); } }
         private void ButtonRLeft()
         {
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
-            machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, distanceToAdvance, 0));
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+            MachineMessage.Pos dest = machine.Messages.Last().target;
+            machine.Messages.Add(GCommand.G_SetPosition(dest.x, dest.y, dest.z, dest.a + distanceToAdvance, dest.b));
         }
 
         public ICommand ButtonRRightCommand { get { return new RelayCommand(ButtonRRight); } }
         private void ButtonRRight()
         {
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
-            machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, -distanceToAdvance, 0));
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+            MachineMessage.Pos dest = machine.Messages.Last().target;
+            machine.Messages.Add(GCommand.G_SetPosition(dest.x, dest.y, dest.z, dest.a - distanceToAdvance, dest.b));
         }
 
         /**  Toggle Switches *******************************/

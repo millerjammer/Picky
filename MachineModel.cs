@@ -29,7 +29,7 @@ namespace Picky
             set { selectedMachineMessage = value; OnPropertyChanged(nameof(SelectedMachineMessage)); }
         }
 
-        public bool isAbsoluteMode = true;
+        public bool isAbsoluteMode { get; set; }
         public bool advanceNextMessage = false;
         public bool isMachinePaused { get; set; }
         public bool IsSerialMessageResetRequested { get; set; }

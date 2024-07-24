@@ -67,28 +67,16 @@ namespace Picky
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             // Optically Correct location
             machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
-            int x = (Constants.CAMERA_FRAME_WIDTH / 2) - (Constants.CAMERA_FRAME_WIDTH / 10);
-            int y = (Constants.CAMERA_FRAME_HEIGHT / 2) - (Constants.CAMERA_FRAME_HEIGHT / 10);
-            int width = 2 * (Constants.CAMERA_FRAME_WIDTH / 10);
-            int height = 2 * (Constants.CAMERA_FRAME_WIDTH / 10);
-            OpenCvSharp.Rect roi = new OpenCvSharp.Rect(x, y, width, height);
-            machine.Messages.Add(GCommand.C_LocateCircle(roi));
-            machine.Messages.Add(GCommand.G_SetItemLocation());
-            machine.Messages.Add(GCommand.G_EnableIlluminator(false));
         }
 
         public ICommand RetrieveToolCommand { get { return new RelayCommand(RetrieveTool); } }
         private void RetrieveTool()
         {
-
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
-            //Move to Camera Position (either optically or by position)
-            //machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
             CircleSegment tool = new CircleSegment();
             tool.Center = new Point2f((float)Machine.SelectedPickTool.ToolStorageX, (float)Machine.SelectedPickTool.ToolStorageY);
             tool.Radius = ((float)(Constants.TOOL_CENTER_RADIUS_MILS * Constants.MIL_TO_MM));
             Circle3d dest = new Circle3d();
-            machine.Messages.Add(GCommand.G_AlignToCircle(tool, dest, 6));
+            machine.Messages.Add(GCommand.G_IterativeAlignToCircle(tool, dest, 6));
             //Offset to Pick
             var offset = machine.Cal.GetPickHeadOffsetToCamera(Machine.SelectedPickTool.ToolStorageZ);
             double x = Machine.SelectedPickTool.ToolStorageX + offset.x_offset;
@@ -101,19 +89,17 @@ namespace Picky
             machine.Messages.Add(GCommand.G_OpenToolStorage(true));
             //Retract Tool
             machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_FinishMoves());
             //Close Tool Caddy
             machine.Messages.Add(GCommand.G_OpenToolStorage(false));
             //Camera to Tool (former) location
             machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
-            
-
-
+          
         }
 
         public ICommand ReturnToolCommand { get { return new RelayCommand(ReturnTool); } }
         private void ReturnTool()
         {
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
             //Move to Camera Position
             machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
             //Offset to Pick
@@ -130,11 +116,9 @@ namespace Picky
             machine.Messages.Add(GCommand.G_OpenToolStorage(false));
             //Retract Tool
             machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_FinishMoves());
             //Camera to Tool (former) location
             machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
-
-
-
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
