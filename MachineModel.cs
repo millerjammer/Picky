@@ -178,8 +178,8 @@ namespace Picky
 
             Board = new BoardModel();
             
-            downCamera = new CameraModel(0, this);
-            upCamera = new CameraModel(2, this);
+            downCamera = new CameraModel(Constants.DOWN_CAMERA_INDEX, this);
+            upCamera = new CameraModel(Constants.UP_CAMERA_INDEX, this);
 
 
             String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);

@@ -94,23 +94,16 @@ namespace Picky
         public static double PART_TO_PICKUP_YOFFSET_MM = 0;
         public static double PART_TO_PICKUP_Z = 18.2;
         
-        /* Special Messages */
-
-        /* Calibration and Settings Messages */
-        public static byte X_SET_CAL_FACTOR = 0x22;
-
         /* Camera Messages */
         public static byte C_ALIGN_TO_CIRCLE = 0x21;
         public static byte C_ALIGN_TO_CIRCLE_IMAGE = 0x24;
 
         /* Calibration sub-type Messages */
-        public static byte CAL_TYPE_RESOLUTION_AT_PCB = 0x10;
-        public static byte CAL_TYPE_Z_DISTANCE_AT_PCB = 0x11;
-        public static byte CAL_TYPE_RESOLUTION_AT_TOOL = 0x12;
-        public static byte CAL_TYPE_Z_DISTANCE_AT_TOOL = 0x13;
-
-        public static byte JRM_SET_ABSOLUTE_XY_POSITION_OPTICALLY = 0x92;
-
+        public static char CAL_TYPE_RESOLUTION_AT_PCB = 'A';
+        public static char CAL_TYPE_Z_DISTANCE_AT_PCB = 'B';
+        public static char CAL_TYPE_RESOLUTION_AT_TOOL = 'C';
+        public static char CAL_TYPE_Z_DISTANCE_AT_TOOL = 'D';
+                
         /* Serial Port */       
         public static int MAX_BUFFER_SIZE = 4096;
         public static int QUEUE_SERVICE_INTERVAL = 100;
@@ -121,6 +114,10 @@ namespace Picky
         /* Files */
         public static string CALIBRATION_FILE_NAME = "cal.json";
         public static string TOOL_FILE_NAME = "tool.json";
+
+        public static int DOWN_CAMERA_INDEX = 0;
+        public static int UP_CAMERA_INDEX = 1;
+        public static string SERIAL_PORT = "COM12";
 
     }
 }

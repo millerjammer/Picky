@@ -10,32 +10,138 @@ namespace Picky
     {
 
 
-        /* Resolution */
-        public double PcbMMToPixX { get; set; }
-        public double PcbMMToPixY { get; set; }
-        public double PcbZHeight { get; set; }
+        /* Resolution - PCB */
+        private double pcbMMToPixX;
+        public double PcbMMToPixX
+        {
+            get { return pcbMMToPixX; }
+            set { pcbMMToPixX = value; OnPropertyChanged(nameof(PcbMMToPixX)); }
+        }
+        private double pcbMMToPixY;
+        public double PcbMMToPixY
+        {
+            get { return pcbMMToPixY; }
+            set { pcbMMToPixY = value; OnPropertyChanged(nameof(PcbMMToPixY)); }
+        }
+        private double pcbZHeight;
+        public double PcbZHeight
+        {
+            get { return pcbZHeight; }
+            set { pcbZHeight = value; OnPropertyChanged(nameof(PcbZHeight)); }
+        }
 
-        public double ToolMMToPixX { get; set; }
-        public double ToolMMToPixY { get; set; }
-        public double ToolZHeight { get; set; }
+        /* Resolution - Tool */
+        private double toolMMToPixX;
+        public double ToolMMToPixX
+        {
+            get { return toolMMToPixX; }
+            set { toolMMToPixX = value; OnPropertyChanged(nameof(ToolMMToPixX)); }
+        }
+        private double toolMMToPixY;
+        public double ToolMMToPixY
+        {
+            get { return toolMMToPixY; }
+            set { toolMMToPixY = value; OnPropertyChanged(nameof(ToolMMToPixY)); }
+        }
+        private double toolZHeight;
+        public double ToolZHeight
+        {
+            get { return toolZHeight; }
+            set { toolZHeight = value; OnPropertyChanged(nameof(ToolZHeight)); }
+        }
 
-        public double FeederMMToPixX { get; set; }
-        public double FeederMMToPixY { get; set; }
-        public double FeederZHeight { get; set; }
+        /* Feeder */
+        private double feeder0X;
+        public double Feeder0X
+        {
+            get { return feeder0X; }
+            set { feeder0X = value; OnPropertyChanged(nameof(Feeder0X)); }
+        }
+        private double feeder0Y;
+        public double Feeder0Y
+        {
+            get { return feeder0Y; }
+            set { feeder0Y = value; OnPropertyChanged(nameof(Feeder0Y)); }
+        }
 
+        private double feederNX;
+        public double FeederNX
+        {
+            get { return feederNX; }
+            set { feederNX = value; OnPropertyChanged(nameof(FeederNX)); }
+        }
+        private double feederNY;
+        public double FeederNY
+        {
+            get { return feederNY; }
+            set { feederNY = value; OnPropertyChanged(nameof(FeederNY)); }
+        }
+
+        private double feederMMToPixX;
+        public double FeederMMToPixX
+        {
+            get { return feederMMToPixX; }
+            set { feederMMToPixX = value; OnPropertyChanged(nameof(FeederMMToPixX)); }
+        }
+        private double feederMMToPixY;
+        public double FeederMMToPixY
+        {
+            get { return feederMMToPixY; }
+            set { feederMMToPixY = value; OnPropertyChanged(nameof(FeederMMToPixY)); }
+        }
+        private double feederZHeight;
+        public double FeederZHeight
+        {
+            get { return feederZHeight; }
+            set { feederZHeight = value; OnPropertyChanged(nameof(FeederZHeight)); }
+        }
 
         /* Camera/Pick Physics */
         public double MachineOriginToDownCameraX { get; set; }
         public double MachineOriginToDownCameraY { get; set; }
         public double MachineOriginToDownCameraZ { get; set; }
 
-        public double MachineOriginToPickHeadX1 { get; set; }
-        public double MachineOriginToPickHeadY1 { get; set; }
-        public double MachineOriginToPickHeadZ1 { get; set; }
+        private double machineOriginToPickHeadX1;
+        public double MachineOriginToPickHeadX1 
+        {  
+            get { return machineOriginToPickHeadX1; }
+            set { machineOriginToPickHeadX1 = value; OnPropertyChanged(nameof(MachineOriginToPickHeadX1)); }
+        }
 
-        public double MachineOriginToPickHeadX2 { get; set; }
-        public double MachineOriginToPickHeadY2 { get; set; }
-        public double MachineOriginToPickHeadZ2 { get; set; }
+        private double machineOriginToPickHeadY1;
+        public double MachineOriginToPickHeadY1
+        {
+            get { return machineOriginToPickHeadY1; }
+            set { machineOriginToPickHeadY1 = value; OnPropertyChanged(nameof(MachineOriginToPickHeadY1)); }
+        }
+
+        private double machineOriginToPickHeadZ1;
+        public double MachineOriginToPickHeadZ1
+        {
+            get { return machineOriginToPickHeadZ1; }
+            set { machineOriginToPickHeadZ1 = value; OnPropertyChanged(nameof(MachineOriginToPickHeadZ1)); }
+        }
+
+        private double machineOriginToPickHeadX2;
+        public double MachineOriginToPickHeadX2
+        {
+            get { return machineOriginToPickHeadX2; }
+            set { machineOriginToPickHeadX2 = value; OnPropertyChanged(nameof(MachineOriginToPickHeadX2)); }
+        }
+
+        private double machineOriginToPickHeadY2;
+        public double MachineOriginToPickHeadY2
+        {
+            get { return machineOriginToPickHeadY2; }
+            set { machineOriginToPickHeadY2 = value; OnPropertyChanged(nameof(MachineOriginToPickHeadY2)); }
+        }
+
+        private double machineOriginToPickHeadZ2;
+        public double MachineOriginToPickHeadZ2
+        {
+            get { return machineOriginToPickHeadZ2; }
+            set { machineOriginToPickHeadZ2 = value; OnPropertyChanged(nameof(MachineOriginToPickHeadZ2)); }
+        }
 
         /* Steps Per Unit */
         public double StepsPerUnitX { get; set; }
@@ -60,11 +166,22 @@ namespace Picky
         public double DownCameraToItemX { get; set; }
         public double DownCameraToItemY { get; set; }
 
-        public double DownCameraToPickHeadX { get; set; }
-        public double DownCameraToPickHeadY { get; set; }
-
         public double DownCameraAngleX { get; set; }
         public double DownCameraAngleY { get; set; }
+
+        private double downCameraToPickHeadX;
+        public double DownCameraToPickHeadX 
+        {
+            get { return downCameraToPickHeadX; }
+            set { downCameraToPickHeadX = value; OnPropertyChanged(nameof(DownCameraToPickHeadX)); }
+        }
+
+        private double downCameraToPickHeadY;
+        public double DownCameraToPickHeadY
+        {
+            get { return downCameraToPickHeadY; }
+            set { downCameraToPickHeadY = value; OnPropertyChanged(nameof(DownCameraToPickHeadY)); }
+        }
 
 
         public CalibrationModel()
@@ -83,23 +200,10 @@ namespace Picky
          ****/
         {
             DownCameraToPickHeadX = -1 * (MachineOriginToPickHeadX1 - MachineOriginToDownCameraX + (Math.Sin(DownCameraAngleX) * targetZ));
-            DownCameraToPickHeadY = MachineOriginToPickHeadY1 - MachineOriginToDownCameraY + (Math.Sin(DownCameraAngleY) * targetZ);
-
+            DownCameraToPickHeadY = -1 * (MachineOriginToPickHeadY1 - MachineOriginToDownCameraY + (Math.Sin(DownCameraAngleY) * targetZ));
             return (DownCameraToPickHeadX, DownCameraToPickHeadY);
         }
-
-        public (double x_offset, double y_offset) GetItemOffsetToCamera(Point2f itemPixelLocation, double targetZ)
-        /*************************************************************************************
-         * When you've centered the camera but it's not quite aligned you need to call here 
-         * with the approximate z of the target.  This function will return the offset.   
-         ****/
-        {
-            DownCameraToItemX = -1 * (MachineOriginToPickHeadX1 - MachineOriginToDownCameraX + (Math.Sin(DownCameraAngleX) * targetZ));
-            DownCameraToItemY = MachineOriginToPickHeadY1 - MachineOriginToDownCameraY + (Math.Sin(DownCameraAngleY) * targetZ);
-
-            return (DownCameraToItemX, DownCameraToItemY);
-        }
-
+                
         private bool calcDownAngles()
         {
             /****************************************************************************************

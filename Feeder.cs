@@ -103,9 +103,10 @@ namespace Picky
             _part.PropertyChanged += OnPartPropertyChanged;
         }
 
-        public bool SetCandidateNextPartLocation(double x, double y)
+        public void SetCandidateNextPartLocation(double x, double y)
         {
-            return false;
+            y_next_part = y;
+            x_next_part = x;
         }
 
         private void OnPartPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -154,16 +155,23 @@ namespace Picky
         public ICommand GoToNextComponentCommand { get { return new RelayCommand(GoToNextComponent); } }
         private void GoToNextComponent()
         {
-            
+            machine.Messages.Add(GCommand.G_SetPosition(x_next_part, y_next_part, 0, 0, 0));
         }
 
         public ICommand PickNextComponentCommand { get { return new RelayCommand(PickNextComponent); } }
         public void PickNextComponent()
-        {                     
-            if (x_next_part != 0 && y_next_part != 0)
-            {
-                
-            }
+        {
+            var offset = machine.Cal.GetPickHeadOffsetToCamera(125.0);
+            Console.WriteLine("Pick Head / Camera Offset: " + offset.ToString());
+            double x = x_next_part + offset.x_offset;
+            double y = y_next_part + offset.y_offset;
+            machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_ProbeZ(125.0));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            machine.Messages.Add(GCommand.G_EnablePump(true));
+            machine.Messages.Add(GCommand.G_EnableValve(false));
+            machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_FinishMoves());
         }
 
         public void PickNextComponentOptically()
@@ -176,16 +184,24 @@ namespace Picky
         private void SetPartTemplate()
         {
             Console.WriteLine("Set Part Template");
+            Mat mat = new Mat();
+            Cv2.CopyTo(machine.downCamera.ColorImage, mat);
             using (Window window = new Window("Select ROI"))
             {
-                window.Image = machine.downCamera.ColorImage;
+                window.Image = mat;
 
                 // Use SelectROI to interactively select a region
-                OpenCvSharp.Rect roi = Cv2.SelectROI("Select ROI", machine.downCamera.ColorImage);
-
-                // Capture the selected ROI
-                part.Template = new Mat(machine.downCamera.ColorImage, roi);
-
+                try
+                {
+                    OpenCvSharp.Rect roi = Cv2.SelectROI("Select ROI", mat);
+                    // Capture the selected ROI
+                    part.Template = new Mat(machine.downCamera.ColorImage, roi);
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine("Ouch - Memory Exception: " + ex.ToString());
+                }
+                
                 // Write part template to file
                 DateTime now = DateTime.Now;
                 String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);

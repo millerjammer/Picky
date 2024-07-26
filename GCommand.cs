@@ -22,14 +22,7 @@ namespace Picky
          *  
          ***********************************************************/
 
-        public static MachineMessage C_LocateCircle(Rect roi)
-        {
-            MachineMessage msg = new MachineMessage();
-            msg.roi = roi;
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("L0 CIR X{0} Y{1} W{2} H{3}\n", roi.X, roi.Y, roi.Width, roi.Height));
-            return msg;
-        }
-
+        
         public static MachineMessage G_IterativeAlignToCircle(CircleSegment estimate, Circle3d result, int max_iterations)
         {
         /*---------------------------------------------------------------
@@ -58,11 +51,10 @@ namespace Picky
          ***********************************************************/
 
 
-        public static MachineMessage X_SetCalFactor(int typeOfCal)
+        public static MachineMessage X_SetCalFactor(char typeOfCal)
         {
             MachineMessage msg = new MachineMessage();
-            msg.cmd[0] = Constants.X_SET_CAL_FACTOR;
-            msg.calType = typeOfCal;
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("X100 {0}\n", typeOfCal));
             return msg;
         }
 
@@ -102,18 +94,6 @@ namespace Picky
 
             msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} Z{2} A{3}\n", x, y, z, a));
             return msg;
-        }
-
-        public static MachineMessage G_SetPositionAs(double x, double y, double z, double a, double b)
-        {
-
-            MachineMessage msg = new MachineMessage();
-            msg.target.x = x; msg.target.y = y;
-            msg.target.z = z; msg.target.a = a;
-            msg.target.b = b; 
-
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G92 X{0} Y{1} Z{2}\n", x, y, z));
-            return(msg);
         }
 
         public static MachineMessage G_EnableSteppers(byte axis, bool enable)
@@ -215,6 +195,10 @@ namespace Picky
         {
             MachineMessage msg = new MachineMessage();
             msg.cmd = Encoding.UTF8.GetBytes(string.Format("G28 Z\nG28 A\nG28 Y\nG28 X\n"));
+            msg.target.y = 0;
+            msg.target.x = 0;
+            msg.target.a = 0;
+            msg.target.z = 0;
             return msg;
         }
         

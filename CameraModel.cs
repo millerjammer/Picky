@@ -35,13 +35,15 @@ namespace Picky
         /* What we are currently viewing */
         public VisualizationStyle SelectedVisualizationViewItem { get; set; }
 
+        public bool SuspendImageProcessing = false;
+
         /* Mats for Part Identification */
         private Mat grayTemplateImage;
         private Mat matchResultImage;
 
         public VideoCapture capture { get; set; }
 
-        private bool searchCircleRequest = false;
+                private bool searchCircleRequest = false;
         private OpenCvSharp.Rect searchCircleROI;
         private CircleSegment searchCircleToFind;
         private CircleSegment bestCircle;
@@ -283,16 +285,22 @@ namespace Picky
 
             double x_next = 0, y_next = 0, y_last = 0;
             int match_count = 0;
-            // double x_offset_pixels, y_offset_pixels;
-            // double x_next_part, y_next_part;
+            double x_offset_pixels, y_offset_pixels;
+            double x_next_part, y_next_part;
             Mat res_32f;
 
             Mat template = part.Template;
 
-            Cv2.CvtColor(template, grayTemplateImage, OpenCvSharp.ColorConversionCodes.BGR2GRAY);
-
-            res_32f = new Mat(image.Rows - template.Rows + 1, image.Cols - template.Cols + 1, MatType.CV_32FC1);
-            Cv2.MatchTemplate(GrayImage, grayTemplateImage, res_32f, TemplateMatchModes.CCoeffNormed);
+            try
+            {
+                Cv2.CvtColor(template, grayTemplateImage, OpenCvSharp.ColorConversionCodes.BGR2GRAY);
+                res_32f = new Mat(image.Rows - template.Rows + 1, image.Cols - template.Cols + 1, MatType.CV_32FC1);
+                Cv2.MatchTemplate(GrayImage, grayTemplateImage, res_32f, TemplateMatchModes.CCoeffNormed);
+            }catch (Exception e)
+            {
+                Console.WriteLine($"Error matching: {e.Message}");
+                return false;
+            };
 
             /* Show Result */
             res_32f.ConvertTo(matchResultImage, MatType.CV_8U, 255.0);
@@ -324,16 +332,12 @@ namespace Picky
                 {
                     part.IsInView = true;
                     // Tell Part where to pick the next part
-                    //x_offset_pixels = x_next - (0.5 * Constants.CAMERA_FRAME_WIDTH);
-                    //y_offset_pixels = -(y_next - (0.5 * Constants.CAMERA_FRAME_HEIGHT));
-                    //x_next_part = machine.CurrentX + (x_offset_pixels * machine.GetImageScaleAtDistanceX(machine.CurrentZ + Constants.FEEDER_TO_PLATFORM_ZOFFSET));
-                    //y_next_part = machine.CurrentY + (y_offset_pixels * machine.GetImageScaleAtDistanceY(machine.CurrentZ + Constants.FEEDER_TO_PLATFORM_ZOFFSET));
-                    //if (machine.selectedCassette.selectedFeeder.SetCandidateNextPartLocation(x_next_part, y_next_part) == true)
-                    // {
-                    //     IsPartInView = true;
-                    //     x_part_cursor = x_next; y_part_cursor = y_next;
-                    // }
-                    Console.WriteLine("Count: " + match_count);
+                    x_offset_pixels = (x_next - (0.5 * Constants.CAMERA_FRAME_WIDTH));
+                    y_offset_pixels = (y_next - (0.5 * Constants.CAMERA_FRAME_HEIGHT));
+                    x_next_part = machine.CurrentX - (x_offset_pixels * machine.Cal.FeederMMToPixX);
+                    y_next_part = machine.CurrentY + (y_offset_pixels * machine.Cal.FeederMMToPixY);
+                    machine.selectedCassette.selectedFeeder.SetCandidateNextPartLocation(x_next_part, y_next_part);
+                    //Console.WriteLine("Count: " + match_count + " " + x_next_part + " " + y_next_part);
                     break;
                 }
                 else
@@ -359,10 +363,14 @@ namespace Picky
 
         private void Worker_DoWork(object sender, DoWorkEventArgs e)
         {
+        /*----------------------------------------------------------------
+         * This is the real-time worker - don't abuse it
+         * 
+         * --------------------------------------------------------------*/
+
             var worker = (BackgroundWorker)sender;
             while (!worker.CancellationPending)
             {
-
                 try
                 {
                     RawImage = capture.RetrieveMat();
@@ -382,30 +390,31 @@ namespace Picky
                     GC.WaitForPendingFinalizers();
                 }
 
-                if (PartToFind != null)
+                if (SuspendImageProcessing == false)
                 {
-                    //if (FindPartInImage(PartToFind, ColorImage))
-                    //{
-                    //OpenCvSharp.Cv2.DrawMarker(ColorImage, new OpenCvSharp.Point(PartToFind.CenterX, PartToFind.CenterY), new OpenCvSharp.Scalar(0, 0, 255), OpenCvSharp.MarkerTypes.Cross, 100, 1);
-                    //}
-                }
-                else if (searchCircleRequest)
-                {
-                    FindCircleInROI(true);
-                    searchCircleRequest = false;
-                }
-                if (searchQRRequest)
-                {
-                    if (DecodeQRCode())
+                    if (PartToFind != null)
                     {
-                        for (int i = 0; i < currentQRCodePoints.Length; i++)
-                        {
-                            OpenCvSharp.Cv2.DrawMarker(ColorImage, new OpenCvSharp.Point(currentQRCodePoints[i].X, currentQRCodePoints[i].Y), new OpenCvSharp.Scalar(255, 0, 0), OpenCvSharp.MarkerTypes.Cross, 200, 4);
-                        }
+                        FindPartInImage(PartToFind, ColorImage);
                     }
-                    searchQRRequest = false;
+                    else if (searchCircleRequest)
+                    {
+                        FindCircleInROI(true);
+                        searchCircleRequest = false;
+                    }
+                    else if (searchQRRequest)
+                    {
+                        if (DecodeQRCode())
+                        {
+                            for (int i = 0; i < currentQRCodePoints.Length; i++)
+                            {
+                                OpenCvSharp.Cv2.DrawMarker(ColorImage, new OpenCvSharp.Point(currentQRCodePoints[i].X, currentQRCodePoints[i].Y), new OpenCvSharp.Scalar(255, 0, 0), OpenCvSharp.MarkerTypes.Cross, 200, 4);
+                            }
+                        }
+                        searchQRRequest = false;
+                    }
                 }
 
+                /* Draw default cursor */
                 OpenCvSharp.Cv2.DrawMarker(ColorImage, new OpenCvSharp.Point(ColorImage.Cols / 2, ColorImage.Rows / 2), new OpenCvSharp.Scalar(0, 0, 255), OpenCvSharp.MarkerTypes.Cross, 100, 1);
                 App.Current.Dispatcher.Invoke(() =>
                 {

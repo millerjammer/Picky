@@ -1,4 +1,5 @@
-﻿using OpenCvSharp;
+﻿using EnvDTE;
+using OpenCvSharp;
 using System;
 using System.IO.Ports;
 using System.Linq;
@@ -28,7 +29,7 @@ namespace Picky
 
             /* Open Port */
             serialPort = new SerialPort();
-            serialPort.PortName = "COM12";
+            serialPort.PortName = Constants.SERIAL_PORT;
             serialPort.BaudRate = 115200;
             /* The following is critial! Or no RX for you */
             serialPort.RtsEnable = true;
@@ -108,8 +109,8 @@ namespace Picky
                     length = Array.IndexOf(serial_buffer, (byte)'\n') + 1;
 
                     //There are enough bytes to parse a message, first, write what we got
-                    for (j = 0; j < length; j++)
-                    Console.Write((char)serial_buffer[j]);
+                    //for (j = 0; j < length; j++)
+                    //Console.Write((char)serial_buffer[j]);
 
                     //Check return message, OK message is always the last to send
                     if (machine.Messages.Count > 0 && machine.Messages.Count > rx_msgCount)
@@ -285,33 +286,39 @@ namespace Picky
                                     rx_msgCount++;
                                 }
                             }
-                            else if ((msg.cmd[0] == Constants.X_SET_CAL_FACTOR))
-                            {
-                                CircleSegment cs = machine.downCamera.GetBestCircle();
-                                if (msg.calType == Constants.CAL_TYPE_RESOLUTION_AT_PCB)
-                                {
-                                    machine.Cal.PcbMMToPixX = (1000 * 0.0254) / cs.Radius; //  [mm/pic]
-                                    machine.Cal.PcbMMToPixY = (1000 * 0.0254) / cs.Radius;
-                                }
-                                else if (msg.calType == Constants.CAL_TYPE_RESOLUTION_AT_TOOL)
-                                {
-                                    machine.Cal.ToolMMToPixX = (1000 * 0.0254) / cs.Radius; //  [mm/pic]
-                                    machine.Cal.ToolMMToPixY = (1000 * 0.0254) / cs.Radius;
-                                }
-                                else if (msg.calType == Constants.CAL_TYPE_Z_DISTANCE_AT_PCB)
-                                {
-                                    machine.Cal.PcbZHeight = machine.CurrentZ;
-                                }
-                                else if (msg.calType == Constants.CAL_TYPE_Z_DISTANCE_AT_TOOL)
-                                {
-                                    machine.Cal.ToolZHeight = machine.CurrentZ;
-                                }
-                                msg.state = MachineMessage.MessageState.Complete;
-                                rx_msgCount++;
-                            }
+                            
                         }
-                        // Commands that don't return ok - messages waiting for valid position = target position
-                        if (msg.state == MachineMessage.MessageState.PendingPosition && isPositionGood(msg))
+                        //Commands no waiting for an 'OK'
+                        if (msg.cmdString.StartsWith("X100"))
+                        {
+                            CircleSegment cs = machine.downCamera.GetBestCircle();
+                            char calType = (char)msg.cmd[5];
+                            if (calType == Constants.CAL_TYPE_RESOLUTION_AT_PCB)
+                            {
+                                machine.Cal.PcbMMToPixX = (1000 * 0.0254) / cs.Radius; //  [mm/pic]
+                                machine.Cal.PcbMMToPixY = (1000 * 0.0254) / cs.Radius;
+                                Console.WriteLine("Resolution at PCB: " + machine.Cal.PcbMMToPixX + "/" + machine.Cal.PcbMMToPixY + " mm/pix");
+                            }
+                            else if (calType == Constants.CAL_TYPE_RESOLUTION_AT_TOOL)
+                            {
+                                machine.Cal.ToolMMToPixX = (1000 * 0.0254) / cs.Radius; //  [mm/pic]
+                                machine.Cal.ToolMMToPixY = (1000 * 0.0254) / cs.Radius;
+                            }
+                            else if (calType == Constants.CAL_TYPE_Z_DISTANCE_AT_PCB)
+                            {
+                                machine.Cal.PcbZHeight = machine.CurrentZ;
+                                Console.WriteLine("Z @ PCB: " + machine.Cal.PcbZHeight + " mm");
+                            }
+                            else if (calType == Constants.CAL_TYPE_Z_DISTANCE_AT_TOOL)
+                            {
+                                machine.Cal.ToolZHeight = machine.CurrentZ;
+                            }
+                            Console.WriteLine("Calibrated, Type: " + calType);
+                            msg.state = MachineMessage.MessageState.Complete;
+                            rx_msgCount++;
+                        }
+                        // Messages waiting for valid position = target position
+                        else if (msg.state == MachineMessage.MessageState.PendingPosition && isPositionGood(msg))
                         {
                             // Make sure we get another position report before checking here 
                             if (msg.cmdString.StartsWith("J100"))

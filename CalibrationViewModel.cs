@@ -130,10 +130,36 @@ namespace Picky
             machine.Cal.GetPickHeadOffsetToCamera(Machine.CurrentZ);
         }
 
+        public ICommand GetFeeder0Command { get { return new RelayCommand(GetFeeder0); } }
+        private void GetFeeder0()
+        {
+            machine.Cal.Feeder0X = machine.CurrentX;
+            machine.Cal.Feeder0Y = machine.CurrentY;
+        }
+
+        public ICommand GetFeederNCommand { get { return new RelayCommand(GetFeederN); } }
+        private void GetFeederN()
+        {
+            machine.Cal.FeederNX = machine.CurrentX;
+            machine.Cal.FeederNY = machine.CurrentY;
+        }
+
+        public ICommand GoToFeederNCommand { get { return new RelayCommand(GoToFeederN); } }
+        private void GoToFeederN()
+        {
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.FeederNX, machine.Cal.FeederNY - 40, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.FeederNX, machine.Cal.FeederNY, 0, 0, 0));
+        }
+        public ICommand GoToFeeder0Command { get { return new RelayCommand(GoToFeeder0); } }
+        private void GoToFeeder0()
+        {
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.Feeder0X, machine.Cal.Feeder0Y - 40, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.Feeder0X, machine.Cal.Feeder0Y, 0, 0, 0));
+        }
+
         /* This is called when machine z changes */
         private void OnMachinePropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            OnPropertyChanged(nameof(Machine.CurrentZ));
             machine.Cal.GetPickHeadOffsetToCamera(Machine.CurrentZ);
         }
         
@@ -155,16 +181,13 @@ namespace Picky
             GetResolution(cal_target_x, cal_target_y, Constants.CAL_TYPE_RESOLUTION_AT_TOOL, Constants.CAL_TYPE_Z_DISTANCE_AT_TOOL);
         }
 
-        public ICommand GetResolutionAtFeederCommand { get { return new RelayCommand(GetResolutionAtFeeder); } }
-        private void GetResolutionAtFeeder()
-        {
-        }
 
-        private void GetResolution(double x, double y, byte type, byte type2)
+
+       
+        private void GetResolution(double x, double y, char type, char type2)
         {
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));
-
             CircleSegment calCircle = new CircleSegment();
             calCircle.Center = new Point2f((float)x, (float)y);
             calCircle.Radius = ((float)(CalTargetModel.TARGET_RESOLUTION_RADIUS_MILS * Constants.MIL_TO_MM));
