@@ -95,12 +95,7 @@ namespace Picky
 
             grayTemplateImage = new Mat();
             matchResultImage = new Mat();
-
-            System.Timers.Timer imgTimer = new System.Timers.Timer();
-            imgTimer.Elapsed += new ElapsedEventHandler(OnTimer);
-            imgTimer.Interval = 2000;
-            imgTimer.Enabled = false;
-
+                        
             capture = new VideoCapture();
 
             capture.Open(cameraIndex);
@@ -132,7 +127,7 @@ namespace Picky
 
         public CircleSegment GetBestCircle()
         {
-            Console.WriteLine("Best Circle: " + bestCircle.ToString());
+            Console.WriteLine("Best Circle (in pixels): " + bestCircle.ToString());
             return bestCircle;
         }
 
@@ -142,6 +137,11 @@ namespace Picky
         }
 
         public void RequestCircleLocation(OpenCvSharp.Rect roi, CircleSegment sc)
+        /*-------------------------------------------------------------------------
+         * Call here to start the process, use IsCircleSearchActive to monitor
+         * progress and GetBestCircle when it's no longer active. roi is the region 
+         * of interest in pixels.  sc is the circle to find, an estimate in mm
+         * ------------------------------------------------------------------------*/
         {
             //sc is in MM
             searchCircleRequest = true;
@@ -162,6 +162,10 @@ namespace Picky
         }
 
         public void RequestQRCodeLocation()
+        /*-------------------------------------------------------------------------
+        * Call here to start the process, use IsQRSearchActive to monitor
+        * progress and GetQRCode when it's no longer active
+        * ------------------------------------------------------------------------*/
         {
             searchQRRequest = true;
         }
@@ -187,7 +191,9 @@ namespace Picky
                         return false;
                     detector.DecodeMulti(GrayImage, currentQRCodePoints, out currentQRCode);
                     for (int i = 0; i < currentQRCode.Length; i++)
-                        Console.WriteLine("QR: " + currentQRCode[i]);
+                    {
+                        Console.WriteLine("QR: " + currentQRCode[i] + " " + currentQRCodePoints[i] + " " + currentQRCodePoints[i]);
+                    }
                     if (currentQRCode.Length > 0)
                         return true;
                     return false;
@@ -207,7 +213,7 @@ namespace Picky
              * Returns false if no circle found, sets bestCircle to 0,0 r0
              * Returns true if circle found, call GetBestCircle() to get CircleSegement
              * where center contains the offset from the center of the image.
-             * 
+             * ROI in pixels.
              * Use:
              * IsCircleSearchActive() to see if a search is active 
              * GetBestCircle() to get result of last successful search. 
@@ -221,7 +227,8 @@ namespace Picky
 
             CircleROI = new Mat(DilatedImage, searchCircleROI);
 
-            //Convert the estimated circle (in MM?) to search criteria (in Pix) based on z?
+            //Convert the estimated circle (in MM) to search criteria (in Pix) based on z.  This is a total guess
+            //we should not use PcbMMToPixX - that should be private to cal.
             int minR = (int)((searchCircleToFind.Radius) / machine.Cal.PcbMMToPixX);
             int maxR = (int)((searchCircleToFind.Radius * 4) / machine.Cal.PcbMMToPixX);
 
@@ -253,7 +260,7 @@ namespace Picky
             CircleSegment closestCircle = circles.OrderBy(circle =>
                 Math.Pow(circle.Center.X - imageCenter.X, 2) + Math.Pow(circle.Center.Y - imageCenter.Y, 2)).First();
 
-            // Calculate the offset of the closest circle from the center of the image
+            // Calculate the offset of the closest circle from the center of the image, in pixels
             Point2f CircleToFind = new Point2f(closestCircle.Center.X - imageCenter.X, closestCircle.Center.Y - imageCenter.Y);
             bestCircle = closestCircle;
             bestCircle.Center = CircleToFind;
@@ -334,8 +341,9 @@ namespace Picky
                     // Tell Part where to pick the next part
                     x_offset_pixels = (x_next - (0.5 * Constants.CAMERA_FRAME_WIDTH));
                     y_offset_pixels = (y_next - (0.5 * Constants.CAMERA_FRAME_HEIGHT));
-                    x_next_part = machine.CurrentX - (x_offset_pixels * machine.Cal.FeederMMToPixX);
-                    y_next_part = machine.CurrentY + (y_offset_pixels * machine.Cal.FeederMMToPixY);
+                    var scale = machine.Cal.GetScaleMMPerPixAtZ(machine.CurrentZ);
+                    x_next_part = machine.CurrentX - (x_offset_pixels * scale.xScale);
+                    y_next_part = machine.CurrentY + (y_offset_pixels * scale.yScale);
                     machine.selectedCassette.selectedFeeder.SetCandidateNextPartLocation(x_next_part, y_next_part);
                     //Console.WriteLine("Count: " + match_count + " " + x_next_part + " " + y_next_part);
                     break;
@@ -348,12 +356,7 @@ namespace Picky
             }
             return part.IsInView;
         }
-
-        public void OnTimer(object source, ElapsedEventArgs e)
-        {
-            searchQRRequest = true;
-        }
-
+                
         public void Dispose()
         {
             bkgWorker.CancelAsync();
@@ -390,29 +393,28 @@ namespace Picky
                     GC.WaitForPendingFinalizers();
                 }
 
-                if (SuspendImageProcessing == false)
+                if (searchQRRequest)
                 {
-                    if (PartToFind != null)
+                    if (DecodeQRCode())
                     {
-                        FindPartInImage(PartToFind, ColorImage);
-                    }
-                    else if (searchCircleRequest)
-                    {
-                        FindCircleInROI(true);
-                        searchCircleRequest = false;
-                    }
-                    else if (searchQRRequest)
-                    {
-                        if (DecodeQRCode())
+                        for (int i = 0; i < currentQRCodePoints.Length; i++)
                         {
-                            for (int i = 0; i < currentQRCodePoints.Length; i++)
-                            {
-                                OpenCvSharp.Cv2.DrawMarker(ColorImage, new OpenCvSharp.Point(currentQRCodePoints[i].X, currentQRCodePoints[i].Y), new OpenCvSharp.Scalar(255, 0, 0), OpenCvSharp.MarkerTypes.Cross, 200, 4);
-                            }
+                            OpenCvSharp.Cv2.DrawMarker(ColorImage, new OpenCvSharp.Point(currentQRCodePoints[i].X, currentQRCodePoints[i].Y), new OpenCvSharp.Scalar(255, 0, 0), OpenCvSharp.MarkerTypes.Cross, 200, 4);
+      
                         }
                         searchQRRequest = false;
                     }
                 }
+                else if (PartToFind != null)
+                {
+                      FindPartInImage(PartToFind, ColorImage);
+                }
+                else if (searchCircleRequest)
+                {
+                      FindCircleInROI(true);
+                      searchCircleRequest = false;
+                }
+                                    
 
                 /* Draw default cursor */
                 OpenCvSharp.Cv2.DrawMarker(ColorImage, new OpenCvSharp.Point(ColorImage.Cols / 2, ColorImage.Rows / 2), new OpenCvSharp.Scalar(0, 0, 255), OpenCvSharp.MarkerTypes.Cross, 100, 1);

@@ -39,6 +39,18 @@ namespace Picky
                    
         }
 
+        public ICommand ButtonBLeftCommand { get { return new RelayCommand(ButtonBLeft); } }
+        private void ButtonBLeft()
+        {
+            machine.Messages.Add(GCommand.G_DriveTapeAdvance((int)distanceToAdvance));
+        }
+
+        public ICommand ButtonBRightCommand { get { return new RelayCommand(ButtonBRight); } }
+        private void ButtonBRight()
+        {
+            machine.Messages.Add(GCommand.G_DriveTapeAdvance((int)(-distanceToAdvance)));
+        }
+
         public ICommand ButtonXLeftCommand { get { return new RelayCommand(ButtonXLeft); } }
         private void ButtonXLeft()
         {

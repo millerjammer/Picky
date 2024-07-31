@@ -126,6 +126,9 @@ namespace Picky
         {
             Console.WriteLine("Go To Feeder Position: " + x_origin + " mm " + y_origin + " mm");
             machine.Messages.Add(GCommand.G_SetPosition(x_origin, y_origin, 0, 0, 0));
+            MachineMessage message = GCommand.G_GetQRCode(4);
+            message.feederSrc = this;               //This is where the result goes.
+            machine.Messages.Add(message);
         }
 
         public ICommand GoToFeederDriveCommand { get { return new RelayCommand(GoToFeederDrive); } }

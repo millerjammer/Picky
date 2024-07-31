@@ -35,8 +35,9 @@ namespace Picky
         public int calType;
         public int iterationCount;
         public CircleSegment circleToFind;
-
-                       
+        public Circle3d circleSrc;
+        public Feeder feederSrc;
+                               
         private byte[] _cmd;
         public byte[] cmd 
         {

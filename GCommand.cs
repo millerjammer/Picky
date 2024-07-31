@@ -23,7 +23,7 @@ namespace Picky
          ***********************************************************/
 
         
-        public static MachineMessage G_IterativeAlignToCircle(CircleSegment estimate, Circle3d result, int max_iterations)
+        public static MachineMessage G_IterativeAlignToCircle(CircleSegment estimate, int max_iterations)
         {
         /*---------------------------------------------------------------
          * This function moves the head to a circle that looks like the
@@ -31,7 +31,8 @@ namespace Picky
          * know mm/pixel at the current Z.  This is typically used for 
          * calibration only.  Starts as a J100(position) -> J200(imaging)
          * then repeats.  After this runs the best circle will be found 
-         * at GetBestCircle() in the down camera object.
+         * at GetBestCircle() in the down camera object.  The estimate is in 
+         * unit of mm
          * -------------------------------------------------------------*/
 
             MachineMessage msg = new MachineMessage();
@@ -41,6 +42,15 @@ namespace Picky
             msg.target.x = estimate.Center.X; msg.target.y = estimate.Center.Y;
             msg.circleToFind = estimate;
                                                                 
+            return msg;
+        }
+
+        public static MachineMessage G_GetQRCode(int max_iterations)
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.iterationCount = max_iterations;
+            msg.cmd = Encoding.ASCII.GetBytes("J101\n");
+            
             return msg;
         }
 
@@ -109,12 +119,35 @@ namespace Picky
 
         public static MachineMessage G_EnableIlluminator(bool enable)
         {
+            /*--------------------------------------------------------------
+             * I2C to Arduino where protocol is simple. Address is 8
+             * byte index 0 is sync byte and must be '!' (33d/0x21)
+             * byte index 1 is device: 0 = LED, 1 = Upper Motor
+             * byte index 2 is PWM value for LED, motor on time in ms > 0 CCW
+             * Important! Marlin is 0-255, the RPi is character -128 -> 127 we
+             * we gotta at 128.
+             * -------------------------------------------------------------*/
+
             MachineMessage msg = new MachineMessage();
             
             if (enable == true)
-                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M260 A8 B33\nM260 B0\nM260 B50 S1\n"));
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M260 A8 B33\nM260 B0\nM260 B178 S1\n"));
             else
-                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M260 A8 B33\nM260 B0\nM260 B0 S1\n"));
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M260 A8 B33\nM260 B0\nM260 B128 S1\n"));
+            return msg;
+        }
+
+        public static MachineMessage G_DriveTapeAdvance(int duration)
+        {
+            /*---------------------------------------------------------------
+             * We send a single character with range -128 - +127.  
+             * Call with duration -128 to +127.  This routine will ADD 128 so
+             * the range is 0-255 which the Marlin firmware will accept this 
+             * 128 will be subtracted on the other side
+             * --------------------------------------------------------------*/
+            
+            MachineMessage msg = new MachineMessage();
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M260 A8 B33\nM260 B1\nM260 B{0} S1\n", (duration + 128) ));
             return msg;
         }
 
@@ -205,6 +238,10 @@ namespace Picky
        
         public static MachineMessage G_SetRPosition(double angle)
         {
+        /*---------------------------------------------------------------------------
+         * Servo Position
+         * -------------------------------------------------------------------------*/
+
             MachineMessage msg = new MachineMessage();
             if (angle < 0)
                 angle = 0;

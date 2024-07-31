@@ -91,7 +91,7 @@ namespace Picky
          *********************************************************************/
         {
 
-            int length, i, j, k;
+            int length, i, j, k ;
             int bytes_read;
             MachineMessage msg;
             byte[] sbuf = new byte[1024];
@@ -144,16 +144,14 @@ namespace Picky
                                     {
                                         Console.WriteLine("down illuminator off");
                                         machine.IsIlluminatorActive = false;
-                                        msg.state = MachineMessage.MessageState.Complete;
-                                        rx_msgCount++;
                                     }
                                     else if (matches[1].Value == "B0" && matches[2].Value == "B5")
                                     {
                                         Console.WriteLine("down illuminator on");
-                                        machine.IsIlluminatorActive = true;
-                                        msg.state = MachineMessage.MessageState.Complete;
-                                        rx_msgCount++;
                                     }
+                                    // Ack all I2C messages
+                                    msg.state = MachineMessage.MessageState.Complete;
+                                    rx_msgCount++;
                                 }
                                 // Parse Fan Status
                                 else if (msg.cmdString.StartsWith("M106"))
@@ -256,26 +254,57 @@ namespace Picky
                                     rx_msgCount++;
                                 }
                             }
-                            // Handle commands do not output an OK to the serial port - J200 is an imager request
+                            // Handle commands do not output an OK to the serial port - J200 is an Iterative Align to Circle
                             else if (msg.cmdString.StartsWith("J200"))
                             {
-                                if(machine.downCamera.IsCircleSearchActive() == false)
+                                if (machine.downCamera.IsCircleSearchActive() == false)
                                 {
                                     // Restart repeating message as new message
                                     Point2d offset = new Point2d(machine.Cal.PcbMMToPixX * machine.downCamera.GetBestCircle().Center.X, machine.Cal.PcbMMToPixY * machine.downCamera.GetBestCircle().Center.Y);
                                     msg.cmd = Encoding.ASCII.GetBytes(string.Format("J100 Position Error [mm] X: {0:F3} Y: {1:F3}\n", offset.X, offset.Y));
                                     msg.state = MachineMessage.MessageState.ReadyToSend;
-                                    // Use 1/2 the offset to calculate next location
-                                    msg.target.x += ((-1 * (offset.X / 2)) / 2); 
+                                    // Use 1/2 the offset to calculate next location, we can't assume to know resolution, so we can't jump 
+                                    msg.target.x += ((-1 * (offset.X / 2)) / 2);
                                     msg.target.y += ((offset.Y / 2) / 2);
-                                    
+
                                     if ((msg.iterationCount--) <= 0)
                                     {
                                         Console.WriteLine("J200 Command Complete: Best Circle: " + machine.downCamera.GetBestCircle().ToString());
+                                        msg.circleSrc.X = machine.downCamera.GetBestCircle().Center.X;
+                                        msg.circleSrc.Y = machine.downCamera.GetBestCircle().Center.Y;
                                         msg.state = MachineMessage.MessageState.Complete;
                                         rx_msgCount++;
                                     }
                                     msg.delay = 0;
+                                }
+                            }
+                            // This is a QR Request
+                            else if (msg.cmdString.StartsWith("J101"))
+                            {
+                                if (machine.downCamera.IsQRSearchActive() == false)
+                                {   
+                                    //Go through all the QR codes found
+                                    for(i = 0; i < machine.downCamera.CurrentQRCode.Length; i++)
+                                    {
+                                        //Check if cursor is over the QR Code - this is the QR Code that determines this feeders position, using mm units
+
+                                        if (machine.downCamera.CurrentQRCodePoints[i].X < msg.feederSrc.x_origin && machine.downCamera.CurrentQRCodePoints[i + 2].X > msg.feederSrc.x_origin)
+                                        {
+                                            if (machine.downCamera.CurrentQRCodePoints[i].Y > msg.feederSrc.y_origin && machine.downCamera.CurrentQRCodePoints[i + 2].Y < msg.feederSrc.y_origin)
+                                            {
+                                                msg.feederSrc.x_origin = (machine.downCamera.CurrentQRCodePoints[i].X + machine.downCamera.CurrentQRCodePoints[i + 2].X) / 2;
+                                                msg.feederSrc.y_origin = (machine.downCamera.CurrentQRCodePoints[i].Y + machine.downCamera.CurrentQRCodePoints[i + 2].Y) / 2;
+                                            }
+                                        }
+                                    }
+                                    msg.state = MachineMessage.MessageState.Complete;
+                                    rx_msgCount++;
+                                }
+                                else if ((msg.iterationCount--) <= 0)
+                                {
+                                    Console.WriteLine("No QR Code Found");
+                                    msg.state = MachineMessage.MessageState.Complete;
+                                    rx_msgCount++;
                                 }
                             }
                             else if (msg.cmdString.StartsWith("L0"))
@@ -317,7 +346,7 @@ namespace Picky
                             msg.state = MachineMessage.MessageState.Complete;
                             rx_msgCount++;
                         }
-                        // Messages waiting for valid position = target position
+                        // Messages waiting for valid position = Target position
                         else if (msg.state == MachineMessage.MessageState.PendingPosition && isPositionGood(msg))
                         {
                             // Make sure we get another position report before checking here 
@@ -405,7 +434,7 @@ namespace Picky
                     {
                         if (msg.cmd[3] == '*')
                         {
-                            //Convert circle target to location
+                            //Convert circle Target to location
                             Point2d offset = new Point2d(machine.Cal.PcbMMToPixX * machine.downCamera.GetBestCircle().Center.X, machine.Cal.PcbMMToPixY * machine.downCamera.GetBestCircle().Center.Y);
                             msg.target.x = (-1 * (offset.X / 2)) + machine.CurrentX; msg.target.y = (offset.Y / 2) + machine.CurrentY;
                             msg.target.z = machine.CurrentZ; msg.target.a = machine.CurrentA;
@@ -418,6 +447,10 @@ namespace Picky
                     else if (msg.cmdString.StartsWith("J200"))
                     {
                         machine.downCamera.RequestCircleLocation(msg.roi, msg.circleToFind);
+                    }
+                    else if (msg.cmdString.StartsWith("J101"))
+                    {
+                        machine.downCamera.RequestQRCodeLocation();
                     }
                     //Send Message - NOT G Code
                     else if (msg.cmdString.StartsWith("J100"))

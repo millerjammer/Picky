@@ -13,7 +13,7 @@ namespace Picky
     internal class CalibrationViewModel : INotifyPropertyChanged
     {
         private MachineModel machine;
-        public CalTargetModel target { get; set; } 
+        public CalTargetModel Target { get; set; } 
         
         /* Listen for changes on the machine properties and propagate to UI */
         public MachineModel Machine
@@ -34,19 +34,7 @@ namespace Picky
             set { machine.Cal.DownCameraToPickHeadY = value; OnPropertyChanged(nameof(DownCameraToPickHeadY)); }
         }
 
-        public double DownCameraAngleX
-        {
-            get { return machine.Cal.DownCameraAngleX; }
-            set { machine.Cal.DownCameraAngleX = value; OnPropertyChanged(nameof(DownCameraAngleX)); }
-        }
-
-        public double DownCameraAngleY
-        {
-            get { return machine.Cal.DownCameraAngleY; }
-            set { machine.Cal.DownCameraAngleY = value; OnPropertyChanged(nameof(DownCameraAngleY)); }
-        }
-
-        public double StepsPerUnitX
+         public double StepsPerUnitX
         {
             get { return machine.Cal.StepsPerUnitX; }
             set { machine.Cal.StepsPerUnitX = value; OnPropertyChanged(nameof(StepsPerUnitX)); }
@@ -70,25 +58,25 @@ namespace Picky
         {
             machine = mm;
             machine.PropertyChanged += OnMachinePropertyChanged;
-            target = new CalTargetModel();
+            Target = new CalTargetModel();
         }
 
         public ICommand PerformCalibrationCommand { get { return new RelayCommand(PerformCalibration); } }
         private void PerformCalibration()
         {
-            target.PerformCalibration(machine);
+            Target.PerformCalibration(machine);
         }
 
         public ICommand GoMonument00Command { get { return new RelayCommand(GoMonument00); } }
         private void GoMonument00()
         {
-            machine.Messages.Add(GCommand.G_SetPosition(target.Grid00Location.X, target.Grid00Location.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(Target.Grid00Location.X, Target.Grid00Location.Y, 0, 0, 0));
         }
 
         public ICommand GoMonument11Command { get { return new RelayCommand(GoMonument11); } }
         private void GoMonument11()
         {
-            machine.Messages.Add(GCommand.G_SetPosition(target.Grid11Location.X, target.Grid11Location.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(Target.Grid11Location.X, Target.Grid11Location.Y, 0, 0, 0));
         }
             
         public ICommand WriteStepPerUnitCommand { get { return new RelayCommand(WriteStepPerUnit); } }
@@ -101,15 +89,6 @@ namespace Picky
         private void ReadStepPerUnit()
         {
             machine.Messages.Add(GCommand.G_GetStepsPerUnit());
-        }
-
-        public ICommand MOToDC { get { return new RelayCommand(mOToDC); } }
-        private void mOToDC()
-        {
-            machine.Cal.MachineOriginToDownCameraX = machine.CurrentX;
-            machine.Cal.MachineOriginToDownCameraY = machine.CurrentY;
-            machine.Cal.MachineOriginToDownCameraZ = machine.CurrentZ;
-            machine.Cal.GetPickHeadOffsetToCamera(Machine.CurrentZ);
         }
 
         public ICommand MOToPHZ1 { get { return new RelayCommand(mOToPHZ1); } }
@@ -161,6 +140,7 @@ namespace Picky
         private void OnMachinePropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             machine.Cal.GetPickHeadOffsetToCamera(Machine.CurrentZ);
+            machine.Cal.GetScaleMMPerPixAtZ(Machine.CurrentZ);
         }
         
         public ICommand GetResolutionAtPCBCommand { get { return new RelayCommand(GetResolutionAtPCB); } }
@@ -180,18 +160,18 @@ namespace Picky
 
             GetResolution(cal_target_x, cal_target_y, Constants.CAL_TYPE_RESOLUTION_AT_TOOL, Constants.CAL_TYPE_Z_DISTANCE_AT_TOOL);
         }
-
-
-
-       
+              
         private void GetResolution(double x, double y, char type, char type2)
         {
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));
+            
+            //Define Target circle to find
             CircleSegment calCircle = new CircleSegment();
             calCircle.Center = new Point2f((float)x, (float)y);
             calCircle.Radius = ((float)(CalTargetModel.TARGET_RESOLUTION_RADIUS_MILS * Constants.MIL_TO_MM));
-            machine.Messages.Add(GCommand.G_IterativeAlignToCircle(calCircle, target.CalCircle, 10));
+
+            machine.Messages.Add(GCommand.G_IterativeAlignToCircle(calCircle, 10));
             machine.Messages.Add(GCommand.X_SetCalFactor(type));
             machine.Messages.Add(GCommand.G_ProbeZ(300));
             machine.Messages.Add(GCommand.G_FinishMoves());

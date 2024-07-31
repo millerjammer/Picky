@@ -75,8 +75,7 @@ namespace Picky
             CircleSegment tool = new CircleSegment();
             tool.Center = new Point2f((float)Machine.SelectedPickTool.ToolStorageX, (float)Machine.SelectedPickTool.ToolStorageY);
             tool.Radius = ((float)(Constants.TOOL_CENTER_RADIUS_MILS * Constants.MIL_TO_MM));
-            Circle3d dest = new Circle3d();
-            machine.Messages.Add(GCommand.G_IterativeAlignToCircle(tool, dest, 6));
+            machine.Messages.Add(GCommand.G_IterativeAlignToCircle(tool, 6));
             //Offset to Pick
             var offset = machine.Cal.GetPickHeadOffsetToCamera(Machine.SelectedPickTool.ToolStorageZ);
             double x = Machine.SelectedPickTool.ToolStorageX + offset.x_offset;
