@@ -105,7 +105,7 @@
             <TextBox Grid.Row="11" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="False" Text="{Binding Machine.Cal.PcbMMToPixY , StringFormat={}{0:0.0000},UpdateSourceTrigger=PropertyChanged}"/>
             <TextBox Grid.Row="11" Grid.Column="3" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.PcbZHeight, StringFormat={}{0:0.000},UpdateSourceTrigger=PropertyChanged}"/>
             <Button Grid.Row="11" Grid.Column="4" Grid.ColumnSpan="1" Content="Run" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GetResolutionAtPCBCommand}"/>
-
+         
             <Label Grid.Row="12" Grid.Column="0" Content="Scale @Z:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
             <TextBlock Grid.Row="12" Grid.Column="1" Margin="10 5 10 5" Foreground="White" HorizontalAlignment="Center" Text="{Binding Machine.Cal.ResolutionXAtZ, StringFormat={}{0:0.0000}, UpdateSourceTrigger=PropertyChanged}"/>
             <TextBlock Grid.Row="12" Grid.Column="2" Margin="10 5 10 5" Foreground="White" HorizontalAlignment="Center" Text="{Binding Machine.Cal.ResolutionYAtZ , StringFormat={}{0:0.0000},UpdateSourceTrigger=PropertyChanged}"/>

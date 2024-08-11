@@ -37,7 +37,10 @@ namespace Picky
         public CircleSegment circleToFind;
         public Circle3d circleSrc;
         public Feeder feederSrc;
-                               
+        public CameraModel cameraToUse;
+
+        public MessageRelayCommand messageCommand;
+                                       
         private byte[] _cmd;
         public byte[] cmd 
         {
@@ -81,6 +84,7 @@ namespace Picky
             timeout = 4000;
             calType = 0x00;
             iterationCount = 1;
+            roi = new OpenCvSharp.Rect(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
             MachineModel mm = MachineModel.Instance;
             index = mm.Messages.Count();
             if(index != 0)

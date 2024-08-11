@@ -204,13 +204,7 @@ namespace Picky
 
                 PickToolList = new ObservableCollection<PickToolModel>();
             }
-            if (PickToolList.Count() < Constants.TOOL_COUNT)
-            {
-                for (int i = PickToolList.Count(); i < Constants.TOOL_COUNT; i++)
-                {
-                    PickToolList.Add(new PickToolModel("untitled"));
-                }
-            }
+           
         }
 
         public static MachineModel Instance

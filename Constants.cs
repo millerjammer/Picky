@@ -85,6 +85,10 @@ namespace Picky
         
         public static int TOOL_COUNT = 4;
         public static double TOOL_CENTER_RADIUS_MILS = 80;
+        public static double TOOL_LENGTH_MM = 28.575;
+
+        /* The tools */
+        public static double TOOL_28GA_TIP_DIA_MM = 1.0;
 
         public static int    DEFAULT_PART_DETECTION_THRESHOLD = 160;
         public static double CASSETTE_ORIGIN_X = -261.56;
@@ -97,6 +101,12 @@ namespace Picky
         /* Camera Messages */
         public static byte C_ALIGN_TO_CIRCLE = 0x21;
         public static byte C_ALIGN_TO_CIRCLE_IMAGE = 0x24;
+
+        /* Nominal Z - This is what we probe to, just enough to cause sensor to trip */
+        /* These are movement distances with TOOL_LENGTH_MILS attached */
+        public static double FEEDER_QR_NOMINAL_Z_DRIVE_MM = 19.0;
+        public static double PART_NOMINAL_Z_DRIVE_MM = 28.0;
+        public static double TOOL_NOMINAL_Z_DRIVE_MM = 40.5;
 
         /* Calibration sub-type Messages */
         public static char CAL_TYPE_RESOLUTION_AT_PCB = 'A';
@@ -116,7 +126,7 @@ namespace Picky
         public static string TOOL_FILE_NAME = "tool.json";
 
         public static int DOWN_CAMERA_INDEX = 0;
-        public static int UP_CAMERA_INDEX = 1;
+        public static int UP_CAMERA_INDEX = 2;
         public static string SERIAL_PORT = "COM12";
 
     }

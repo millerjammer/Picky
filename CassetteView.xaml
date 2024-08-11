@@ -80,8 +80,8 @@
                                                 <DockPanel Grid.Column="0">
                                                    <StackPanel Orientation="Vertical" Margin="0 0 0 0">
                                                         <DockPanel>
-                                                            <TextBlock DockPanel.Dock="Left"  Text="File: "/>
-                                                            <TextBlock TextAlignment="Right"  ToolTip="{Binding part.TemplateFileName}"  Text="{Binding part.TemplateFileName}"/>
+                                                            <TextBlock DockPanel.Dock="Left"  Text="QRCode: "/>
+                                                            <TextBlock TextAlignment="Right"  Text="{Binding QRCode}"/>
                                                         </DockPanel>
                                                         <Grid>
                                                             <Grid.ColumnDefinitions>

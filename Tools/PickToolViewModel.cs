@@ -1,8 +1,11 @@
 ﻿
 using OpenCvSharp;
+using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Linq;
+using System.Net.Configuration;
 using System.Windows.Input;
 
 namespace Picky
@@ -47,6 +50,20 @@ namespace Picky
             set { Machine.PickToolList = value; OnPropertyChanged(nameof(PickToolList)); }
         }
 
+        public ICommand RemoveToolCommand { get { return new RelayCommand(RemoveTool); } }
+        private void RemoveTool()
+        {
+            Console.WriteLine("Removing Tool: " + selectedPickTool.Description);
+            machine.PickToolList.Remove(selectedPickTool);
+        }
+
+        public ICommand NewToolCommand { get { return new RelayCommand(NewTool); } }
+        private void NewTool()
+        {
+            if(PickToolList.Count() < Constants.TOOL_COUNT)
+                machine.PickToolList.Add(new PickToolModel("untitled"));
+        }
+
         public ICommand SaveToolsCommand { get { return new RelayCommand(SaveTools); } }
         private void SaveTools()
         {
@@ -58,6 +75,7 @@ namespace Picky
         {
             Machine.SelectedPickTool.ToolStorageX = Machine.CurrentX;
             Machine.SelectedPickTool.ToolStorageY = Machine.CurrentY;
+            Machine.SelectedPickTool.ToolStorageZ = Constants.TOOL_NOMINAL_Z_DRIVE_MM;
             OnPropertyChanged(nameof(PickToolList)); // Notify that the collection has changed
         }
 
@@ -65,19 +83,19 @@ namespace Picky
         private void GoToStorageLocation()
         {
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
-            // Optically Correct location
             machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
         }
 
         public ICommand RetrieveToolCommand { get { return new RelayCommand(RetrieveTool); } }
         private void RetrieveTool()
         {
-            CircleSegment tool = new CircleSegment();
-            tool.Center = new Point2f((float)Machine.SelectedPickTool.ToolStorageX, (float)Machine.SelectedPickTool.ToolStorageY);
-            tool.Radius = ((float)(Constants.TOOL_CENTER_RADIUS_MILS * Constants.MIL_TO_MM));
-            machine.Messages.Add(GCommand.G_IterativeAlignToCircle(tool, 6));
-            //Offset to Pick
-            var offset = machine.Cal.GetPickHeadOffsetToCamera(Machine.SelectedPickTool.ToolStorageZ);
+            //Go to tool
+            machine.Messages.Add(GCommand.G_EnableIlluminator(true));
+            machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
+            //Align and adjust next position command
+            machine.Messages.Add(GCommand.OpticallyAlignToSelectedTool(machine));
+            //Offset to Pick           
+            var offset = machine.Cal.GetPickHeadOffsetToCameraAtZ(machine.SelectedPickTool.ToolStorageZ);
             double x = Machine.SelectedPickTool.ToolStorageX + offset.x_offset;
             double y = Machine.SelectedPickTool.ToolStorageY + offset.y_offset;
             machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));
@@ -91,9 +109,25 @@ namespace Picky
             machine.Messages.Add(GCommand.G_FinishMoves());
             //Close Tool Caddy
             machine.Messages.Add(GCommand.G_OpenToolStorage(false));
+            //Turn off down illuminator and turn up illuminator on
+            machine.Messages.Add(GCommand.G_EnableIlluminator(false));
+            MachineMessage msg = GCommand.G_EnableUpIlluminator(true);
+            msg.delay = 2000;
+            machine.Messages.Add(msg);
             //Camera to Tool (former) location
             machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
-          
+            //Tool to home for calibration
+            machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            //Get offset to tip
+            for (int i = 0; i < 360; i += 90)
+            {
+                machine.Messages.Add(GCommand.SetPickOffsetCalibration(machine));
+                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, i, 0));
+                machine.Messages.Add(GCommand.G_FinishMoves());
+            }
+            machine.Messages.Add(GCommand.G_EnableUpIlluminator(false));
+            machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
         }
 
         public ICommand ReturnToolCommand { get { return new RelayCommand(ReturnTool); } }
@@ -102,7 +136,7 @@ namespace Picky
             //Move to Camera Position
             machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
             //Offset to Pick
-            var offset = machine.Cal.GetPickHeadOffsetToCamera(Machine.SelectedPickTool.ToolStorageZ);
+            var offset = machine.Cal.GetPickHeadOffsetToCameraAtZ(Machine.SelectedPickTool.ToolStorageZ);
             double x = Machine.SelectedPickTool.ToolStorageX + offset.x_offset;
             double y = Machine.SelectedPickTool.ToolStorageY + offset.y_offset;
             machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));

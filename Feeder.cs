@@ -91,12 +91,21 @@ namespace Picky
             get { return _z_origin; }
             set { _z_origin = value; OnPropertyChanged(nameof(z_origin)); }
         }
+
+        private string qrCode;
+        public string QRCode
+        {
+            get { return qrCode; }
+            set { qrCode = value; OnPropertyChanged(nameof(QRCode)); }
+        }
+
+        public Point2d QRLocation { get; set; }
         
         public double x_drive { get; set; }
         public double y_drive { get; set; }
-        public double z_drive { get; set; }
 
-        
+
+
         public Feeder()
         {
             _part = new Part();
@@ -126,7 +135,11 @@ namespace Picky
         {
             Console.WriteLine("Go To Feeder Position: " + x_origin + " mm " + y_origin + " mm");
             machine.Messages.Add(GCommand.G_SetPosition(x_origin, y_origin, 0, 0, 0));
-            MachineMessage message = GCommand.G_GetQRCode(4);
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            MachineMessage message = GCommand.C_GetQRCode(4);
+            // Limit to center 1/3 of image
+            message.delay = 3000;                   //Await autofocus in long moves
+            message.roi = new OpenCvSharp.Rect(Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 4, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 2);
             message.feederSrc = this;               //This is where the result goes.
             machine.Messages.Add(message);
         }
@@ -164,23 +177,17 @@ namespace Picky
         public ICommand PickNextComponentCommand { get { return new RelayCommand(PickNextComponent); } }
         public void PickNextComponent()
         {
-            var offset = machine.Cal.GetPickHeadOffsetToCamera(125.0);
+            var offset = machine.Cal.GetPickHeadOffsetToCameraAtZ(Constants.PART_NOMINAL_Z_DRIVE_MM + Constants.TOOL_LENGTH_MM);
             Console.WriteLine("Pick Head / Camera Offset: " + offset.ToString());
             double x = x_next_part + offset.x_offset;
             double y = y_next_part + offset.y_offset;
             machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_ProbeZ(125.0));
+            machine.Messages.Add(GCommand.G_ProbeZ(Constants.PART_NOMINAL_Z_DRIVE_MM));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_EnablePump(true));
             machine.Messages.Add(GCommand.G_EnableValve(false));
             machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
-        }
-
-        public void PickNextComponentOptically()
-        {
-            /* This function loads commands to cause the serial command dispatcher to use values from the camera as the component's x, y */
-            
         }
 
         public ICommand SetPartTemplateCommand { get { return new RelayCommand(SetPartTemplate); } }

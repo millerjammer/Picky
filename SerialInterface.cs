@@ -137,17 +137,18 @@ namespace Picky
                                 // Parse Illuminator Status
                                 else if (msg.cmdString.StartsWith("M260"))
                                 {
-                                    string pattern = @"B(\S)";     // Find first B0 (device) then capture the value
+                                    string pattern = @"B(\d{1,3})";     // Find first B0 (device) then capture the value
                                     Regex regex = new Regex(pattern);
                                     MatchCollection matches = regex.Matches(Encoding.UTF8.GetString(msg.cmd));
-                                    if (matches[1].Value == "B0" && matches[2].Value == "B0")
+                                    if (matches[1].Value == "B0" && matches[2].Value == "B128")
                                     {
                                         Console.WriteLine("down illuminator off");
                                         machine.IsIlluminatorActive = false;
                                     }
-                                    else if (matches[1].Value == "B0" && matches[2].Value == "B5")
+                                    else if (matches[1].Value == "B0" && matches[2].Value == "B178")
                                     {
                                         Console.WriteLine("down illuminator on");
+                                        machine.IsIlluminatorActive = true;
                                     }
                                     // Ack all I2C messages
                                     msg.state = MachineMessage.MessageState.Complete;
@@ -254,13 +255,15 @@ namespace Picky
                                     rx_msgCount++;
                                 }
                             }
-                            // Handle commands do not output an OK to the serial port - J200 is an Iterative Align to Circle
+                            // Handle commands do not output an OK to the serial port - J200 is an Iterative Align to Circle - these are mostly camera commands
                             else if (msg.cmdString.StartsWith("J200"))
                             {
                                 if (machine.downCamera.IsCircleSearchActive() == false)
                                 {
-                                    // Restart repeating message as new message
-                                    Point2d offset = new Point2d(machine.Cal.PcbMMToPixX * machine.downCamera.GetBestCircle().Center.X, machine.Cal.PcbMMToPixY * machine.downCamera.GetBestCircle().Center.Y);
+                                    // Restart repeating message as new message, offset in mm
+                                    double x_offset = machine.Cal.PcbMMToPixX * machine.downCamera.GetBestCircle().Center.X;
+                                    double y_offset = machine.Cal.PcbMMToPixY * machine.downCamera.GetBestCircle().Center.Y;
+                                    Point2d offset = new Point2d(x_offset, y_offset);
                                     msg.cmd = Encoding.ASCII.GetBytes(string.Format("J100 Position Error [mm] X: {0:F3} Y: {1:F3}\n", offset.X, offset.Y));
                                     msg.state = MachineMessage.MessageState.ReadyToSend;
                                     // Use 1/2 the offset to calculate next location, we can't assume to know resolution, so we can't jump 
@@ -270,32 +273,42 @@ namespace Picky
                                     if ((msg.iterationCount--) <= 0)
                                     {
                                         Console.WriteLine("J200 Command Complete: Best Circle: " + machine.downCamera.GetBestCircle().ToString());
-                                        msg.circleSrc.X = machine.downCamera.GetBestCircle().Center.X;
-                                        msg.circleSrc.Y = machine.downCamera.GetBestCircle().Center.Y;
+                                        if (msg.circleSrc != null) //only for monuments
+                                        {
+                                            msg.circleSrc.X = offset.X + msg.target.x;
+                                            msg.circleSrc.Y = offset.Y + msg.target.y;
+                                        };
                                         msg.state = MachineMessage.MessageState.Complete;
                                         rx_msgCount++;
                                     }
                                     msg.delay = 0;
                                 }
                             }
+                            // This is a Camera based Request
+                            else if (msg.cmdString.StartsWith("J102"))
+                            {
+                                if (msg.messageCommand.PostMessageCommand(msg))
+                                {
+                                    msg.state = MachineMessage.MessageState.Complete;
+                                    rx_msgCount++;
+                                }
+                            }
                             // This is a QR Request
                             else if (msg.cmdString.StartsWith("J101"))
                             {
                                 if (machine.downCamera.IsQRSearchActive() == false)
-                                {   
-                                    //Go through all the QR codes found
-                                    for(i = 0; i < machine.downCamera.CurrentQRCode.Length; i++)
+                                {
+                                    //QR Points are already based on full frame, so get pixel offset from full frame
+                                    double x_center_pix = (Constants.CAMERA_FRAME_WIDTH / 2) - ((machine.downCamera.CurrentQRCodePoints[0].X + machine.downCamera.CurrentQRCodePoints[2].X) / 2);
+                                    double y_center_pix = (Constants.CAMERA_FRAME_HEIGHT / 2) - ((machine.downCamera.CurrentQRCodePoints[0].Y + machine.downCamera.CurrentQRCodePoints[2].Y) / 2);
+                                    var scale = machine.Cal.GetScaleMMPerPixAtZ(Constants.FEEDER_QR_NOMINAL_Z_DRIVE_MM + Constants.TOOL_LENGTH_MM);
+                                    double x_center_mm = msg.target.x + (scale.xScale * x_center_pix);
+                                    double y_center_mm = msg.target.y - (scale.yScale * y_center_pix);
+                                    if (msg.feederSrc != null)
                                     {
-                                        //Check if cursor is over the QR Code - this is the QR Code that determines this feeders position, using mm units
-
-                                        if (machine.downCamera.CurrentQRCodePoints[i].X < msg.feederSrc.x_origin && machine.downCamera.CurrentQRCodePoints[i + 2].X > msg.feederSrc.x_origin)
-                                        {
-                                            if (machine.downCamera.CurrentQRCodePoints[i].Y > msg.feederSrc.y_origin && machine.downCamera.CurrentQRCodePoints[i + 2].Y < msg.feederSrc.y_origin)
-                                            {
-                                                msg.feederSrc.x_origin = (machine.downCamera.CurrentQRCodePoints[i].X + machine.downCamera.CurrentQRCodePoints[i + 2].X) / 2;
-                                                msg.feederSrc.y_origin = (machine.downCamera.CurrentQRCodePoints[i].Y + machine.downCamera.CurrentQRCodePoints[i + 2].Y) / 2;
-                                            }
-                                        }
+                                        msg.feederSrc.x_origin = x_center_mm;
+                                        msg.feederSrc.y_origin = y_center_mm;
+                                        msg.feederSrc.QRCode = machine.downCamera.CurrentQRCode[0];
                                     }
                                     msg.state = MachineMessage.MessageState.Complete;
                                     rx_msgCount++;
@@ -335,12 +348,12 @@ namespace Picky
                             }
                             else if (calType == Constants.CAL_TYPE_Z_DISTANCE_AT_PCB)
                             {
-                                machine.Cal.PcbZHeight = machine.CurrentZ;
+                                machine.Cal.PcbZHeight = machine.CurrentZ + Constants.TOOL_LENGTH_MM;
                                 Console.WriteLine("Z @ PCB: " + machine.Cal.PcbZHeight + " mm");
                             }
                             else if (calType == Constants.CAL_TYPE_Z_DISTANCE_AT_TOOL)
                             {
-                                machine.Cal.ToolZHeight = machine.CurrentZ;
+                                machine.Cal.ToolZHeight = machine.CurrentZ + Constants.TOOL_LENGTH_MM;
                             }
                             Console.WriteLine("Calibrated, Type: " + calType);
                             msg.state = MachineMessage.MessageState.Complete;
@@ -450,7 +463,11 @@ namespace Picky
                     }
                     else if (msg.cmdString.StartsWith("J101"))
                     {
-                        machine.downCamera.RequestQRCodeLocation();
+                        machine.downCamera.RequestQRCodeLocation(msg.roi);
+                    }
+                    else if (msg.cmdString.StartsWith("J102"))
+                    {
+                        msg.messageCommand.PreMessageCommand(msg);
                     }
                     //Send Message - NOT G Code
                     else if (msg.cmdString.StartsWith("J100"))

@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Windows.Markup;
 
 namespace Picky
@@ -121,7 +122,8 @@ namespace Picky
             CircleSegment calCircle00 = new CircleSegment();
             calCircle00.Center = new Point2f((float)(CalTargetModel.TARGET_GRID_ORIGIN_X_MM), (float)(CalTargetModel.TARGET_GRID_ORIGIN_Y_MM));
             calCircle00.Radius = ((float)(CalTargetModel.TARGET_GRID_RADIUS_MILS * Constants.MIL_TO_MM));
-            msg = GCommand.G_IterativeAlignToCircle(calCircle00, 10);
+            msg = GCommand.G_IterativeAlignToCircle(calCircle00, 6);
+            msg.roi = new OpenCvSharp.Rect(Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
             msg.circleSrc = Grid00Location;
             machine.Messages.Add(msg);
 
@@ -129,7 +131,8 @@ namespace Picky
             CircleSegment calCircle10 = new CircleSegment();
             calCircle10.Center = new Point2f((float)(CalTargetModel.TARGET_GRID_ORIGIN_X_MM + (CalTargetModel.TARGET_GRID_X_MILS * Constants.MIL_TO_MM)), (float)(CalTargetModel.TARGET_GRID_ORIGIN_Y_MM));
             calCircle10.Radius = ((float)(CalTargetModel.TARGET_GRID_RADIUS_MILS * Constants.MIL_TO_MM));
-            msg = GCommand.G_IterativeAlignToCircle(calCircle10, 10);
+            msg = GCommand.G_IterativeAlignToCircle(calCircle10, 6);
+            msg.roi = new OpenCvSharp.Rect(Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
             msg.circleSrc = Grid10Location;
             machine.Messages.Add(msg);
             
@@ -137,7 +140,8 @@ namespace Picky
             CircleSegment calCircle01 = new CircleSegment();
             calCircle01.Center = new Point2f((float)(CalTargetModel.TARGET_GRID_ORIGIN_X_MM), (float)(CalTargetModel.TARGET_GRID_ORIGIN_Y_MM + (CalTargetModel.TARGET_GRID_Y_MILS * Constants.MIL_TO_MM)));
             calCircle01.Radius = ((float)(CalTargetModel.TARGET_GRID_RADIUS_MILS * Constants.MIL_TO_MM));
-            msg = GCommand.G_IterativeAlignToCircle(calCircle01, 10);
+            msg = GCommand.G_IterativeAlignToCircle(calCircle01, 6);
+            msg.roi = new OpenCvSharp.Rect(Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
             msg.circleSrc = Grid01Location;
             machine.Messages.Add(msg); 
             
@@ -145,7 +149,8 @@ namespace Picky
             CircleSegment calCircle11 = new CircleSegment();
             calCircle11.Center = new Point2f((float)(CalTargetModel.TARGET_GRID_ORIGIN_X_MM + (CalTargetModel.TARGET_GRID_X_MILS * Constants.MIL_TO_MM)), (float)(CalTargetModel.TARGET_GRID_ORIGIN_Y_MM + (CalTargetModel.TARGET_GRID_Y_MILS * Constants.MIL_TO_MM)));
             calCircle11.Radius = ((float)(CalTargetModel.TARGET_GRID_RADIUS_MILS * Constants.MIL_TO_MM));
-            msg = GCommand.G_IterativeAlignToCircle(calCircle11, 10);
+            msg = GCommand.G_IterativeAlignToCircle(calCircle11, 6);
+            msg.roi = new OpenCvSharp.Rect(Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
             msg.circleSrc = Grid11Location;
             machine.Messages.Add(msg); 
             

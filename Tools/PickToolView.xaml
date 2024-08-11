@@ -71,8 +71,8 @@
                                     </ui:DataGrid.RowStyle>
                                     <DataGrid.ContextMenu>
                                         <ContextMenu>
-                                            <MenuItem Header="Remove Tool"  Command="{Binding RemoveTool}"/>
-                                            <MenuItem Header="New Tool"  Command="{Binding NewTool}"/>
+                                            <MenuItem Header="Remove Tool"  Command="{Binding RemoveToolCommand}"/>
+                                            <MenuItem Header="New Tool"  Command="{Binding NewToolCommand}"/>
                                             <Separator Margin="2"/>
                                             <MenuItem Header="Retrieve Tool" Command="{Binding RetrieveToolCommand}" />
                                             <MenuItem Header="Return Tool" Command="{Binding ReturnToolCommand}" />

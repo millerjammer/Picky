@@ -162,13 +162,13 @@
       <DependentUpon>CassetteView.xaml</DependentUpon>
     </Compile>
     <Compile Include="CassetteViewModel.cs" />
+    <Compile Include="Commands\SetPickOffsetCalibrationCommand.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="ControlWindow.xaml.cs">
       <DependentUpon>ControlWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Feeder.cs" />
     <Compile Include="GCommand.cs" />
-    <Compile Include="ImageProcessing.cs" />
     <Compile Include="MachineModel.cs" />
     <Compile Include="MachineMessage.cs" />
     <Compile Include="MachineView.xaml.cs">
@@ -183,12 +183,14 @@
       <DependentUpon>PickListView.xaml</DependentUpon>
     </Compile>
     <Compile Include="PickListViewModel.cs" />
-    <Compile Include="PickToolModel.cs" />
-    <Compile Include="PickToolView.xaml.cs">
+    <Compile Include="Commands\OpticallyAlignToSelectedToolCommand.cs" />
+    <Compile Include="Tools\PickToolModel.cs" />
+    <Compile Include="Tools\PickToolView.xaml.cs">
       <DependentUpon>PickToolView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="PickToolViewModel.cs" />
+    <Compile Include="Tools\PickToolViewModel.cs" />
     <Compile Include="Part.cs" />
+    <Compile Include="Commands\MessageRelayCommand.cs" />
     <Compile Include="RelayCommand.cs" />
     <Compile Include="SerialInterface.cs" />
     <Page Include="BoardView.xaml">
@@ -235,7 +237,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="PickToolView.xaml">
+    <Page Include="Tools\PickToolView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

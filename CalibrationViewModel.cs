@@ -97,7 +97,7 @@ namespace Picky
             machine.Cal.MachineOriginToPickHeadX1 = machine.CurrentX;
             machine.Cal.MachineOriginToPickHeadY1 = machine.CurrentY;
             machine.Cal.MachineOriginToPickHeadZ1 = machine.CurrentZ;
-            machine.Cal.GetPickHeadOffsetToCamera(Machine.CurrentZ);
+            machine.Cal.GetPickHeadOffsetToCameraAtZ(Machine.CurrentZ);
         }
 
         public ICommand MOToPHZ2 { get { return new RelayCommand(mOToPHZ2); } }
@@ -106,7 +106,7 @@ namespace Picky
             machine.Cal.MachineOriginToPickHeadX2 = machine.CurrentX;
             machine.Cal.MachineOriginToPickHeadY2 = machine.CurrentY;
             machine.Cal.MachineOriginToPickHeadZ2 = machine.CurrentZ;
-            machine.Cal.GetPickHeadOffsetToCamera(Machine.CurrentZ);
+            machine.Cal.GetPickHeadOffsetToCameraAtZ(Machine.CurrentZ);
         }
 
         public ICommand GetFeeder0Command { get { return new RelayCommand(GetFeeder0); } }
@@ -139,10 +139,10 @@ namespace Picky
         /* This is called when machine z changes */
         private void OnMachinePropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            machine.Cal.GetPickHeadOffsetToCamera(Machine.CurrentZ);
+            machine.Cal.GetPickHeadOffsetToCameraAtZ(Machine.CurrentZ);
             machine.Cal.GetScaleMMPerPixAtZ(Machine.CurrentZ);
         }
-        
+
         public ICommand GetResolutionAtPCBCommand { get { return new RelayCommand(GetResolutionAtPCB); } }
         private void GetResolutionAtPCB()
         {
@@ -171,9 +171,9 @@ namespace Picky
             calCircle.Center = new Point2f((float)x, (float)y);
             calCircle.Radius = ((float)(CalTargetModel.TARGET_RESOLUTION_RADIUS_MILS * Constants.MIL_TO_MM));
 
-            machine.Messages.Add(GCommand.G_IterativeAlignToCircle(calCircle, 10));
+            machine.Messages.Add(GCommand.G_IterativeAlignToCircle(calCircle, 4));
             machine.Messages.Add(GCommand.X_SetCalFactor(type));
-            machine.Messages.Add(GCommand.G_ProbeZ(300));
+            machine.Messages.Add(GCommand.G_ProbeZ(24.0));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.X_SetCalFactor(type2));
             machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));

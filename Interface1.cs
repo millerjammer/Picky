@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Picky
 {
-    internal class ImageProcessing
+    internal interface Interface1
     {
     }
 }

@@ -204,12 +204,12 @@ namespace Picky
             return (ResolutionXAtZ, ResolutionYAtZ);
         }
         
-        public (double x_offset, double y_offset) GetPickHeadOffsetToCamera(double targetZ)
+        public (double x_offset, double y_offset) GetPickHeadOffsetToCameraAtZ(double targetZ)
         /*----------------------------------------------------------------------------------
          - When you've centered the camera and want to pick something you need to call here 
          - with the approximate z of the Target.  This function will return the offset.  After you 
          - pick the item you need to subtract the offset.  Do not call with the upward z.  This
-         - is a downward z only.
+         - is a downward z only. The target z should be the actual z from camera to surface
          --------------------------------------------------------------------------------------*/
         {
             double slope_x = (MachineOriginToPickHeadX1 - MachineOriginToPickHeadX2) / (MachineOriginToPickHeadZ1 - MachineOriginToPickHeadZ2);
@@ -218,8 +218,8 @@ namespace Picky
             double offset_x = MachineOriginToPickHeadX2 + (slope_x * (targetZ - MachineOriginToPickHeadZ2));
             double offset_y = MachineOriginToPickHeadY2 + (slope_y * (targetZ - MachineOriginToPickHeadZ2));
 
-            DownCameraToPickHeadX = (offset_x + MachineOriginToDownCameraX);
-            DownCameraToPickHeadY = (offset_y + MachineOriginToDownCameraY);
+            DownCameraToPickHeadX = (MachineOriginToDownCameraX - offset_x);
+            DownCameraToPickHeadY = (MachineOriginToDownCameraY + offset_y);
 
             return (DownCameraToPickHeadX, DownCameraToPickHeadY);
         }

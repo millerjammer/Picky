@@ -8,9 +8,11 @@
 
 using Microsoft.VisualStudio.Shell.Interop;
 using OpenCvSharp;
+using Picky.Tools;
 using System;
 using System.Text;
 using System.Windows.Forms.VisualStyles;
+using System.Windows.Interop;
 
 namespace Picky
 {
@@ -38,20 +40,31 @@ namespace Picky
             MachineMessage msg = new MachineMessage();
             msg.iterationCount = max_iterations;
             msg.cmd = Encoding.ASCII.GetBytes("J100\n");
-            msg.roi = new OpenCvSharp.Rect(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
             msg.target.x = estimate.Center.X; msg.target.y = estimate.Center.Y;
             msg.circleToFind = estimate;
                                                                 
             return msg;
         }
 
-        public static MachineMessage G_GetQRCode(int max_iterations)
+        public static MachineMessage C_GetQRCode(int max_iterations)
         {
             MachineMessage msg = new MachineMessage();
             msg.iterationCount = max_iterations;
             msg.cmd = Encoding.ASCII.GetBytes("J101\n");
             
             return msg;
+        }
+
+        public static MachineMessage SetPickOffsetCalibration(MachineModel machine)
+        {
+           SetPickOffsetCalibrationCommand cmd = new SetPickOffsetCalibrationCommand(machine);
+           return cmd.GetMessage();
+        }
+
+        public static MachineMessage OpticallyAlignToSelectedTool(MachineModel machine)
+        {
+            OpticallyAlignToSelectedToolCommand cmd = new OpticallyAlignToSelectedToolCommand(machine);
+            return cmd.GetMessage();
         }
 
         /***********************************************************
@@ -85,7 +98,7 @@ namespace Picky
             MachineMessage msg = new MachineMessage();
             msg.target.z = z;
 
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G38.5 Z{0}\n", z));
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G38.4 Z{0}\n", z));
             return msg;
 
         }
@@ -268,7 +281,7 @@ namespace Picky
         public static MachineMessage G_FinishMoves()
         {
             MachineMessage msg = new MachineMessage();
-            msg.delay = 0;
+            msg.delay = 2000;
             msg.cmd = Encoding.UTF8.GetBytes(string.Format("M400\n"));
             return msg;
         }

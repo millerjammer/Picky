@@ -62,7 +62,7 @@ namespace Picky
 
         public PickToolModel()
         {
-            ToolStorageZ = 125;
+            ToolStorageZ = Constants.TOOL_NOMINAL_Z_DRIVE_MM;
         }
 
         public PickToolModel(string name)
