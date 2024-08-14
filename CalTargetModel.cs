@@ -88,72 +88,54 @@ namespace Picky
             Grid11Location.IsValid = false;
         }
 
-        public void CalculateResolution()
-        {
-            double actual_dist_mm = (TARGET_GRID_X_MILS * Constants.MIL_TO_MM);
-            double x_delta = (Grid11Location.X - Grid00Location.X);
-            double x_err =  (x_delta - actual_dist_mm)/ actual_dist_mm;
-            Console.WriteLine("X Error: " + x_err + "%");
-
-            double y_delta = (Grid11Location.Y - Grid00Location.Y);
-            double y_err = (y_delta - actual_dist_mm) / actual_dist_mm;
-            Console.WriteLine("Y Error: " + y_err + "%");
-
-            double x_steps_m = (machine.Cal.StepsPerUnitX * x_err);
-            double y_steps_m = (machine.Cal.StepsPerUnitY * y_err);
-
-            machine.Cal.CalculatedStepsPerUnitX = x_steps_m + machine.Cal.StepsPerUnitX;
-            machine.Cal.CalculatedStepsPerUnitY = y_steps_m + machine.Cal.StepsPerUnitY;
-
-            Console.WriteLine("Proposed change in [X] Steps/mm: " + x_steps_m);
-            Console.WriteLine("Proposed change in [Y] Steps/mm: " + y_steps_m);
-
-        }
-
         public void PerformCalibration(MachineModel mm)
         {
             machine = mm;
-            MachineMessage msg;
+            CircleSegment target = new CircleSegment();
+
             InvalidateCalibrationTarget();
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
-
-            //For the x = 0, y = 0 position
-            CircleSegment calCircle00 = new CircleSegment();
-            calCircle00.Center = new Point2f((float)(CalTargetModel.TARGET_GRID_ORIGIN_X_MM), (float)(CalTargetModel.TARGET_GRID_ORIGIN_Y_MM));
-            calCircle00.Radius = ((float)(CalTargetModel.TARGET_GRID_RADIUS_MILS * Constants.MIL_TO_MM));
-            msg = GCommand.G_IterativeAlignToCircle(calCircle00, 6);
-            msg.roi = new OpenCvSharp.Rect(Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
-            msg.circleSrc = Grid00Location;
-            machine.Messages.Add(msg);
+            target.Radius = (float)(CalTargetModel.TARGET_GRID_RADIUS_MILS * Constants.MIL_TO_MM);
+            target.Center.X = (float)CalTargetModel.TARGET_GRID_ORIGIN_X_MM;
+            target.Center.Y = (float)CalTargetModel.TARGET_GRID_ORIGIN_Y_MM;
+            machine.Messages.Add(GCommand.G_SetPosition(target.Center.X, target.Center.Y, 0, 0, 0));
+            for (int i = 0; i < 4; i++)
+            {
+                machine.Messages.Add(GCommand.StepAlignToCalCircle(machine, target, machine.Cal.TargetResAtPCB.MMHeightZ, Grid00Location));
+                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
+                machine.Messages.Add(GCommand.G_FinishMoves());
+            }
 
             //For the x = 1, y = 0 position
-            CircleSegment calCircle10 = new CircleSegment();
-            calCircle10.Center = new Point2f((float)(CalTargetModel.TARGET_GRID_ORIGIN_X_MM + (CalTargetModel.TARGET_GRID_X_MILS * Constants.MIL_TO_MM)), (float)(CalTargetModel.TARGET_GRID_ORIGIN_Y_MM));
-            calCircle10.Radius = ((float)(CalTargetModel.TARGET_GRID_RADIUS_MILS * Constants.MIL_TO_MM));
-            msg = GCommand.G_IterativeAlignToCircle(calCircle10, 6);
-            msg.roi = new OpenCvSharp.Rect(Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
-            msg.circleSrc = Grid10Location;
-            machine.Messages.Add(msg);
-            
+            target.Center = new Point2f((float)(CalTargetModel.TARGET_GRID_ORIGIN_X_MM + (CalTargetModel.TARGET_GRID_X_MILS * Constants.MIL_TO_MM)), (float)(CalTargetModel.TARGET_GRID_ORIGIN_Y_MM));
+            machine.Messages.Add(GCommand.G_SetPosition(target.Center.X, target.Center.Y, 0, 0, 0));
+            for (int i = 0; i < 4; i++)
+            {
+                machine.Messages.Add(GCommand.StepAlignToCalCircle(machine, target, machine.Cal.TargetResAtPCB.MMHeightZ, Grid10Location));
+                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
+                machine.Messages.Add(GCommand.G_FinishMoves());
+            }
+                        
             //For the x = 0, y = 1 position
-            CircleSegment calCircle01 = new CircleSegment();
-            calCircle01.Center = new Point2f((float)(CalTargetModel.TARGET_GRID_ORIGIN_X_MM), (float)(CalTargetModel.TARGET_GRID_ORIGIN_Y_MM + (CalTargetModel.TARGET_GRID_Y_MILS * Constants.MIL_TO_MM)));
-            calCircle01.Radius = ((float)(CalTargetModel.TARGET_GRID_RADIUS_MILS * Constants.MIL_TO_MM));
-            msg = GCommand.G_IterativeAlignToCircle(calCircle01, 6);
-            msg.roi = new OpenCvSharp.Rect(Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
-            msg.circleSrc = Grid01Location;
-            machine.Messages.Add(msg); 
-            
+            target.Center = new Point2f((float)(CalTargetModel.TARGET_GRID_ORIGIN_X_MM), (float)(CalTargetModel.TARGET_GRID_ORIGIN_Y_MM + (CalTargetModel.TARGET_GRID_Y_MILS * Constants.MIL_TO_MM)));
+            machine.Messages.Add(GCommand.G_SetPosition(target.Center.X, target.Center.Y, 0, 0, 0));
+            for (int i = 0; i < 4; i++)
+            {
+                machine.Messages.Add(GCommand.StepAlignToCalCircle(machine, target, machine.Cal.TargetResAtPCB.MMHeightZ, Grid01Location));
+                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
+                machine.Messages.Add(GCommand.G_FinishMoves());
+            }
+
             //For the x = 1, y = 1 position
-            CircleSegment calCircle11 = new CircleSegment();
-            calCircle11.Center = new Point2f((float)(CalTargetModel.TARGET_GRID_ORIGIN_X_MM + (CalTargetModel.TARGET_GRID_X_MILS * Constants.MIL_TO_MM)), (float)(CalTargetModel.TARGET_GRID_ORIGIN_Y_MM + (CalTargetModel.TARGET_GRID_Y_MILS * Constants.MIL_TO_MM)));
-            calCircle11.Radius = ((float)(CalTargetModel.TARGET_GRID_RADIUS_MILS * Constants.MIL_TO_MM));
-            msg = GCommand.G_IterativeAlignToCircle(calCircle11, 6);
-            msg.roi = new OpenCvSharp.Rect(Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
-            msg.circleSrc = Grid11Location;
-            machine.Messages.Add(msg); 
-            
+            target.Center = new Point2f((float)(CalTargetModel.TARGET_GRID_ORIGIN_X_MM + (CalTargetModel.TARGET_GRID_X_MILS * Constants.MIL_TO_MM)), (float)(CalTargetModel.TARGET_GRID_ORIGIN_Y_MM + (CalTargetModel.TARGET_GRID_Y_MILS * Constants.MIL_TO_MM)));
+            machine.Messages.Add(GCommand.G_SetPosition(target.Center.X, target.Center.Y, 0, 0, 0));
+            for (int i = 0; i < 4; i++)
+            {
+                machine.Messages.Add(GCommand.StepAlignToCalCircle(machine, target, machine.Cal.TargetResAtPCB.MMHeightZ, Grid11Location));
+                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
+                machine.Messages.Add(GCommand.G_FinishMoves());
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -170,8 +152,30 @@ namespace Picky
                 Console.WriteLine("location 01: " + Grid01Location.ToString());
                 Console.WriteLine("location 10: " + Grid10Location.ToString());
                 Console.WriteLine("location 11: " + Grid11Location.ToString());
-                CalculateResolution();
+                CalculateStepsPerMM();
             }
+        }
+
+        public void CalculateStepsPerMM()
+        {
+            double actual_dist_mm = (TARGET_GRID_X_MILS * Constants.MIL_TO_MM);
+            double x_delta = (Grid11Location.X - Grid00Location.X);
+            double x_err = (x_delta - actual_dist_mm) / actual_dist_mm;
+            Console.WriteLine("X Error: " + x_err + "%");
+
+            double y_delta = (Grid11Location.Y - Grid00Location.Y);
+            double y_err = (y_delta - actual_dist_mm) / actual_dist_mm;
+            Console.WriteLine("Y Error: " + y_err + "%");
+
+            double x_steps_m = (machine.Cal.StepsPerUnitX * x_err);
+            double y_steps_m = (machine.Cal.StepsPerUnitY * y_err);
+
+            machine.Cal.CalculatedStepsPerUnitX = x_steps_m + machine.Cal.StepsPerUnitX;
+            machine.Cal.CalculatedStepsPerUnitY = y_steps_m + machine.Cal.StepsPerUnitY;
+
+            Console.WriteLine("Proposed change in [X] Steps/mm: " + x_steps_m);
+            Console.WriteLine("Proposed change in [Y] Steps/mm: " + y_steps_m);
+
         }
     }
 }

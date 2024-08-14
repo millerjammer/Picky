@@ -8,7 +8,7 @@ using System.Windows.Media.Media3D;
 
 namespace Picky.Tools
 {
-    public class OpticallyAlignToSelectedToolCommand : MessageRelayCommand
+    public class JumpAlignToSelectedToolCommand : MessageRelayCommand
     /*------------------------------------------------------------------------------
     * This command uses the down camera to image the top of the tool and update the 
     * position of the next command to add an offset to align head.  This command
@@ -27,16 +27,16 @@ namespace Picky.Tools
         public CircleSegment tool;
         public CameraModel cameraToUse;
 
-        public OpticallyAlignToSelectedToolCommand(MachineModel mm)
+        public JumpAlignToSelectedToolCommand(MachineModel mm)
         {
             machine = mm;
             roi = new OpenCvSharp.Rect((2 * Constants.CAMERA_FRAME_WIDTH) / 5, (2 * Constants.CAMERA_FRAME_HEIGHT) / 5, Constants.CAMERA_FRAME_WIDTH / 5, Constants.CAMERA_FRAME_HEIGHT / 5);
-            CircleSegment tool = new CircleSegment();
+            tool = new CircleSegment();
             tool.Center = new Point2f((float)machine.SelectedPickTool.ToolStorageX, (float)machine.SelectedPickTool.ToolStorageY);
             tool.Radius = ((float)(Constants.TOOL_CENTER_RADIUS_MILS * Constants.MIL_TO_MM));
             msg = new MachineMessage();
             msg.messageCommand = this;
-            msg.cmd = Encoding.ASCII.GetBytes("J102\n");
+            msg.cmd = Encoding.ASCII.GetBytes("J102 Jump Align\n");
             cameraToUse = machine.downCamera;
         }
 
@@ -47,7 +47,8 @@ namespace Picky.Tools
 
         public bool PreMessageCommand(MachineMessage msg)
         {
-            cameraToUse.RequestCircleLocation(roi, tool);
+            //Use the calibrated z for height
+            cameraToUse.RequestCircleLocation(roi, tool, machine.Cal.TargetResAtTool.MMHeightZ);
             return true;
         }
 
@@ -65,7 +66,7 @@ namespace Picky.Tools
                 if (radius < 0.1)
                 {
                     Console.WriteLine("Optically Align to Tool Failed, Repeating Request.");
-                    cameraToUse.RequestCircleLocation(roi, tool);
+                    cameraToUse.RequestCircleLocation(roi, tool, machine.Cal.TargetResAtTool.MMHeightZ);
                     return false;
                 }
                 else

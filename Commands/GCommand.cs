@@ -20,32 +20,11 @@ namespace Picky
     {
         /***********************************************************
          * 
-         *  CAMERA AND IMAGING COMMANDS
+         *  CAMERA, CALIBRATION AND IMAGING COMMANDS
          *  
          ***********************************************************/
 
         
-        public static MachineMessage G_IterativeAlignToCircle(CircleSegment estimate, int max_iterations)
-        {
-        /*---------------------------------------------------------------
-         * This function moves the head to a circle that looks like the
-         * 'estimated' circle using iteration.  This is used when you don't 
-         * know mm/pixel at the current Z.  This is typically used for 
-         * calibration only.  Starts as a J100(position) -> J200(imaging)
-         * then repeats.  After this runs the best circle will be found 
-         * at GetBestCircle() in the down camera object.  The estimate is in 
-         * unit of mm
-         * -------------------------------------------------------------*/
-
-            MachineMessage msg = new MachineMessage();
-            msg.iterationCount = max_iterations;
-            msg.cmd = Encoding.ASCII.GetBytes("J100\n");
-            msg.target.x = estimate.Center.X; msg.target.y = estimate.Center.Y;
-            msg.circleToFind = estimate;
-                                                                
-            return msg;
-        }
-
         public static MachineMessage C_GetQRCode(int max_iterations)
         {
             MachineMessage msg = new MachineMessage();
@@ -55,15 +34,26 @@ namespace Picky
             return msg;
         }
 
-        public static MachineMessage SetPickOffsetCalibration(MachineModel machine)
+        public static MachineMessage SetToolOffsetCalibration(MachineModel machine)
         {
-           SetPickOffsetCalibrationCommand cmd = new SetPickOffsetCalibrationCommand(machine);
+           SetToolOffsetCalibrationCommand cmd = new SetToolOffsetCalibrationCommand(machine);
            return cmd.GetMessage();
         }
-
-        public static MachineMessage OpticallyAlignToSelectedTool(MachineModel machine)
+        public static MachineMessage StepAlignToCalCircle(MachineModel machine, CircleSegment target, double z, Circle3d dest)
         {
-            OpticallyAlignToSelectedToolCommand cmd = new OpticallyAlignToSelectedToolCommand(machine);
+            StepAlignToCalCircleCommand cmd = new StepAlignToCalCircleCommand(machine, target, z, dest);
+            return cmd.GetMessage();
+        }
+        
+        public static MachineMessage JumpAlignToSelectedTool(MachineModel machine)
+        {
+            JumpAlignToSelectedToolCommand cmd = new JumpAlignToSelectedToolCommand(machine);
+            return cmd.GetMessage();
+        }
+
+        public static MachineMessage SetScaleResolutionCalibration(MachineModel machine, CalResolutionTargetModel crtm)            
+        {
+            SetScaleResolutionCalibrationCommand cmd = new SetScaleResolutionCalibrationCommand(machine, crtm);
             return cmd.GetMessage();
         }
 
@@ -283,13 +273,6 @@ namespace Picky
             MachineMessage msg = new MachineMessage();
             msg.delay = 2000;
             msg.cmd = Encoding.UTF8.GetBytes(string.Format("M400\n"));
-            return msg;
-        }
-
-        public static MachineMessage G_SetItemLocation()
-        {
-            MachineMessage msg = new MachineMessage();
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 *\n"));
             return msg;
         }
 

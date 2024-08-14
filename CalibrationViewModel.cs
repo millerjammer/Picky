@@ -139,44 +139,42 @@ namespace Picky
         /* This is called when machine z changes */
         private void OnMachinePropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            machine.Cal.GetPickHeadOffsetToCameraAtZ(Machine.CurrentZ);
-            machine.Cal.GetScaleMMPerPixAtZ(Machine.CurrentZ);
+            machine.Cal.GetPickHeadOffsetToCameraAtZ(Machine.CurrentZ + Constants.TOOL_LENGTH_MM);
+            machine.Cal.GetScaleMMPerPixAtZ(Machine.CurrentZ + Constants.TOOL_LENGTH_MM);
         }
 
         public ICommand GetResolutionAtPCBCommand { get { return new RelayCommand(GetResolutionAtPCB); } }
         private void GetResolutionAtPCB()
         {
-            double cal_target_x = CalTargetModel.TARGET_PCB_POS_X_MM;
-            double cal_target_y = CalTargetModel.TARGET_PCB_POS_Y_MM;
-
-            GetResolution(cal_target_x, cal_target_y, Constants.CAL_TYPE_RESOLUTION_AT_PCB, Constants.CAL_TYPE_Z_DISTANCE_AT_PCB);
+           GetScaleResolution(machine.Cal.TargetResAtPCB);
         }
 
         public ICommand GetResolutionAtToolCommand { get { return new RelayCommand(GetResolutionAtTool); } }
         private void GetResolutionAtTool()
         {
-            double cal_target_x = CalTargetModel.TARGET_TOOL_POS_X_MM;
-            double cal_target_y = CalTargetModel.TARGET_TOOL_POS_Y_MM;
-
-            GetResolution(cal_target_x, cal_target_y, Constants.CAL_TYPE_RESOLUTION_AT_TOOL, Constants.CAL_TYPE_Z_DISTANCE_AT_TOOL);
+            GetScaleResolution(machine.Cal.TargetResAtTool);
         }
               
-        private void GetResolution(double x, double y, char type, char type2)
+        private void GetScaleResolution(CalResolutionTargetModel target)
+        /*---------------------------------------------------------------------
+         * Uses step alignment to determine mm/pix at a specific target. This
+         * is a calibration used to enable jump step connections based on cammea
+         * to target.  This function is performed at two different target z 
+         * elevations.  This should be the first calibration that's done.
+         * -------------------------------------------------------------------*/
         {
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
-            machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));
-            
-            //Define Target circle to find
-            CircleSegment calCircle = new CircleSegment();
-            calCircle.Center = new Point2f((float)x, (float)y);
-            calCircle.Radius = ((float)(CalTargetModel.TARGET_RESOLUTION_RADIUS_MILS * Constants.MIL_TO_MM));
-
-            machine.Messages.Add(GCommand.G_IterativeAlignToCircle(calCircle, 4));
-            machine.Messages.Add(GCommand.X_SetCalFactor(type));
+            machine.Messages.Add(GCommand.G_SetPosition(target.targetCircle.Center.X, target.targetCircle.Center.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            for(int i = 0; i < 5; i++)
+            {
+                machine.Messages.Add(GCommand.StepAlignToCalCircle(machine, target.targetCircle, target.MMHeightZ, null));
+                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
+            }
             machine.Messages.Add(GCommand.G_ProbeZ(24.0));
             machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.X_SetCalFactor(type2));
-            machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));
+            machine.Messages.Add(GCommand.SetScaleResolutionCalibration(machine, target));
+            machine.Messages.Add(GCommand.G_SetPosition(target.targetCircle.Center.X, target.targetCircle.Center.Y, 0, 0, 0));
         }
                 
         public ICommand MoveToPickLocation { get { return new RelayCommand(moveToPickLocation); } }

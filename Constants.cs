@@ -32,6 +32,12 @@ namespace Picky
             get { return y; }
             set { y = value; OnPropertyChanged(nameof(Y)); }
         }
+        private double z;
+        public double Z
+        {
+            get { return z; }
+            set { z = value; OnPropertyChanged(nameof(Z)); }
+        }
         private bool isValid;
         public bool IsValid
         {
@@ -42,19 +48,20 @@ namespace Picky
 
         public Circle3d() {
             Radius = 0;
-            X = Y = 0;
+            X = Y = Z = 0;
         }
-        public Circle3d(double center_x, double center_y, double radius) 
+        public Circle3d(double center_x, double center_y, double z, double radius) 
         {
             Radius = radius;
             X = center_x; Y = center_y;
+            Z = z;
             IsValid = false;
      
         }
         
         public override string  ToString()
         {
-            return string.Format("Circle3d: Point2d.X: {0} X: {1} Y: {2} IsValid: {3}", Radius, X, Y, IsValid);
+            return string.Format("Circle3d: Point2d.X: {0} X: {1} Y: {2} Z: {3} IsValid: {4}", Radius, X, Y, Z, IsValid);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

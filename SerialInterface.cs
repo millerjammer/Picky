@@ -94,7 +94,7 @@ namespace Picky
             int length, i, j, k ;
             int bytes_read;
             MachineMessage msg;
-            byte[] sbuf = new byte[1024];
+            byte[] sbuf = new byte[131071];  //17 bits
 
             if (serialPort.IsOpen)
             {
@@ -255,36 +255,7 @@ namespace Picky
                                     rx_msgCount++;
                                 }
                             }
-                            // Handle commands do not output an OK to the serial port - J200 is an Iterative Align to Circle - these are mostly camera commands
-                            else if (msg.cmdString.StartsWith("J200"))
-                            {
-                                if (machine.downCamera.IsCircleSearchActive() == false)
-                                {
-                                    // Restart repeating message as new message, offset in mm
-                                    double x_offset = machine.Cal.PcbMMToPixX * machine.downCamera.GetBestCircle().Center.X;
-                                    double y_offset = machine.Cal.PcbMMToPixY * machine.downCamera.GetBestCircle().Center.Y;
-                                    Point2d offset = new Point2d(x_offset, y_offset);
-                                    msg.cmd = Encoding.ASCII.GetBytes(string.Format("J100 Position Error [mm] X: {0:F3} Y: {1:F3}\n", offset.X, offset.Y));
-                                    msg.state = MachineMessage.MessageState.ReadyToSend;
-                                    // Use 1/2 the offset to calculate next location, we can't assume to know resolution, so we can't jump 
-                                    msg.target.x += ((-1 * (offset.X / 2)) / 2);
-                                    msg.target.y += ((offset.Y / 2) / 2);
-
-                                    if ((msg.iterationCount--) <= 0)
-                                    {
-                                        Console.WriteLine("J200 Command Complete: Best Circle: " + machine.downCamera.GetBestCircle().ToString());
-                                        if (msg.circleSrc != null) //only for monuments
-                                        {
-                                            msg.circleSrc.X = offset.X + msg.target.x;
-                                            msg.circleSrc.Y = offset.Y + msg.target.y;
-                                        };
-                                        msg.state = MachineMessage.MessageState.Complete;
-                                        rx_msgCount++;
-                                    }
-                                    msg.delay = 0;
-                                }
-                            }
-                            // This is a Camera based Request
+                            // Handle commands do not output an OK to the serial port - these are mostly camera commands
                             else if (msg.cmdString.StartsWith("J102"))
                             {
                                 if (msg.messageCommand.PostMessageCommand(msg))
@@ -330,51 +301,11 @@ namespace Picky
                             }
                             
                         }
-                        //Commands no waiting for an 'OK'
-                        if (msg.cmdString.StartsWith("X100"))
+                        // Messages waiting for valid position = Target position
+                        if (msg.state == MachineMessage.MessageState.PendingPosition && isPositionGood(msg))
                         {
-                            CircleSegment cs = machine.downCamera.GetBestCircle();
-                            char calType = (char)msg.cmd[5];
-                            if (calType == Constants.CAL_TYPE_RESOLUTION_AT_PCB)
-                            {
-                                machine.Cal.PcbMMToPixX = (1000 * 0.0254) / cs.Radius; //  [mm/pic]
-                                machine.Cal.PcbMMToPixY = (1000 * 0.0254) / cs.Radius;
-                                Console.WriteLine("Resolution at PCB: " + machine.Cal.PcbMMToPixX + "/" + machine.Cal.PcbMMToPixY + " mm/pix");
-                            }
-                            else if (calType == Constants.CAL_TYPE_RESOLUTION_AT_TOOL)
-                            {
-                                machine.Cal.ToolMMToPixX = (1000 * 0.0254) / cs.Radius; //  [mm/pic]
-                                machine.Cal.ToolMMToPixY = (1000 * 0.0254) / cs.Radius;
-                            }
-                            else if (calType == Constants.CAL_TYPE_Z_DISTANCE_AT_PCB)
-                            {
-                                machine.Cal.PcbZHeight = machine.CurrentZ + Constants.TOOL_LENGTH_MM;
-                                Console.WriteLine("Z @ PCB: " + machine.Cal.PcbZHeight + " mm");
-                            }
-                            else if (calType == Constants.CAL_TYPE_Z_DISTANCE_AT_TOOL)
-                            {
-                                machine.Cal.ToolZHeight = machine.CurrentZ + Constants.TOOL_LENGTH_MM;
-                            }
-                            Console.WriteLine("Calibrated, Type: " + calType);
                             msg.state = MachineMessage.MessageState.Complete;
                             rx_msgCount++;
-                        }
-                        // Messages waiting for valid position = Target position
-                        else if (msg.state == MachineMessage.MessageState.PendingPosition && isPositionGood(msg))
-                        {
-                            // Make sure we get another position report before checking here 
-                            if (msg.cmdString.StartsWith("J100"))
-                            {
-                                // Restart as a new message
-                                msg.cmd = Encoding.ASCII.GetBytes(string.Format("J200 Get Circle Iteration: {0}\n", msg.iterationCount));
-                                msg.state = MachineMessage.MessageState.ReadyToSend;
-                                msg.delay = 0;
-                            }
-                            else
-                            {
-                                msg.state = MachineMessage.MessageState.Complete;
-                                rx_msgCount++;
-                            }
                         }
                         //Get Steps Response from query
                         else if (serial_buffer[2] == (byte)'M' && serial_buffer[3] == (byte)'9' && serial_buffer[4] == (byte)'2')
@@ -445,21 +376,12 @@ namespace Picky
                     // Send Message, if this is a G-Code
                     if ((msg.cmd[0] == 'G') || (msg.cmd[0] == 'M'))
                     {
-                        if (msg.cmd[3] == '*')
-                        {
-                            //Convert circle Target to location
-                            Point2d offset = new Point2d(machine.Cal.PcbMMToPixX * machine.downCamera.GetBestCircle().Center.X, machine.Cal.PcbMMToPixY * machine.downCamera.GetBestCircle().Center.Y);
-                            msg.target.x = (-1 * (offset.X / 2)) + machine.CurrentX; msg.target.y = (offset.Y / 2) + machine.CurrentY;
-                            msg.target.z = machine.CurrentZ; msg.target.a = machine.CurrentA;
-                            msg.target.b = machine.CurrentB;
-                            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} Z{2} A{3}\n", msg.target.x, msg.target.y, msg.target.z, msg.target.a));
-                        }
                         int len = Array.LastIndexOf(msg.cmd, (byte)'\n');
                         serialPort.Write(msg.cmd, 0, len + 1);
                     }
                     else if (msg.cmdString.StartsWith("J200"))
                     {
-                        machine.downCamera.RequestCircleLocation(msg.roi, msg.circleToFind);
+                        //machine.downCamera.RequestCircleLocation(msg.roi, msg.circleToFind);
                     }
                     else if (msg.cmdString.StartsWith("J101"))
                     {
@@ -469,9 +391,9 @@ namespace Picky
                     {
                         msg.messageCommand.PreMessageCommand(msg);
                     }
-                    //Send Message - NOT G Code
                     else if (msg.cmdString.StartsWith("J100"))
                     {
+                        msg.messageCommand.PreMessageCommand(msg);
                         byte[] cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} Z{2} A{3}\n", msg.target.x, msg.target.y, msg.target.z, msg.target.a));
                         int len = Array.LastIndexOf(cmd, (byte)'\n');
                         serialPort.Write(cmd, 0, len + 1);

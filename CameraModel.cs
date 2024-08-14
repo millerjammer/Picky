@@ -49,6 +49,7 @@ namespace Picky
         private OpenCvSharp.Rect searchCircleROI;
         private CircleSegment searchCircleToFind;
         private CircleSegment bestCircle;
+        private double searchCircleZ;
 
         public bool searchQRRequest = false;
         private OpenCvSharp.Rect searchQRROI;
@@ -137,17 +138,21 @@ namespace Picky
             return searchCircleRequest;
         }
 
-        public void RequestCircleLocation(OpenCvSharp.Rect roi, CircleSegment sc)
+        public void RequestCircleLocation(OpenCvSharp.Rect roi, CircleSegment sc, double zOpticalDistance)
         /*-------------------------------------------------------------------------
          * Call here to start the process, use IsCircleSearchActive to monitor
          * progress and GetBestCircle when it's no longer active. roi is the region 
-         * of interest in pixels.  sc is the circle to find, an estimate in mm
+         * of interest in pixels.  sc is the circle to find, an estimate in mm.  ZOptical in mm
+         * ZOptical should include length of the tool.
+         * Note: zOpticalDistance is needed ONLY to qualify the circles we are searching for
+         * TODO - eliminate zOpticalDistance.
          * ------------------------------------------------------------------------*/
         {
             //sc is in MM
             searchCircleRequest = true;
             searchCircleToFind = sc;
             searchCircleROI = roi;
+            searchCircleZ = zOpticalDistance;
         }
 
         /** Public methods for QR Code **/
@@ -238,21 +243,22 @@ namespace Picky
             CircleROI = new Mat(DilatedImage, searchCircleROI);
 
             //Convert the estimated circle (in MM) to search criteria (in Pix) based on z.  
-            var scale = machine.Cal.GetScaleMMPerPixAtZ(machine.CurrentZ + Constants.TOOL_LENGTH_MM);
-            int minR = (int)((searchCircleToFind.Radius * .25) / scale.xScale);
-            int maxR = (int)((searchCircleToFind.Radius * 2) / scale.yScale);
+            var scale = machine.Cal.GetScaleMMPerPixAtZ(searchCircleZ);
+            int minR = (int)((searchCircleToFind.Radius * .5) / scale.xScale);
+            int maxR = (int)((searchCircleToFind.Radius * 2.5) / scale.yScale);
+            Console.WriteLine("minR/maxR: " + minR + "," + maxR + "@" + scale.xScale);
 
             //Set Min distance between matches
-            int minDist = (int)(searchCircleROI.Width/6);
+            int minDist = maxR;
 
             // Find circles using HoughCircles
             CircleSegment[] circles = Cv2.HoughCircles(
                 CircleROI,
-                HoughModes.GradientAlt,
+                HoughModes.Gradient,
                 dp: 1.5,
                 minDist: minDist,   //Was 800, formally set to 2xmin raduis
-                param1: 50,     //smaller means more false circles
-                param2: .8,    //smaller means more false circles
+                param1: 140,     //smaller means more false circles
+                param2: 50,    //smaller means more false circles
                 minRadius: minR, // Was 600,
                 maxRadius: maxR);  // Was 1200
 
@@ -348,7 +354,7 @@ namespace Picky
                     // Tell Part where to pick the next part
                     x_offset_pixels = (x_next - (0.5 * Constants.CAMERA_FRAME_WIDTH));
                     y_offset_pixels = (y_next - (0.5 * Constants.CAMERA_FRAME_HEIGHT));
-                    var scale = machine.Cal.GetScaleMMPerPixAtZ(machine.CurrentZ);
+                    var scale = machine.Cal.GetScaleMMPerPixAtZ(machine.CurrentZ + Constants.TOOL_LENGTH_MM);
                     x_next_part = machine.CurrentX - (x_offset_pixels * scale.xScale);
                     y_next_part = machine.CurrentY + (y_offset_pixels * scale.yScale);
                     machine.selectedCassette.selectedFeeder.SetCandidateNextPartLocation(x_next_part, y_next_part);

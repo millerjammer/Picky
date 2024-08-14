@@ -9,7 +9,7 @@ using System.Windows.Media.Media3D;
 
 namespace Picky
 {
-    public class SetPickOffsetCalibrationCommand : MessageRelayCommand
+    public class SetToolOffsetCalibrationCommand : MessageRelayCommand
     /*------------------------------------------------------------------------------
      * This command uses the up camera to image the tip of the tool and calculate
      * it's position at various angles.  The result is placed in the tool's calibration
@@ -31,18 +31,17 @@ namespace Picky
         public CameraModel cameraToUse;
 
 
-        public SetPickOffsetCalibrationCommand(MachineModel mm) 
+        public SetToolOffsetCalibrationCommand(MachineModel mm) 
         {
             machine = mm;
             roi = new OpenCvSharp.Rect(Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
             msg = new MachineMessage();
             msg.messageCommand = this;
-            msg.cmd = Encoding.ASCII.GetBytes("J102\n");
+            msg.cmd = Encoding.ASCII.GetBytes("J102 Set Tool Offset\n");
             tool = new CircleSegment();
             tool.Center = new Point2f((float)machine.SelectedPickTool.ToolStorageX, (float)machine.SelectedPickTool.ToolStorageY);
             tool.Radius = ((float)(Constants.TOOL_28GA_TIP_DIA_MM / 2));
             cameraToUse = machine.upCamera;
-            
         }
 
         public MachineMessage GetMessage()
@@ -54,7 +53,7 @@ namespace Picky
         {
             cameraToUse.IsManualFocus = true;
             cameraToUse.Focus = 600;
-            cameraToUse.RequestCircleLocation(roi, tool);
+            cameraToUse.RequestCircleLocation(roi, tool, 25.0);
             return true;
         }
 
@@ -72,7 +71,7 @@ namespace Picky
                 if (radius < 0.1)
                 {
                     Console.WriteLine("PickOffset Failed, Repeating Request.");
-                    cameraToUse.RequestCircleLocation(roi, tool);
+                    cameraToUse.RequestCircleLocation(roi, tool, 25.0);
                     return false;
                 }
                 else

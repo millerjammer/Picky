@@ -8,27 +8,8 @@ namespace Picky
 {
     public class CalibrationModel : INotifyPropertyChanged
     {
-
-
-        /* Resolution - PCB */
-        private double pcbMMToPixX;
-        public double PcbMMToPixX
-        {
-            get { return pcbMMToPixX; }
-            set { pcbMMToPixX = value; OnPropertyChanged(nameof(PcbMMToPixX)); }
-        }
-        private double pcbMMToPixY;
-        public double PcbMMToPixY
-        {
-            get { return pcbMMToPixY; }
-            set { pcbMMToPixY = value; OnPropertyChanged(nameof(PcbMMToPixY)); }
-        }
-        private double pcbZHeight;
-        public double PcbZHeight
-        {
-            get { return pcbZHeight; }
-            set { pcbZHeight = value; OnPropertyChanged(nameof(PcbZHeight)); }
-        }
+        public CalResolutionTargetModel TargetResAtPCB { get; set; }
+        public CalResolutionTargetModel TargetResAtTool { get; set; }
 
         /* Feeder */
         private double feeder0X;
@@ -56,26 +37,7 @@ namespace Picky
             get { return feederNY; }
             set { feederNY = value; OnPropertyChanged(nameof(FeederNY)); }
         }
-
-        /* Resolution - Tool */
-        private double toolMMToPixX;
-        public double ToolMMToPixX
-        {
-            get { return toolMMToPixX; }
-            set { toolMMToPixX = value; OnPropertyChanged(nameof(ToolMMToPixX)); }
-        }
-        private double toolMMToPixY;
-        public double ToolMMToPixY
-        {
-            get { return toolMMToPixY; }
-            set { toolMMToPixY = value; OnPropertyChanged(nameof(ToolMMToPixY)); }
-        }
-        private double toolZHeight;
-        public double ToolZHeight
-        {
-            get { return toolZHeight; }
-            set { toolZHeight = value; OnPropertyChanged(nameof(ToolZHeight)); }
-        }
+       
                 
         /* Calculated based on similar triangles above */
         private double resolutionXAtZ;
@@ -185,7 +147,18 @@ namespace Picky
 
         public CalibrationModel()
         {
+            CircleSegment targetCircle = new CircleSegment();
+            targetCircle.Radius = (float)(CalTargetModel.TARGET_RESOLUTION_RADIUS_MILS * Constants.MIL_TO_MM);
+            targetCircle.Center.X = (float)(CalTargetModel.TARGET_PCB_POS_X_MM);
+            targetCircle.Center.Y = (float)(CalTargetModel.TARGET_PCB_POS_Y_MM);
 
+            TargetResAtPCB = new CalResolutionTargetModel(targetCircle);
+            
+            
+            targetCircle.Center.X = (float)(CalTargetModel.TARGET_TOOL_POS_X_MM);
+            targetCircle.Center.Y = (float)(CalTargetModel.TARGET_TOOL_POS_Y_MM);
+            TargetResAtTool =  new CalResolutionTargetModel(targetCircle);
+           
         }
 
         /* Calculate Values Based on Calibration */
@@ -193,13 +166,13 @@ namespace Picky
         public (double xScale, double yScale) GetScaleMMPerPixAtZ(double z) {
             /*----------------------------------------------------------------------------------
              - Returns the scale in mm/pix at the given Z (in mm) requires the calibration has 
-             - been performed. Uses linear interpolation
+             - been performed. Uses linear interpolation.  z is typically the plane of the tool tip
              -----------------------------------------------------------------------------------*/
-            double slope_x = (PcbMMToPixX - ToolMMToPixX) / (PcbZHeight - ToolZHeight);
-            double slope_y = (PcbMMToPixY - ToolMMToPixY) / (PcbZHeight - ToolZHeight);
+            double slope_x = (TargetResAtPCB.MMToPixX - TargetResAtTool.MMToPixX) / (TargetResAtPCB.MMHeightZ - TargetResAtTool.MMHeightZ);
+            double slope_y = (TargetResAtPCB.MMToPixY - TargetResAtTool.MMToPixY) / (TargetResAtPCB.MMHeightZ - TargetResAtTool.MMHeightZ);
 
-            ResolutionXAtZ = ToolMMToPixX + (slope_x * (z - ToolZHeight));
-            ResolutionYAtZ = ToolMMToPixY + (slope_y * (z - ToolZHeight));
+            ResolutionXAtZ = TargetResAtTool.MMToPixX + (slope_x * (z - TargetResAtTool.MMHeightZ));
+            ResolutionYAtZ = TargetResAtTool.MMToPixY + (slope_y * (z - TargetResAtTool.MMHeightZ));
 
             return (ResolutionXAtZ, ResolutionYAtZ);
         }

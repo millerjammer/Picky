@@ -93,7 +93,7 @@ namespace Picky
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
             //Align and adjust next position command
-            machine.Messages.Add(GCommand.OpticallyAlignToSelectedTool(machine));
+            machine.Messages.Add(GCommand.JumpAlignToSelectedTool(machine));
             //Offset to Pick           
             var offset = machine.Cal.GetPickHeadOffsetToCameraAtZ(machine.SelectedPickTool.ToolStorageZ);
             double x = Machine.SelectedPickTool.ToolStorageX + offset.x_offset;
@@ -122,7 +122,7 @@ namespace Picky
             //Get offset to tip
             for (int i = 0; i < 360; i += 90)
             {
-                machine.Messages.Add(GCommand.SetPickOffsetCalibration(machine));
+                machine.Messages.Add(GCommand.SetToolOffsetCalibration(machine));
                 machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, i, 0));
                 machine.Messages.Add(GCommand.G_FinishMoves());
             }

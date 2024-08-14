@@ -151,6 +151,7 @@
     <Compile Include="CalibrationWindow.xaml.cs">
       <DependentUpon>CalibrationWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="CalResolutionTargetModel.cs" />
     <Compile Include="CalTargetModel.cs" />
     <Compile Include="CameraModel.cs" />
     <Compile Include="CameraView.xaml.cs">
@@ -162,13 +163,14 @@
       <DependentUpon>CassetteView.xaml</DependentUpon>
     </Compile>
     <Compile Include="CassetteViewModel.cs" />
-    <Compile Include="Commands\SetPickOffsetCalibrationCommand.cs" />
+    <Compile Include="Commands\SetToolOffsetCalibrationCommand.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="ControlWindow.xaml.cs">
       <DependentUpon>ControlWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Feeder.cs" />
-    <Compile Include="GCommand.cs" />
+    <Compile Include="Commands\GCommand.cs" />
+    <Compile Include="Commands\StepAlignToCalCircleCommand.cs" />
     <Compile Include="MachineModel.cs" />
     <Compile Include="MachineMessage.cs" />
     <Compile Include="MachineView.xaml.cs">
@@ -183,7 +185,8 @@
       <DependentUpon>PickListView.xaml</DependentUpon>
     </Compile>
     <Compile Include="PickListViewModel.cs" />
-    <Compile Include="Commands\OpticallyAlignToSelectedToolCommand.cs" />
+    <Compile Include="Commands\JumpAlignToSelectedToolCommand.cs" />
+    <Compile Include="Commands\SetScaleResolutionCalibrationCommand.cs" />
     <Compile Include="Tools\PickToolModel.cs" />
     <Compile Include="Tools\PickToolView.xaml.cs">
       <DependentUpon>PickToolView.xaml</DependentUpon>
