@@ -3,7 +3,7 @@
 
 ## Overview
 
-What is this?  A pick and place machine is a type of automated equipment widely used in the manufacturing industry. It is designed to pick up components and place them accurately onto a target surface, such as a PCB (Printed Circuit Board). This technology significantly improves production efficiency and precision.  Why this one?  It fits on a desktop, it's 3D printable and inexpensive.  
+What is this?  A pick and place machine is a type of automated equipment widely used in the manufacturing industry. It is designed to pick up components and place them accurately onto a target surface, such as a PCB (Printed Circuit Board). This technology significantly improves production efficiency and precision.  Why this one?  It fits on a desktop, it's 3D printable and inexpensive.  More at [www.jamesrmiller.com](www.jamesrmiller.com)  
 
 ![IMG_4920](https://github.com/user-attachments/assets/58ef7d61-3571-43aa-ba6c-2493deb07639)
 
