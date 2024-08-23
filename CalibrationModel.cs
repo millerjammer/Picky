@@ -168,11 +168,11 @@ namespace Picky
              - Returns the scale in mm/pix at the given Z (in mm) requires the calibration has 
              - been performed. Uses linear interpolation.  z is typically the plane of the tool tip
              -----------------------------------------------------------------------------------*/
-            double slope_x = (TargetResAtPCB.MMToPixX - TargetResAtTool.MMToPixX) / (TargetResAtPCB.MMHeightZ - TargetResAtTool.MMHeightZ);
-            double slope_y = (TargetResAtPCB.MMToPixY - TargetResAtTool.MMToPixY) / (TargetResAtPCB.MMHeightZ - TargetResAtTool.MMHeightZ);
+            double slope_x = (TargetResAtPCB.MMPerPixX - TargetResAtTool.MMPerPixX) / (TargetResAtPCB.MMHeightZ - TargetResAtTool.MMHeightZ);
+            double slope_y = (TargetResAtPCB.MMPerPixY - TargetResAtTool.MMPerPixY) / (TargetResAtPCB.MMHeightZ - TargetResAtTool.MMHeightZ);
 
-            ResolutionXAtZ = TargetResAtTool.MMToPixX + (slope_x * (z - TargetResAtTool.MMHeightZ));
-            ResolutionYAtZ = TargetResAtTool.MMToPixY + (slope_y * (z - TargetResAtTool.MMHeightZ));
+            ResolutionXAtZ = TargetResAtTool.MMPerPixX + (slope_x * (z - TargetResAtTool.MMHeightZ));
+            ResolutionYAtZ = TargetResAtTool.MMPerPixY + (slope_y * (z - TargetResAtTool.MMHeightZ));
 
             return (ResolutionXAtZ, ResolutionYAtZ);
         }

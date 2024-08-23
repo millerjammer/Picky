@@ -1,0 +1,75 @@
+﻿using OpenCvSharp;
+using System;
+using System.Text;
+using System.Windows.Forms;
+
+namespace Picky
+{
+    public class GetFeederQRCodeCommand : MessageRelayCommand
+    /*------------------------------------------------------------------------------
+     * This command uses the down camera to image a QR Code and calculate
+     * it's position. 
+     * 
+     * REQUIREMENTS:
+     *      Up Illuminator 'Off'
+     *      Down Illuminator 'On'
+     *      Valid calibrations
+     *-------------------------------------------------------------------------------*/
+
+    {
+        public MachineModel machine;
+        public MachineMessage msg;
+        public CameraModel cameraToUse;
+        public OpenCvSharp.Rect ROI;
+        public Feeder currentFeeder;
+        
+
+
+        public GetFeederQRCodeCommand(Feeder feeder)
+        {
+            machine = MachineModel.Instance;
+            currentFeeder = feeder;
+            ROI = new OpenCvSharp.Rect(Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 4, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 2);
+            msg = new MachineMessage();
+            msg.messageCommand = this;
+            msg.cmd = Encoding.ASCII.GetBytes("J102 Get Feeder QR Code\n");
+            cameraToUse = machine.downCamera;
+        }
+
+        public MachineMessage GetMessage()
+        {
+            return msg;
+        }
+
+        public bool PreMessageCommand(MachineMessage msg)
+        {
+            cameraToUse.RequestQRCodeLocation(ROI);
+            return true;
+        }
+
+
+        public bool PostMessageCommand(MachineMessage msg)
+        {
+            if (cameraToUse.IsQRSearchActive() == false)
+            {
+                //QR Points are already based on full frame, so get pixel offset from full frame
+                double x_center_pix = (Constants.CAMERA_FRAME_WIDTH / 2) - ((cameraToUse.CurrentQRCodePoints[0].X + cameraToUse.CurrentQRCodePoints[2].X) / 2);
+                double y_center_pix = (Constants.CAMERA_FRAME_HEIGHT / 2) - ((cameraToUse.CurrentQRCodePoints[0].Y + cameraToUse.CurrentQRCodePoints[2].Y) / 2);
+                var scale = machine.Cal.GetScaleMMPerPixAtZ(Constants.FEEDER_QR_NOMINAL_Z_DRIVE_MM + Constants.TOOL_LENGTH_MM);
+                double x_center_mm = msg.target.x + (scale.xScale * x_center_pix);
+                double y_center_mm = msg.target.y - (scale.yScale * y_center_pix);
+                if (currentFeeder != null)
+                {
+                    currentFeeder.x_origin = x_center_mm;
+                    currentFeeder.y_origin = y_center_mm;
+                    currentFeeder.QRCode = cameraToUse.CurrentQRCode[0];
+                }
+                return true;
+            }
+            return false;
+        }
+    }
+
+
+}
+

@@ -35,15 +35,6 @@ namespace Picky
             set { selectedVisualizationViewItem = value; camera.selectedViewMat = selectedVisualizationViewItem.viewMat; OnPropertyChanged(nameof(SelectedVisualizationViewItem)); } //Notify listeners
         }
 
-
-        //private bool isPartInView = false;
-        //public bool IsPartInView
-        //{
-        //  get { return machine.selectedCassette.selectedFeeder.part.IsInView }
-        //  set { if (isPartInView == value) return; isPartInView = value; OnPropertyChanged(nameof(PartInViewIconColor)); }
-        // }
-
-
         public SolidColorBrush PartInViewIconColor
         {
             get

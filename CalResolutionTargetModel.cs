@@ -10,17 +10,17 @@ namespace Picky
 {
     public class CalResolutionTargetModel : INotifyPropertyChanged
     {
-        private double mmToPixX;
-        public double MMToPixX 
+        private double mmPerPixX;
+        public double MMPerPixX 
         { 
-            get { return mmToPixX; }
-            set { mmToPixX = value; OnPropertyChanged(nameof(MMToPixX)); }
+            get { return mmPerPixX; }
+            set { mmPerPixX = value; OnPropertyChanged(nameof(MMPerPixX)); }
         }
-        private double mmToPixY;
-        public double MMToPixY
+        private double mmPerPixY;
+        public double MMPerPixY
         {
-            get { return mmToPixY; }
-            set { mmToPixY = value; OnPropertyChanged(nameof(MMToPixY)); }
+            get { return mmPerPixY; }
+            set { mmPerPixY = value; OnPropertyChanged(nameof(MMPerPixY)); }
         }
 
         private double mmHeightZ;
@@ -39,8 +39,8 @@ namespace Picky
 
         public bool SetMMToPixel(double radiusInPixels)
         {
-            MMToPixX = targetCircle.Radius / radiusInPixels; //  [mm/pic]
-            MMToPixY = targetCircle.Radius / radiusInPixels;
+            MMPerPixX = targetCircle.Radius / radiusInPixels; //  [mm/pic]
+            MMPerPixY = targetCircle.Radius / radiusInPixels;
             return true;
         }
 

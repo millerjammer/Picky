@@ -94,7 +94,7 @@ namespace Picky
             int length, i, j, k ;
             int bytes_read;
             MachineMessage msg;
-            byte[] sbuf = new byte[131071];  //17 bits
+            byte[] sbuf = new byte[4096];  //17 bits
 
             if (serialPort.IsOpen)
             {
@@ -258,48 +258,12 @@ namespace Picky
                             // Handle commands do not output an OK to the serial port - these are mostly camera commands
                             else if (msg.cmdString.StartsWith("J102"))
                             {
-                                if (msg.messageCommand.PostMessageCommand(msg))
+                                if (msg.messageCommand.PostMessageCommand(msg) == true)
                                 {
                                     msg.state = MachineMessage.MessageState.Complete;
                                     rx_msgCount++;
                                 }
                             }
-                            // This is a QR Request
-                            else if (msg.cmdString.StartsWith("J101"))
-                            {
-                                if (machine.downCamera.IsQRSearchActive() == false)
-                                {
-                                    //QR Points are already based on full frame, so get pixel offset from full frame
-                                    double x_center_pix = (Constants.CAMERA_FRAME_WIDTH / 2) - ((machine.downCamera.CurrentQRCodePoints[0].X + machine.downCamera.CurrentQRCodePoints[2].X) / 2);
-                                    double y_center_pix = (Constants.CAMERA_FRAME_HEIGHT / 2) - ((machine.downCamera.CurrentQRCodePoints[0].Y + machine.downCamera.CurrentQRCodePoints[2].Y) / 2);
-                                    var scale = machine.Cal.GetScaleMMPerPixAtZ(Constants.FEEDER_QR_NOMINAL_Z_DRIVE_MM + Constants.TOOL_LENGTH_MM);
-                                    double x_center_mm = msg.target.x + (scale.xScale * x_center_pix);
-                                    double y_center_mm = msg.target.y - (scale.yScale * y_center_pix);
-                                    if (msg.feederSrc != null)
-                                    {
-                                        msg.feederSrc.x_origin = x_center_mm;
-                                        msg.feederSrc.y_origin = y_center_mm;
-                                        msg.feederSrc.QRCode = machine.downCamera.CurrentQRCode[0];
-                                    }
-                                    msg.state = MachineMessage.MessageState.Complete;
-                                    rx_msgCount++;
-                                }
-                                else if ((msg.iterationCount--) <= 0)
-                                {
-                                    Console.WriteLine("No QR Code Found");
-                                    msg.state = MachineMessage.MessageState.Complete;
-                                    rx_msgCount++;
-                                }
-                            }
-                            else if (msg.cmdString.StartsWith("L0"))
-                            {
-                                if (machine.downCamera.IsCircleSearchActive() == false)
-                                {
-                                    msg.state = MachineMessage.MessageState.Complete;
-                                    rx_msgCount++;
-                                }
-                            }
-                            
                         }
                         // Messages waiting for valid position = Target position
                         if (msg.state == MachineMessage.MessageState.PendingPosition && isPositionGood(msg))
@@ -346,11 +310,6 @@ namespace Picky
 
             if (msg.state == MachineMessage.MessageState.Complete)
                 return false;
-            if (msg.part != null)
-            {
-                machine.selectedPickListPart = msg.part;
-                Console.WriteLine("using part: " + msg.part.Description);
-            }
             if (msg.state == MachineMessage.MessageState.ReadyToSend)
             {
                 machine.SelectedMachineMessage = machine.Messages.ElementAt(machine.Messages.IndexOf(msg));
@@ -379,13 +338,9 @@ namespace Picky
                         int len = Array.LastIndexOf(msg.cmd, (byte)'\n');
                         serialPort.Write(msg.cmd, 0, len + 1);
                     }
-                    else if (msg.cmdString.StartsWith("J200"))
-                    {
-                        //machine.downCamera.RequestCircleLocation(msg.roi, msg.circleToFind);
-                    }
                     else if (msg.cmdString.StartsWith("J101"))
                     {
-                        machine.downCamera.RequestQRCodeLocation(msg.roi);
+                        //machine.downCamera.RequestQRCodeLocation(msg.roi);
                     }
                     else if (msg.cmdString.StartsWith("J102"))
                     {

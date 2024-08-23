@@ -6,12 +6,54 @@ using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Security.RightsManagement;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Markup;
 
 namespace Picky
 {
+    public class Polar
+    {
+        public double x { get; set; }
+        public double y { get; set; }
+        public double angle { get; set; }
+        public double radius { get; set; }
+        public double quality { get; set; }
+
+        public Polar(double x, double y, double angle)
+        {
+            this.x = x;
+            this.y = y;
+            this.angle = angle;
+        }
+        public Polar(double x, double y, double radius, double quality)
+        {
+            this.x = x;
+            this.y = y;
+            this.radius = radius;
+            this.quality = quality;
+        }
+        public Polar() { }
+    }
+
+    public class CircleDetector
+    {
+        public double Param1;
+        public double Param2;
+        public HoughModes DetectorType;                    
+
+        public double zEstimate;                    //In mm to optical plane
+        public CircleSegment CircleEstimate;        //In mm
+        public OpenCvSharp.Rect ROI;                //In mm
+
+        public CircleDetector(HoughModes mode, double param1, double param2) {
+            DetectorType = mode;
+            Param1 = param1;
+            Param2 = param2;
+        }
+    }
+  
     public class Circle3d : INotifyPropertyChanged
     {
         private double radius;
@@ -84,18 +126,17 @@ namespace Picky
         //public static int CAMERA_FRAME_WIDTH = 1280;
         //public static int CAMERA_FRAME_HEIGHT = 960;
         //public static int CAMERA_FPS = 45;
-
-        public static double CAMERA_OFFSET_Z = 50.8;
-
-        /* Using 3.29mm focal length lens and 3.6736mm x 2.7384mm sensor */
-        /* In mm */
         
-        public static int TOOL_COUNT = 4;
+        public static int    TOOL_COUNT = 4;
         public static double TOOL_CENTER_RADIUS_MILS = 80;
         public static double TOOL_LENGTH_MM = 28.575;
 
         /* The tools */
         public static double TOOL_28GA_TIP_DIA_MM = 1.0;
+
+        /* GUI */
+        public static string PAUSE_ICON = "\uE769";
+        public static string PLAY_ICON = "\uE768";
 
         public static int    DEFAULT_PART_DETECTION_THRESHOLD = 160;
         public static double CASSETTE_ORIGIN_X = -261.56;
@@ -104,36 +145,36 @@ namespace Picky
         public static double PART_TO_PICKUP_XOFFSET_MM = 0;
         public static double PART_TO_PICKUP_YOFFSET_MM = 0;
         public static double PART_TO_PICKUP_Z = 18.2;
-        
+
         /* Camera Messages */
-        public static byte C_ALIGN_TO_CIRCLE = 0x21;
-        public static byte C_ALIGN_TO_CIRCLE_IMAGE = 0x24;
+        public static int FOCUS_TIP_CAL = 600;
+        public static int FOCUS_TOOL_RETRIVAL = 600;
+        public static int FOCUS_FEEDER_QR_CODE = 461;
+        public static int FOCUS_FEEDER_PART = 481;
+        public static int FOCUS_PCB_062 = 450;
+        public static int FOCUS_PCB_031 = 450;
 
         /* Nominal Z - This is what we probe to, just enough to cause sensor to trip */
         /* These are movement distances with TOOL_LENGTH_MILS attached */
         public static double FEEDER_QR_NOMINAL_Z_DRIVE_MM = 19.0;
-        public static double PART_NOMINAL_Z_DRIVE_MM = 28.0;
+        public static double PART_NOMINAL_Z_DRIVE_MM = 32.0;
         public static double TOOL_NOMINAL_Z_DRIVE_MM = 40.5;
-
-        /* Calibration sub-type Messages */
-        public static char CAL_TYPE_RESOLUTION_AT_PCB = 'A';
-        public static char CAL_TYPE_Z_DISTANCE_AT_PCB = 'B';
-        public static char CAL_TYPE_RESOLUTION_AT_TOOL = 'C';
-        public static char CAL_TYPE_Z_DISTANCE_AT_TOOL = 'D';
-                
+                                
         /* Serial Port */       
         public static int MAX_BUFFER_SIZE = 4096;
-        public static int QUEUE_SERVICE_INTERVAL = 100;
+        public static int QUEUE_SERVICE_INTERVAL = 100;     //100mS
             
         /* Constants */
         public static double MIL_TO_MM = 0.0254;
         
         /* Files */
         public static string CALIBRATION_FILE_NAME = "cal.json";
+        public static string BOARD_FILE_NAME = "board.json";
         public static string TOOL_FILE_NAME = "tool.json";
+        public static string CALIBRATION_TIP_FILE_NAME = "toolCal.jpg";
 
         public static int DOWN_CAMERA_INDEX = 0;
-        public static int UP_CAMERA_INDEX = 2;
+        public static int UP_CAMERA_INDEX = 1;
         public static string SERIAL_PORT = "COM12";
 
     }

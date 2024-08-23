@@ -1,12 +1,18 @@
-﻿using System;
+﻿using OpenCvSharp;
+using System;
 using System.ComponentModel;
+using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json.Linq;
+using System.Windows.Controls.Primitives;
+using OpenCvSharp.Flann;
 
 namespace Picky
 {
     public class PickToolModel : INotifyPropertyChanged
     {
-    
-        /* This is data for calibration circle */
+
+        public enum TipStates { Unknown, Loading, Calibrating, Ready, Unloading, Stored, Error }
 
         /* Position in pixels from camera to pick location */
         public double x_min { get; set; }
@@ -53,6 +59,25 @@ namespace Picky
 
         }
 
+        public Point2d ToolReturnLocation { get; set; } 
+
+        private TipStates tipState;
+        public TipStates TipState
+        {
+            get { return tipState; }
+            set { tipState = value; OnPropertyChanged(nameof(TipState)); }
+        }
+
+        /* Create the data point used for tip calibration */
+        public List<Polar> CalDataPoints = new List<Polar>();
+        
+        private Polar tipOffset;
+        public Polar TipOffset
+        {
+            get { return tipOffset; }
+            set { tipOffset = value; OnPropertyChanged(nameof(TipOffset)); }
+        }
+                
 
         /* Physical Traits */
         public string Description { get; set; }
@@ -60,14 +85,11 @@ namespace Picky
         /* Physical Traits */
         public string Name { get; set; }
 
-        public PickToolModel()
-        {
-            ToolStorageZ = Constants.TOOL_NOMINAL_Z_DRIVE_MM;
-        }
-
         public PickToolModel(string name)
         {
             Description = name;
+            TipOffset = new Polar(0,0,0);
+            TipState = TipStates.Unknown;
         }
 
         /* Default Send Notification boilerplate - properties that notify use OnPropertyChanged */
@@ -75,6 +97,63 @@ namespace Picky
         private void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public bool SetPickOffsetCalibrationData(Polar point)
+        {
+            /* Calculate PickOffset from Calibration Data */
+            CalDataPoints.Add(point);
+            if(CalDataPoints.Count >= 6) {
+                TipFitCalibration fitter = new TipFitCalibration();
+                TipOffset = fitter.CalculateBestFitCircle(CalDataPoints);
+                TipState = TipStates.Ready;
+                SaveCalibrationCircleToFile();
+                OnPropertyChanged(nameof(TipOffset));           //Manually notify the GUI
+            }
+            return true;
+        }
+
+        public void SaveCalibrationCircleToFile()
+        {
+            int x, y, r;
+            MachineModel machine = MachineModel.Instance;
+            OpenCvSharp.Rect roi = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), (Constants.CAMERA_FRAME_HEIGHT / 3), Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
+            Mat roiImage = new Mat(machine.upCamera.ColorImage, roi);
+            Mat resImage = roiImage.Clone();
+            var scale = machine.Cal.GetScaleMMPerPixAtZ(25);
+            for (int i = 0; i < 6; i++)
+            {
+                // Draw the circle outline
+                Polar item = CalDataPoints.ElementAt(i);
+                x = (int)((resImage.Width / 2) + (item.x / scale.xScale));
+                y = (int)((resImage.Height / 2) + (item.y / scale.yScale));
+                r = (int)(item.radius / scale.xScale);
+                Cv2.Circle(resImage, x, y, r, Scalar.Green, 2);
+                // Draw the circle center
+                Cv2.Circle(resImage, x, y, 3, Scalar.Red, 3);
+            }
+            // Draw Result Calibration
+            x = (int)((resImage.Width / 2) + (TipOffset.x / scale.xScale));
+            y = (int)((resImage.Height / 2) + (TipOffset.y / scale.yScale));
+            r = (int)(TipOffset.radius / scale.xScale);
+            Cv2.Circle(resImage, x, y, r, Scalar.Black, 1);
+            // Draw the circle center
+            Cv2.Circle(resImage, x, y, 3, Scalar.Red, 3);
+            Cv2.ImWrite(Constants.CALIBRATION_TIP_FILE_NAME, resImage);
+        }
+
+        public void DisplayCalibrationCircle()
+        {
+           
+            if (TipState != PickToolModel.TipStates.Ready)
+                return;
+            Mat mat = Cv2.ImRead(Constants.CALIBRATION_TIP_FILE_NAME);
+            if (mat.Empty()) { 
+                Console.WriteLine("Image not found or could not be loaded.");
+                return;
+            }
+            Cv2.ImShow("Tool Tip Calibration Result", mat);
+            Cv2.WaitKey(1);
         }
 
         public Tuple<double, double> GetPickOffsetAtRotation(double angle_in_deg)

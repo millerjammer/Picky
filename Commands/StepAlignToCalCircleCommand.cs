@@ -12,30 +12,31 @@ namespace Picky
      * This function moves the head to a circle that looks like the
      * 'estimated' circle using iteration.  This is used when you don't 
      * know mm/pixel at the current Z.  This is typically used for 
-     * calibration only.  Resolution calibration must be set first.  
+     * calibration only.  Resolution calibration must be set first. 
+     * UPDATES the position of the next command.  This command must 
+     * be followed by a position command.
      * -------------------------------------------------------------*/
     {
         public MachineModel machine;
         public MachineMessage msg;
-        public OpenCvSharp.Rect roi;
-        public CircleSegment calTarget;
+        public CircleDetector detector;
         public CameraModel cameraToUse;
-        public double targetZ;
         public Circle3d dest;
 
         public StepAlignToCalCircleCommand(MachineModel mm, CircleSegment target, double tZ, Circle3d destination)
         {
-            machine = mm; 
-            if(target.Radius > 5)
-                roi = new OpenCvSharp.Rect(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
+            machine = mm;
+            detector = new CircleDetector(HoughModes.Gradient, 140, 50);
+            if (target.Radius > 5)
+                detector.ROI = new OpenCvSharp.Rect(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
             else
-                roi = new OpenCvSharp.Rect(Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
-            calTarget = target;
+                detector.ROI = new OpenCvSharp.Rect(Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
+            detector.CircleEstimate = target;
+            detector.zEstimate = tZ;
             msg = new MachineMessage();
-            targetZ = tZ;
+            msg.target.x = target.Center.X; msg.target.y = target.Center.Y;
             msg.messageCommand = this;
             msg.cmd = Encoding.ASCII.GetBytes("J102 Step Align To Calibration Circle\n");
-            msg.target.x = target.Center.X; msg.target.y = target.Center.Y;
             cameraToUse = machine.downCamera;
             dest = destination;
         }
@@ -46,7 +47,7 @@ namespace Picky
         }
         public bool PreMessageCommand(MachineMessage msg)
         {
-            cameraToUse.RequestCircleLocation(roi, calTarget, targetZ);
+            cameraToUse.RequestCircleLocation(detector);
             return true;
         }
 
@@ -56,17 +57,17 @@ namespace Picky
             if (cameraToUse.IsCircleSearchActive() == false)
             {
                 //Take a guess of the offset, this will be rewritten once successful
-                var scale = machine.Cal.GetScaleMMPerPixAtZ(targetZ);
+                var scale = machine.Cal.GetScaleMMPerPixAtZ(detector.zEstimate);
                 CircleSegment cir = cameraToUse.GetBestCircle(); //In pixels
                 double x_offset = scale.xScale * cir.Center.X;
                 double y_offset = scale.yScale * cir.Center.Y;
                 double radius = scale.yScale * cir.Radius;
                 
                 Point2d offset = new Point2d(x_offset, y_offset);
-                if (radius > (calTarget.Radius * 2.0) || radius < (calTarget.Radius * .5) )
+                if (radius > (detector.CircleEstimate.Radius * 2.0) || radius < (detector.CircleEstimate.Radius * .5) )
                 {
                     Console.WriteLine("Cal Target Alignment Failed, Repeating Request. Radius: " + radius + " mm");
-                    cameraToUse.RequestCircleLocation(roi, calTarget, targetZ);
+                    cameraToUse.RequestCircleLocation(detector);
                     return false;
                 }
                 else

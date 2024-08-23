@@ -25,13 +25,12 @@ namespace Picky
     public partial class MainWindow : System.Windows.Window
     {
                
-        private readonly CassetteView cassetteView;
-        private readonly SerialInterface serialInterface;
-
-        private readonly ControlWindow controlWindow;
-        private readonly PickListView pickListView;
-
-
+        private readonly CassetteView       cassetteView;
+        private readonly SerialInterface    serialInterface;
+        private readonly PickListView       pickListView;
+        private readonly PickToolWindow     toolWindow;
+        private readonly ControlWindow      controlWindow;
+        
         public MainWindow()
         {
 
@@ -44,10 +43,19 @@ namespace Picky
             pickListView = new PickListView();
             lView.Children.Add(pickListView);
 
+            toolWindow = new PickToolWindow();
+            DataContext = this;
+
             controlWindow = new ControlWindow();
             DataContext = this;
         }
-           
+
+
+        public ICommand OnToolsCommand { get { return new RelayCommand(onTools); } }
+        private void onTools()
+        {
+            toolWindow.Show();
+        }
 
         public ICommand OnControlsCommand { get { return new RelayCommand(onControl); } }
         private void onControl()

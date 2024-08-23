@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:local="clr-namespace:Picky"
              mc:Ignorable="d" 
              d:DesignHeight="100" d:DesignWidth="300">
@@ -19,6 +20,7 @@
         <Expander.Content>
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
                 <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="1" CornerRadius="4">
@@ -52,6 +54,20 @@
                         </Grid.ContextMenu>
                     </Grid>
                 </Border>
+                <Grid Grid.Row="1" Margin="0 15 0 20" HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ui:Button Grid.Column="4" Height="50" Command="{Binding OnBoardPlayPauseCommand}">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="{Binding boardPlayPauseIcon}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding boardPlayPauseText}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </ui:Button>
+                </Grid>
             </Grid>
         </Expander.Content>
     </Expander>

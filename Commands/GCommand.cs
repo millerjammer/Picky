@@ -24,30 +24,39 @@ namespace Picky
          *  
          ***********************************************************/
 
-        
-        public static MachineMessage C_GetQRCode(int max_iterations)
+        public static MachineMessage SetCameraAutoFocus(CameraModel camera, bool enableAF, int value)
         {
-            MachineMessage msg = new MachineMessage();
-            msg.iterationCount = max_iterations;
-            msg.cmd = Encoding.ASCII.GetBytes("J101\n");
-            
-            return msg;
+            SetCameraAutoFocusCommand cmd = new SetCameraAutoFocusCommand(camera, enableAF, value);
+            return cmd.GetMessage();
         }
 
-        public static MachineMessage SetToolOffsetCalibration(MachineModel machine)
+        public static MachineMessage OffsetCameraToPick()
         {
-           SetToolOffsetCalibrationCommand cmd = new SetToolOffsetCalibrationCommand(machine);
+            OffsetCameraToPickCommand cmd = new OffsetCameraToPickCommand();
+            return cmd.GetMessage();
+        }
+
+        public static MachineMessage OpticallyAlignToPart(Part part)
+        {
+            OpticallyAlignToPartCommand cmd = new OpticallyAlignToPartCommand(part);
+            return cmd.GetMessage();
+        }
+
+        public static MachineMessage SetToolOffsetCalibration(MachineModel machine, PickToolModel tool)
+        {
+           SetToolOffsetCalibrationCommand cmd = new SetToolOffsetCalibrationCommand(machine, tool);
            return cmd.GetMessage();
         }
+
         public static MachineMessage StepAlignToCalCircle(MachineModel machine, CircleSegment target, double z, Circle3d dest)
         {
             StepAlignToCalCircleCommand cmd = new StepAlignToCalCircleCommand(machine, target, z, dest);
             return cmd.GetMessage();
         }
         
-        public static MachineMessage JumpAlignToSelectedTool(MachineModel machine)
+        public static MachineMessage OpticallyAlignToTool(PickToolModel tool)
         {
-            JumpAlignToSelectedToolCommand cmd = new JumpAlignToSelectedToolCommand(machine);
+            OpticallyAlignToToolCommand cmd = new OpticallyAlignToToolCommand(tool);
             return cmd.GetMessage();
         }
 
@@ -57,18 +66,10 @@ namespace Picky
             return cmd.GetMessage();
         }
 
-        /***********************************************************
-         * 
-         *  CONFIGURATION AND SETTINGS COMMANDS
-         *  
-         ***********************************************************/
-
-
-        public static MachineMessage X_SetCalFactor(char typeOfCal)
+        public static MachineMessage GetFeederQRCode(Feeder feeder)
         {
-            MachineMessage msg = new MachineMessage();
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("X100 {0}\n", typeOfCal));
-            return msg;
+            GetFeederQRCodeCommand cmd = new GetFeederQRCodeCommand(feeder);
+            return cmd.GetMessage();
         }
 
         /***********************************************************
@@ -76,7 +77,6 @@ namespace Picky
         *  MOTION CONTROL COMMANDS
         *  
         ***********************************************************/
-
 
         public static MachineMessage G_ProbeZ(double z)
         {
@@ -92,7 +92,21 @@ namespace Picky
             return msg;
 
         }
-               
+
+        public static MachineMessage G_SetZPosition(double z)
+        {
+            /******************************************************************
+            * Units are mm
+            * TODO b is actuall F{4} feedrate
+            */
+
+            MachineMessage msg = new MachineMessage();
+            msg.target.z = z;
+
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 Z{1}\n", z, z));
+            return msg;
+        }
+
         public static MachineMessage G_SetPosition(double x, double y, double z, double a, double b)
         {
             /******************************************************************
@@ -271,7 +285,7 @@ namespace Picky
         public static MachineMessage G_FinishMoves()
         {
             MachineMessage msg = new MachineMessage();
-            msg.delay = 2000;
+            msg.delay = 1000;
             msg.cmd = Encoding.UTF8.GetBytes(string.Format("M400\n"));
             return msg;
         }

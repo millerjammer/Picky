@@ -31,14 +31,7 @@ namespace Picky
         }
         public int index { get; set; }
         public Pos target;
-        public Rect roi;
-        public int calType;
-        public int iterationCount;
-        public CircleSegment circleToFind;
-        public Circle3d circleSrc;
-        public Feeder feederSrc;
-        public CameraModel cameraToUse;
-
+        
         public MessageRelayCommand messageCommand;
                                        
         private byte[] _cmd;
@@ -73,18 +66,14 @@ namespace Picky
         public long start_time { get; set; }
         private long _actual_duration;
         public long actual_duration { get { return _actual_duration; } set { _actual_duration = value; OnPropertyChanged(nameof(actual_duration)); } }
-        public Part part { get; set; }
-        public Feeder feeder { get; set; }
-
+        
         public MachineMessage() 
         {
             cmd = new byte[64];
             state = MessageState.ReadyToSend;
             delay = 0;
             timeout = 4000;
-            calType = 0x00;
-            iterationCount = 1;
-            roi = new OpenCvSharp.Rect(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
+                        
             MachineModel mm = MachineModel.Instance;
             index = mm.Messages.Count();
             if(index != 0)

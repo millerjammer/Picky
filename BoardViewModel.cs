@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+
+using System;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 using System.Windows.Input;
 
 namespace Picky
@@ -12,9 +11,24 @@ namespace Picky
     {
         MachineModel machine = MachineModel.Instance;
 
+        private string _boardPlayPauseIcon;
+        public string boardPlayPauseIcon
+        {
+            get { return _boardPlayPauseIcon; }
+            set { _boardPlayPauseIcon = value; OnPropertyChanged(nameof(boardPlayPauseIcon)); }
+        }
+
+        private string _boardPlayPauseText;
+        public string boardPlayPauseText
+        {
+            get { return _boardPlayPauseText; }
+            set { _boardPlayPauseText = value; OnPropertyChanged(nameof(boardPlayPauseText)); }
+        }
+
         public BoardViewModel()
         {
-
+            boardPlayPauseText = "Place";
+            boardPlayPauseIcon = Constants.PLAY_ICON;
         }
                 
         public double PcbOriginX
@@ -55,6 +69,31 @@ namespace Picky
             Console.WriteLine("Set As PCB Origin");
             PcbOriginX = machine.CurrentX;
             PcbOriginY = machine.CurrentY;
+            SaveBoard();
+        }
+
+        public ICommand OnBoardPlayPauseCommand { get { return new RelayCommand(OnBoardPlayPause); } }
+        private void OnBoardPlayPause()
+        {
+            if (boardPlayPauseText == "Place")
+            {
+                boardPlayPauseText = "Pause";
+                boardPlayPauseIcon = Constants.PAUSE_ICON;
+                machine.isMachinePaused = false;
+            }
+            else
+            {
+                boardPlayPauseText = "Place";
+                boardPlayPauseIcon = Constants.PLAY_ICON;
+                machine.isMachinePaused = true;
+            }
+        }
+        public void SaveBoard()
+        {
+            String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            File.WriteAllText(path + "\\" + Constants.BOARD_FILE_NAME, JsonConvert.SerializeObject(this, Formatting.Indented));
+            Console.WriteLine("Board Data Saved.");
+
         }
     }
 }

@@ -21,7 +21,6 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <local:MachineView Grid.Row="0"/>
-                <local:PickToolView Grid.Row="1" VerticalAlignment="Top"/>
                 <local:BoardView Grid.Row="2" VerticalAlignment="Top"/>
             </Grid>
 

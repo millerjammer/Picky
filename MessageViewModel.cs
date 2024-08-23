@@ -16,10 +16,7 @@ namespace Picky
     internal class MessageViewModel : INotifyPropertyChanged
     {
         private MachineModel machine;
-
-        const string PAUSE_ICON = "\uE769";
-        const string PLAY_ICON = "\uE768";
-
+        
         private string _playPauseIcon;
         public string playPauseIcon
         {
@@ -33,19 +30,14 @@ namespace Picky
             get { return _playPauseText; }
             set { _playPauseText = value; OnPropertyChanged(nameof(playPauseText)); }
         }
-
-        /* Listen for changes on the machine properties and propagate to UI */
-        //public MachineModel Machine
-        //{
-        //    get { return machine; }
-        //}
+             
 
         public MessageViewModel(MachineModel mm)
         {
             machine = mm;
             machine.Messages.CollectionChanged += OnCollectionChanged;
             playPauseText = "Pause";
-            playPauseIcon = PAUSE_ICON;
+            playPauseIcon = Constants.PAUSE_ICON;
         }
 
         public MachineMessage selectedMachineMessage
@@ -101,16 +93,15 @@ namespace Picky
         public ICommand OnPlayPauseCommand { get { return new RelayCommand(OnPlayPause); } }
         private void OnPlayPause()
         {
-            Console.WriteLine(":" + playPauseText);
             if (playPauseText == "Play") {
                 playPauseText = "Pause";
-                playPauseIcon = PAUSE_ICON;
+                playPauseIcon = Constants.PAUSE_ICON;
                 machine.isMachinePaused = false;
             }
             else
             {
                 playPauseText = "Play";
-                playPauseIcon = PLAY_ICON;
+                playPauseIcon = Constants.PLAY_ICON;
                 machine.isMachinePaused = true;
             }
         }

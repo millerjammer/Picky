@@ -10,7 +10,8 @@ namespace Picky
     public class SetScaleResolutionCalibrationCommand : MessageRelayCommand
     /*----------------------------------------------------------------------
      * This command requires a get best circle and a probe inorder to not be
-     * reliant on a calibrated z, because, that's what we're trying to get 
+     * reliant on a calibrated z, because, that's what we're trying to get.
+     * OVERWRITES the call target.
      * --------------------------------------------------------------------*/
     {
         public MachineModel machine;
@@ -43,7 +44,7 @@ namespace Picky
             OpenCvSharp.CircleSegment bestCircle = cameraToUse.GetBestCircle();
             calResTarget.SetMMToPixel(bestCircle.Radius);
             calResTarget.SetMMHeightZ(machine.CurrentZ);
-            Console.WriteLine("Scale Resolution Set: " + calResTarget.MMToPixX + " mm/pix @ " + calResTarget.MMHeightZ + " mm");
+            Console.WriteLine("Scale Resolution Set: " + calResTarget.MMPerPixX + " mm/pix @ " + calResTarget.MMHeightZ + " mm");
             var scale = machine.Cal.GetScaleMMPerPixAtZ(machine.CurrentZ + Constants.TOOL_LENGTH_MM);
             double dia = (2 * bestCircle.Radius * scale.xScale) / Constants.MIL_TO_MM;
             Console.WriteLine("Best Circle Check - Calibrated Diameter (1.000): " + dia);

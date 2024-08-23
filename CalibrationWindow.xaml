@@ -95,14 +95,14 @@
             <Label Grid.Row="9" Grid.Column="3" Content="@Z [mm]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>
                         
             <Label Grid.Row="10" Grid.Column="0" Content="@Tool Surface (1st)" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
-            <TextBox Grid.Row="10" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.TargetResAtTool.MMToPixX, StringFormat={}{0:0.0000}, UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBox Grid.Row="10" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.TargetResAtTool.MMToPixY , StringFormat={}{0:0.0000},UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBox Grid.Row="10" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.TargetResAtTool.MMPerPixX, StringFormat={}{0:0.0000}, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBox Grid.Row="10" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.TargetResAtTool.MMPerPixY , StringFormat={}{0:0.0000},UpdateSourceTrigger=PropertyChanged}"/>
             <TextBox Grid.Row="10" Grid.Column="3" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.TargetResAtTool.MMHeightZ, StringFormat={}{0:0.000},UpdateSourceTrigger=PropertyChanged}"/>
             <Button Grid.Row="10" Grid.Column="4" Grid.ColumnSpan="1" Content="Run" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GetResolutionAtToolCommand}"/>
             
             <Label Grid.Row="11" Grid.Column="0" Content="@PCB Surface (2nd)" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
-            <TextBox Grid.Row="11" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.TargetResAtPCB.MMToPixX, StringFormat={}{0:0.0000}, UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBox Grid.Row="11" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.TargetResAtPCB.MMToPixY , StringFormat={}{0:0.0000},UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBox Grid.Row="11" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.TargetResAtPCB.MMPerPixX, StringFormat={}{0:0.0000}, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBox Grid.Row="11" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.TargetResAtPCB.MMPerPixY , StringFormat={}{0:0.0000},UpdateSourceTrigger=PropertyChanged}"/>
             <TextBox Grid.Row="11" Grid.Column="3" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.TargetResAtPCB.MMHeightZ, StringFormat={}{0:0.000},UpdateSourceTrigger=PropertyChanged}"/>
             <Button Grid.Row="11" Grid.Column="4" Grid.ColumnSpan="1" Content="Run" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GetResolutionAtPCBCommand}"/>
          

@@ -201,10 +201,14 @@ namespace Picky
             catch (Exception ex)
             {
                 Console.WriteLine("Can't find file: " + path + "\\" + Constants.TOOL_FILE_NAME);
-
                 PickToolList = new ObservableCollection<PickToolModel>();
             }
-           
+            foreach (var item in PickToolList)
+            {
+                item.TipState = PickToolModel.TipStates.Unknown;
+                
+            }
+
         }
 
         public static MachineModel Instance
@@ -226,14 +230,14 @@ namespace Picky
         {
             String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             File.WriteAllText(path + "\\" + Constants.TOOL_FILE_NAME, JsonConvert.SerializeObject(PickToolList, Formatting.Indented));
-            Console.WriteLine("Configuration Data Saved.");
+            Console.WriteLine("Tool Configuration Data Saved.");
         }
 
         public void SaveCalibration()
         {
             String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             File.WriteAllText(path + "\\" + Constants.CALIBRATION_FILE_NAME, JsonConvert.SerializeObject(Cal, Formatting.Indented));
-            Console.WriteLine("Configuration Data Saved.");
+            Console.WriteLine("Calibration Configuration Data Saved.");
 
         }
     }
