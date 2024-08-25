@@ -15,27 +15,31 @@ namespace Picky
 {
     internal class PickListViewModel
     {
-        public MachineModel Machine;
+        private MachineModel Machine;
+
+        /* Listen for changes on the machine properties and propagate to UI */
+        public MachineModel machine
+        {
+            get { return Machine; }
+        }
 
         public PickListViewModel()
         {
             Machine = MachineModel.Instance;
         }
 
-        public ObservableCollection<Part> PickList
-        {
-            get { return Machine.PickList; }
-            set
-            {
-                Machine.PickList = value; OnPropertyChanged(nameof(PickList));
-            }
-        }
-
         public Part selectedPickListPart
         {
             get { return Machine.selectedPickListPart; }
-            set { Machine.selectedPickListPart = value; OnPropertyChanged(nameof(selectedPickListPart)); }
+            set { Machine.selectedPickListPart = value; }
         }
+
+        public ObservableCollection<Part> PickList
+        {
+            get { return Machine.PickList; }
+            set { Machine.PickList = value; OnPropertyChanged(nameof(PickList));  }
+        }
+         
 
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged(string propertyName)
@@ -61,14 +65,31 @@ namespace Picky
             fdr.part = Machine.selectedPickListPart;
             Machine.selectedCassette.Feeders.Add(fdr);
             Machine.selectedPickListPart.cassette = Machine.selectedCassette;
+        } 
+        
+        public ICommand PlaceSinglePartCommand { get { return new RelayCommand(PlaceSinglePart); } }
+        private void PlaceSinglePart()
+        {
+            Machine.Messages.Add(GCommand.G_EnableIlluminator(true));
+            Machine.AddPartPlacementToQueue(Machine.selectedPickListPart);
+        }
+        
+        public ICommand PlaceAllPartsCommand { get { return new RelayCommand(PlaceAllParts); } }
+        private void PlaceAllParts()
+        {
+            Machine.Messages.Add(GCommand.G_EnableIlluminator(true));
+            for (int i=0;i<Machine.PickList.Count;i++)
+            {
+                Machine.AddPartPlacementToQueue(Machine.PickList.ElementAt(i));
+            }
         }
 
         public ICommand GoToPartLocationCommand { get { return new RelayCommand(GoToPartLocation); } }
         private void GoToPartLocation()
         {
-            Machine.Messages.Add(GCommand.G_SetPosition(Machine.CurrentX, Machine.CurrentY, 0, 0, 0));
-            double part_x = Machine.Board.PcbOriginX + (Convert.ToDouble(selectedPickListPart.CenterX) * Constants.MIL_TO_MM);
-            double part_y = Machine.Board.PcbOriginY + (Convert.ToDouble(selectedPickListPart.CenterY) * Constants.MIL_TO_MM);
+            Machine.Messages.Add(GCommand.G_SetZPosition(0));
+            double part_x = Machine.Board.PcbOriginX + (Convert.ToDouble(Machine.selectedPickListPart.CenterX) * Constants.MIL_TO_MM);
+            double part_y = Machine.Board.PcbOriginY + (Convert.ToDouble(Machine.selectedPickListPart.CenterY) * Constants.MIL_TO_MM);
             Machine.Messages.Add(GCommand.G_SetPosition(part_x, part_y, 0, 0, 0));
         }
 
@@ -130,5 +151,6 @@ namespace Picky
                 return;
             }
         }
+        
     }
 }

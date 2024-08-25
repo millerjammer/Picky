@@ -141,10 +141,7 @@ namespace Picky
         public static int    DEFAULT_PART_DETECTION_THRESHOLD = 160;
         public static double CASSETTE_ORIGIN_X = -261.56;
         public static double CASSETTE_ORIGIN_Y = -115.24;
-
-        public static double PART_TO_PICKUP_XOFFSET_MM = 0;
-        public static double PART_TO_PICKUP_YOFFSET_MM = 0;
-        public static double PART_TO_PICKUP_Z = 18.2;
+               
 
         /* Camera Messages */
         public static int FOCUS_TIP_CAL = 600;
@@ -156,7 +153,9 @@ namespace Picky
 
         /* Nominal Z - This is what we probe to, just enough to cause sensor to trip */
         /* These are movement distances with TOOL_LENGTH_MILS attached */
+        /* If you need the optical distance to surface, add TOOL_LENGTH_MILS and CONVERSION */
         public static double FEEDER_QR_NOMINAL_Z_DRIVE_MM = 19.0;
+        public static double PCB_NOMINAL_Z_DRIVE_MM = 22.0;
         public static double PART_NOMINAL_Z_DRIVE_MM = 32.0;
         public static double TOOL_NOMINAL_Z_DRIVE_MM = 40.5;
                                 

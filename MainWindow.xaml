@@ -7,7 +7,7 @@
         d:DataContext="{d:DesignInstance Type=local:MainWindow}"
         xmlns:local="clr-namespace:Picky" 
         mc:Ignorable="d" FontSize="12" 
-        Height="600" Width="800" ResizeMode="CanResize"
+        Height="800" Width="1000" ResizeMode="CanResize"
         WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterScreen" Background="Transparent">
 
     <Window.Resources>

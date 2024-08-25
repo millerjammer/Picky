@@ -41,18 +41,18 @@
                         <TextBlock Grid.Column="0" Text="" Margin="10,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"  TextAlignment="Left" />
                         <ui:Button Grid.Column="1" Content="Open..." Command="{Binding OpenPickListCommand}" Icon="Folder32"  Height="30" Margin="0,0,0,0" HorizontalAlignment="Right"/>
                     </Grid>
-                    <ui:DataGrid  x:Name="PickListGrid" Grid.Row="1" HorizontalAlignment="Stretch" SelectedItem="{Binding selectedPickListPart}" 
-                          ItemsSource="{Binding PickList}" AutoGenerateColumns="False" CanUserSortColumns="False"
+                    <ui:DataGrid  x:Name="PickListGrid" Grid.Row="1" HorizontalAlignment="Stretch" SelectedItem="{Binding machine.selectedPickListPart}" 
+                          ItemsSource="{Binding machine.PickList}" AutoGenerateColumns="False" CanUserSortColumns="False"
                           HorizontalContentAlignment="Stretch" SelectionChanged="PickListSelectionChanged"
                           VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="True" >
                         <!-- Placement 2nd Row - Data Grid -->
                         <DataGrid.Columns>
                             <DataGridTextColumn Binding="{Binding Designator}" Header="Designator" Width="80"/>
-                            <DataGridTextColumn Binding="{Binding Description}" Header="Description" Width="auto"/>
-                            <DataGridTextColumn Binding="{Binding CenterX}" Header="Center-X" Width="70"/>
-                            <DataGridTextColumn Binding="{Binding CenterY}" Header="Center-Y" Width="70"/>
-                            <DataGridTextColumn Binding="{Binding Rotation}" Header="Rotation" Width="70"/>
-                            <DataGridTextColumn Binding="{Binding cassette.name}" Header="Cassette" Width="70"/>
+                            <DataGridTextColumn Binding="{Binding Description}" Header="Description" Width="*"/>
+                            <DataGridTextColumn Binding="{Binding CenterX}" Header="Center-X" Width="80"/>
+                            <DataGridTextColumn Binding="{Binding CenterY}" Header="Center-Y" Width="80"/>
+                            <DataGridTextColumn Binding="{Binding Rotation}" Header="Rotation" Width="80"/>
+                            <DataGridTextColumn Binding="{Binding cassette.name}" Header="Cassette" Width="100"/>
                         </DataGrid.Columns>
                         <ui:DataGrid.RowStyle>
                             <Style TargetType="DataGridRow">
@@ -67,9 +67,11 @@
                         <DataGrid.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Go to Location"  Command="{Binding GoToPartLocationCommand}"/>
-                                <MenuItem Header="Place at Location"  Command="{Binding feeder.PlacePartAtLocationCommand}"/>
+                                <MenuItem Header="Place Part"  Command="{Binding PlaceSinglePartCommand}"/>
                                 <Separator Margin="2"/>
                                 <MenuItem Header="Add to Cassette" Command="{Binding AddPartToCassetteCommand}" />
+                                <Separator Margin="2"/>
+                                <MenuItem Header="Place All Parts" Command="{Binding PlaceAllPartsCommand}" />
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                     </ui:DataGrid>

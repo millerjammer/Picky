@@ -24,15 +24,27 @@ namespace Picky
          *  
          ***********************************************************/
 
+        public static MachineMessage Delay(int msDelay)
+        {
+            DelayCommand cmd = new DelayCommand(msDelay);
+            return cmd.GetMessage();
+        }
+
         public static MachineMessage SetCameraAutoFocus(CameraModel camera, bool enableAF, int value)
         {
             SetCameraAutoFocusCommand cmd = new SetCameraAutoFocusCommand(camera, enableAF, value);
             return cmd.GetMessage();
         }
 
-        public static MachineMessage OffsetCameraToPick()
+        public static MachineMessage OffsetCameraToPick(double angle)
         {
-            OffsetCameraToPickCommand cmd = new OffsetCameraToPickCommand();
+            OffsetCameraToPickCommand cmd = new OffsetCameraToPickCommand(angle);
+            return cmd.GetMessage();
+        }
+
+        public static MachineMessage OffsetCameraToPick(Part part)
+        {
+            OffsetCameraToPickCommand cmd = new OffsetCameraToPickCommand(part);
             return cmd.GetMessage();
         }
 
@@ -48,9 +60,9 @@ namespace Picky
            return cmd.GetMessage();
         }
 
-        public static MachineMessage StepAlignToCalCircle(MachineModel machine, CircleSegment target, double z, Circle3d dest)
+        public static MachineMessage StepAlignToCalCircle(MachineModel machine, CircleSegment target, Circle3d dest)
         {
-            StepAlignToCalCircleCommand cmd = new StepAlignToCalCircleCommand(machine, target, z, dest);
+            StepAlignToCalCircleCommand cmd = new StepAlignToCalCircleCommand(machine, target, dest);
             return cmd.GetMessage();
         }
         
@@ -93,6 +105,17 @@ namespace Picky
 
         }
 
+        public static MachineMessage M_SetXYBacklashCompensation(double f, double s, double x, double y)
+        {
+            /******************************************************************
+            * Units are mm, see https://marlinfw.org/docs/gcode/M425.html
+            */
+
+            MachineMessage msg = new MachineMessage();
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M425 F{0} S{1} X{2} Y{3}\n", f, s, x, y));
+            return msg;
+        }
+
         public static MachineMessage G_SetZPosition(double z)
         {
             /******************************************************************
@@ -103,7 +126,7 @@ namespace Picky
             MachineMessage msg = new MachineMessage();
             msg.target.z = z;
 
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 Z{1}\n", z, z));
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 Z{0}\n", z));
             return msg;
         }
 
@@ -122,7 +145,7 @@ namespace Picky
             msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} Z{2} A{3}\n", x, y, z, a));
             return msg;
         }
-
+        
         public static MachineMessage G_EnableSteppers(byte axis, bool enable)
         {
             MachineMessage msg = new MachineMessage();
@@ -218,6 +241,7 @@ namespace Picky
         public static MachineMessage G_GetStepsPerUnit()
         {
             MachineMessage msg = new MachineMessage();
+            msg.delay = 1000;
             msg.cmd = Encoding.UTF8.GetBytes(string.Format("M92\n"));
             return msg;
         }
@@ -225,6 +249,7 @@ namespace Picky
         public static MachineMessage G_SetStepsPerUnit(double x_steps_per_unit, double y_steps_per_unit)
         {
             MachineMessage msg = new MachineMessage();
+            msg.delay = 1000;
             msg.cmd = Encoding.UTF8.GetBytes(string.Format("M92 X{0} Y{1}\n", x_steps_per_unit, y_steps_per_unit));
             return msg;
         }

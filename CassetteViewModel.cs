@@ -82,6 +82,7 @@ namespace Picky
                         if (part.Description == feeder.part.Description && part.Footprint == feeder.part.Footprint)
                         {
                             part.cassette = cassette;
+                            part.feeder = feeder;
                         }
                     }
                 }

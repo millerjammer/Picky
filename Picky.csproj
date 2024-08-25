@@ -163,6 +163,7 @@
       <DependentUpon>CassetteView.xaml</DependentUpon>
     </Compile>
     <Compile Include="CassetteViewModel.cs" />
+    <Compile Include="Commands\DelayCommand.cs" />
     <Compile Include="Commands\GetFeederQRCodeCommand .cs" />
     <Compile Include="Commands\OffsetCameraToPickCommand.cs" />
     <Compile Include="Commands\OpticallyAlignToToolCommand.cs" />

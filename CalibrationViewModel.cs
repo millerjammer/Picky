@@ -33,20 +33,7 @@ namespace Picky
             get { return machine.Cal.DownCameraToPickHeadY; }
             set { machine.Cal.DownCameraToPickHeadY = value; OnPropertyChanged(nameof(DownCameraToPickHeadY)); }
         }
-
-         public double StepsPerUnitX
-        {
-            get { return machine.Cal.StepsPerUnitX; }
-            set { machine.Cal.StepsPerUnitX = value; OnPropertyChanged(nameof(StepsPerUnitX)); }
-        }
-
-        public double StepsPerUnitY
-        {
-            get { return machine.Cal.StepsPerUnitY; }
-            set { machine.Cal.StepsPerUnitY = value; OnPropertyChanged(nameof(StepsPerUnitY)); }
-        }
-
-
+        
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected void OnPropertyChanged(string propertyName)
@@ -82,7 +69,8 @@ namespace Picky
         public ICommand WriteStepPerUnitCommand { get { return new RelayCommand(WriteStepPerUnit); } }
         private void WriteStepPerUnit()
         {
-            machine.Messages.Add(GCommand.G_SetStepsPerUnit(machine.Cal.StepsPerUnitX, machine.Cal.StepsPerUnitY));
+            machine.Messages.Add(GCommand.G_SetStepsPerUnit(machine.Cal.CalculatedStepsPerUnitX, machine.Cal.CalculatedStepsPerUnitY));
+            machine.Messages.Add(GCommand.G_GetStepsPerUnit());
         }
 
         public ICommand ReadStepPerUnitCommand { get { return new RelayCommand(ReadStepPerUnit); } }
@@ -168,7 +156,7 @@ namespace Picky
             machine.Messages.Add(GCommand.G_FinishMoves());
             for(int i = 0; i < 5; i++)
             {
-                machine.Messages.Add(GCommand.StepAlignToCalCircle(machine, target.targetCircle, target.MMHeightZ, null));
+                machine.Messages.Add(GCommand.StepAlignToCalCircle(machine, target.targetCircle, null));
                 machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             }
             machine.Messages.Add(GCommand.G_ProbeZ(24.0));

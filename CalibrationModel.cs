@@ -107,8 +107,20 @@ namespace Picky
         }
 
         /* Steps Per Unit */
-        public double StepsPerUnitX { get; set; }
-        public double StepsPerUnitY { get; set; }
+        private double stepsPerUnitX;
+        public double StepsPerUnitX
+        {
+            get { return stepsPerUnitX; }
+            set { stepsPerUnitX = value; OnPropertyChanged(nameof(StepsPerUnitX)); }
+        }
+
+        private double stepsPerUnitY;
+        public double StepsPerUnitY
+        {
+            get { return stepsPerUnitY; }
+            set { stepsPerUnitY = value; OnPropertyChanged(nameof(StepsPerUnitY)); }
+        }
+
 
         private double calculatedStepsPerUnitX;
         public double CalculatedStepsPerUnitX

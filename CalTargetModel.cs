@@ -102,9 +102,9 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetPosition(target.Center.X, target.Center.Y, 0, 0, 0));
             for (int i = 0; i < 4; i++)
             {
-                machine.Messages.Add(GCommand.StepAlignToCalCircle(machine, target, machine.Cal.TargetResAtPCB.MMHeightZ, Grid00Location));
-                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
                 machine.Messages.Add(GCommand.G_FinishMoves());
+                machine.Messages.Add(GCommand.StepAlignToCalCircle(machine, target, Grid00Location));
+                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             }
 
             //For the x = 1, y = 0 position
@@ -112,9 +112,9 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetPosition(target.Center.X, target.Center.Y, 0, 0, 0));
             for (int i = 0; i < 4; i++)
             {
-                machine.Messages.Add(GCommand.StepAlignToCalCircle(machine, target, machine.Cal.TargetResAtPCB.MMHeightZ, Grid10Location));
-                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
                 machine.Messages.Add(GCommand.G_FinishMoves());
+                machine.Messages.Add(GCommand.StepAlignToCalCircle(machine, target, Grid10Location));
+                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             }
                         
             //For the x = 0, y = 1 position
@@ -122,9 +122,9 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetPosition(target.Center.X, target.Center.Y, 0, 0, 0));
             for (int i = 0; i < 4; i++)
             {
-                machine.Messages.Add(GCommand.StepAlignToCalCircle(machine, target, machine.Cal.TargetResAtPCB.MMHeightZ, Grid01Location));
-                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
                 machine.Messages.Add(GCommand.G_FinishMoves());
+                machine.Messages.Add(GCommand.StepAlignToCalCircle(machine, target, Grid01Location));
+                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             }
 
             //For the x = 1, y = 1 position
@@ -132,9 +132,9 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetPosition(target.Center.X, target.Center.Y, 0, 0, 0));
             for (int i = 0; i < 4; i++)
             {
-                machine.Messages.Add(GCommand.StepAlignToCalCircle(machine, target, machine.Cal.TargetResAtPCB.MMHeightZ, Grid11Location));
-                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
                 machine.Messages.Add(GCommand.G_FinishMoves());
+                machine.Messages.Add(GCommand.StepAlignToCalCircle(machine, target, Grid11Location));
+                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             }
         }
 

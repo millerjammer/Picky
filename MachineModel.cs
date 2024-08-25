@@ -6,6 +6,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Web.UI.WebControls.WebParts;
 
 namespace Picky
 {
@@ -28,13 +29,11 @@ namespace Picky
             get { return selectedMachineMessage; }
             set { selectedMachineMessage = value; OnPropertyChanged(nameof(SelectedMachineMessage)); }
         }
-
-        public bool isAbsoluteMode { get; set; }
+                
         public bool advanceNextMessage = false;
         public bool isMachinePaused { get; set; }
         public bool IsSerialMessageResetRequested { get; set; }
-        public CircleSegment CurrentCircleTarget = new CircleSegment();
-
+       
         /* Calibration */
         public CalibrationModel Cal { get; set; }
 
@@ -56,14 +55,15 @@ namespace Picky
         }
 
         /* Current PickList (These are the parts to place) */
+        public ObservableCollection<Part> PickList { get; set; }
+        
         private Part _selectedPickListPart;
         public Part selectedPickListPart
         {
             get { return _selectedPickListPart; }
             set { _selectedPickListPart = value; OnPropertyChanged(nameof(selectedPickListPart)); }
         }
-        public ObservableCollection<Part> PickList { get; set; }
-
+        
         /* Cassettes that are installed */
         private Cassette _selectedCassette;
         public Cassette selectedCassette
@@ -73,7 +73,6 @@ namespace Picky
         }
         public ObservableCollection<Cassette> Cassettes { get; set; }
 
-        public int LastEndStopState { get; set; } = 0;
         private string calibrationStatusString = "Not Calibrated";
         public string CalibrationStatusString
         {
@@ -176,13 +175,42 @@ namespace Picky
             Cassettes = new ObservableCollection<Cassette>();
             PickList = new ObservableCollection<Part>();
 
-            Board = new BoardModel();
+            String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+            try
+            {
+                using (StreamReader file = File.OpenText(path + "\\" + Constants.BOARD_FILE_NAME))
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    Board = ((BoardModel)serializer.Deserialize(file, typeof(BoardModel)));
+                }
+            }
+            catch
+            {
+                Console.WriteLine("Can't find file: " + path + "\\" + Constants.BOARD_FILE_NAME);
+                Board = new BoardModel();
+            }
+
+            try
+            {
+                using (StreamReader file = File.OpenText(path + "\\" + Constants.TOOL_FILE_NAME))
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    PickToolList = ((ObservableCollection<PickToolModel>)serializer.Deserialize(file, typeof(ObservableCollection<PickToolModel>)));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Can't find file: " + path + "\\" + Constants.TOOL_FILE_NAME);
+                PickToolList = new ObservableCollection<PickToolModel>();
+            }
+            
             
             downCamera = new CameraModel(Constants.DOWN_CAMERA_INDEX, this);
             upCamera = new CameraModel(Constants.UP_CAMERA_INDEX, this);
 
 
-            String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
             using (StreamReader file = File.OpenText(path + "\\" + Constants.CALIBRATION_FILE_NAME))
             {
@@ -213,10 +241,7 @@ namespace Picky
 
         public static MachineModel Instance
         {
-            get
-            {
-                return lazy.Value;
-            }
+            get { return lazy.Value; }
         }
            
 
@@ -239,6 +264,44 @@ namespace Picky
             File.WriteAllText(path + "\\" + Constants.CALIBRATION_FILE_NAME, JsonConvert.SerializeObject(Cal, Formatting.Indented));
             Console.WriteLine("Calibration Configuration Data Saved.");
 
+        }
+        public bool AddFeederPickToQueue(Feeder feeder)
+        {
+            //Go to feeder Origin
+            Messages.Add(GCommand.SetCameraAutoFocus(downCamera, false, Constants.FOCUS_FEEDER_QR_CODE));
+            Messages.Add(GCommand.G_SetPosition(feeder.x_origin, feeder.y_origin, 0, 0, 0));
+            Messages.Add(GCommand.G_FinishMoves());
+            Messages.Add(GCommand.SetCameraAutoFocus(downCamera, false, Constants.FOCUS_FEEDER_PART));
+            Messages.Add(GCommand.OpticallyAlignToPart(feeder.part));
+            Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
+            Messages.Add(GCommand.OffsetCameraToPick(feeder.part));
+            Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
+            Messages.Add(GCommand.G_ProbeZ(Constants.PART_NOMINAL_Z_DRIVE_MM));
+            Messages.Add(GCommand.G_FinishMoves());
+            Messages.Add(GCommand.G_EnablePump(true));
+            Messages.Add(GCommand.G_EnableValve(false));
+            Messages.Add(GCommand.Delay(100));
+            Messages.Add(GCommand.G_SetZPosition(0));
+            Messages.Add(GCommand.G_FinishMoves());
+            Messages.Add(GCommand.G_SetPosition(feeder.x_origin, feeder.y_origin, 0, 0, 0));
+            Messages.Add(GCommand.G_FinishMoves());
+            return true;
+        }
+
+        public bool AddPartPlacementToQueue(Part part)
+        {
+            double part_x = Board.PcbOriginX + (Convert.ToDouble(part.CenterX) * Constants.MIL_TO_MM);
+            double part_y = Board.PcbOriginY + (Convert.ToDouble(part.CenterY) * Constants.MIL_TO_MM);
+            Messages.Add(GCommand.OffsetCameraToPick(part));
+            Messages.Add(GCommand.G_SetPosition(part_x, part_y, 0, 0, 0));
+            Messages.Add(GCommand.G_FinishMoves());
+            Messages.Add(GCommand.G_ProbeZ(Constants.PCB_NOMINAL_Z_DRIVE_MM));
+            Messages.Add(GCommand.G_FinishMoves());
+            Messages.Add(GCommand.G_EnablePump(false));
+            Messages.Add(GCommand.G_EnableValve(false));
+            Messages.Add(GCommand.Delay(100));
+            Messages.Add(GCommand.G_SetZPosition(0));
+            return true;
         }
     }
 }

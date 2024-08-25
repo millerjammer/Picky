@@ -8,8 +8,6 @@ using System.Text.RegularExpressions;
 using System.Timers;
 using static Picky.MachineMessage;
 
-/*For S3G Serial Commands See: https://github.com/makerbot/s3g/blob/master/doc/s3gProtocol.md */
-
 namespace Picky
 {
     public class SerialInterface
@@ -62,6 +60,11 @@ namespace Picky
             machine.Messages.Add(GCommand.G_GetStepsPerUnit());
             machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
 
+        }
+
+        public int GetCurrentMessageIndex()
+        {
+            return rx_msgCount;
         }
 
         public void OnTimer(object source, ElapsedEventArgs e)
@@ -238,13 +241,13 @@ namespace Picky
                                 }
                                 else if (msg.cmdString.StartsWith("G90"))
                                 {
-                                    machine.isAbsoluteMode = true;
+                                   
                                     msg.state = MachineMessage.MessageState.Complete;
                                     rx_msgCount++;
                                 }
                                 else if (msg.cmdString.StartsWith("G91"))
                                 {
-                                    machine.isAbsoluteMode = false;
+                                    
                                     msg.state = MachineMessage.MessageState.Complete;
                                     rx_msgCount++;
                                 }
@@ -271,7 +274,7 @@ namespace Picky
                             msg.state = MachineMessage.MessageState.Complete;
                             rx_msgCount++;
                         }
-                        //Get Steps Response from query
+                        //Get Steps Response from query ("M92")
                         else if (serial_buffer[2] == (byte)'M' && serial_buffer[3] == (byte)'9' && serial_buffer[4] == (byte)'2')
                         {
                             string pattern = @"(\d+\.\d+)";     // Define a regular expression pattern for extracting doubles

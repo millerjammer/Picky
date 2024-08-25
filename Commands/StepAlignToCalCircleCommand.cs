@@ -13,7 +13,7 @@ namespace Picky
      * 'estimated' circle using iteration.  This is used when you don't 
      * know mm/pixel at the current Z.  This is typically used for 
      * calibration only.  Resolution calibration must be set first. 
-     * UPDATES the position of the next command.  This command must 
+     * OVERWRITES the position of the next command.  This command must 
      * be followed by a position command.
      * -------------------------------------------------------------*/
     {
@@ -23,7 +23,7 @@ namespace Picky
         public CameraModel cameraToUse;
         public Circle3d dest;
 
-        public StepAlignToCalCircleCommand(MachineModel mm, CircleSegment target, double tZ, Circle3d destination)
+        public StepAlignToCalCircleCommand(MachineModel mm, CircleSegment target, Circle3d destination)
         {
             machine = mm;
             detector = new CircleDetector(HoughModes.Gradient, 140, 50);
@@ -32,7 +32,7 @@ namespace Picky
             else
                 detector.ROI = new OpenCvSharp.Rect(Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
             detector.CircleEstimate = target;
-            detector.zEstimate = tZ;
+            detector.zEstimate = 52;
             msg = new MachineMessage();
             msg.target.x = target.Center.X; msg.target.y = target.Center.Y;
             msg.messageCommand = this;
@@ -57,13 +57,12 @@ namespace Picky
             if (cameraToUse.IsCircleSearchActive() == false)
             {
                 //Take a guess of the offset, this will be rewritten once successful
-                var scale = machine.Cal.GetScaleMMPerPixAtZ(detector.zEstimate);
+                double scale = .0206;
                 CircleSegment cir = cameraToUse.GetBestCircle(); //In pixels
-                double x_offset = scale.xScale * cir.Center.X;
-                double y_offset = scale.yScale * cir.Center.Y;
-                double radius = scale.yScale * cir.Radius;
+                double x_offset = scale * cir.Center.X;
+                double y_offset = scale * cir.Center.Y;
+                double radius = scale * cir.Radius;
                 
-                Point2d offset = new Point2d(x_offset, y_offset);
                 if (radius > (detector.CircleEstimate.Radius * 2.0) || radius < (detector.CircleEstimate.Radius * .5) )
                 {
                     Console.WriteLine("Cal Target Alignment Failed, Repeating Request. Radius: " + radius + " mm");
@@ -75,8 +74,8 @@ namespace Picky
                     Console.WriteLine("Cal Circle Offset (mm): " + x_offset + " " + y_offset + " radius: " + radius);
                     MachineMessage nxt = machine.Messages.ElementAt(machine.Messages.IndexOf(msg) + 1);
                     // Use 1/2 the offset to calculate next location, we can't assume to know resolution, so we can't jump 
-                    nxt.target.x = msg.target.x + (-1 * (offset.X/2) );
-                    nxt.target.y = msg.target.y + (offset.Y/2);
+                    nxt.target.x = machine.CurrentX - (float)(x_offset * 0.8);
+                    nxt.target.y = machine.CurrentY + (float)(y_offset * 0.8);
                     nxt.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1}\n", nxt.target.x, nxt.target.y));
                     if (dest != null)
                     {

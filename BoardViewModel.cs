@@ -11,6 +11,8 @@ namespace Picky
     {
         MachineModel machine = MachineModel.Instance;
 
+        private int placementQueue = 0; 
+
         private string _boardPlayPauseIcon;
         public string boardPlayPauseIcon
         {
@@ -80,6 +82,8 @@ namespace Picky
                 boardPlayPauseText = "Pause";
                 boardPlayPauseIcon = Constants.PAUSE_ICON;
                 machine.isMachinePaused = false;
+                GeneratePlacement();
+                
             }
             else
             {
@@ -91,9 +95,26 @@ namespace Picky
         public void SaveBoard()
         {
             String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            File.WriteAllText(path + "\\" + Constants.BOARD_FILE_NAME, JsonConvert.SerializeObject(this, Formatting.Indented));
+            File.WriteAllText(path + "\\" + Constants.BOARD_FILE_NAME, JsonConvert.SerializeObject(machine.Board, Formatting.Indented));
             Console.WriteLine("Board Data Saved.");
 
+        }
+
+        private void GeneratePlacement()
+        {
+            Part part;
+            machine.Messages.Add(GCommand.G_EnableIlluminator(true));
+            for(int i=0;i<machine.PickList.Count;i++)
+            {
+                part = machine.PickList[i];
+                machine.Messages.Add(GCommand.G_SetPosition(double.Parse(part.CenterX), double.Parse(part.CenterY), 0, 0, 0));
+                machine.Messages.Add(GCommand.G_FinishMoves());
+               
+                //machine.Messages.Add(GCommand.G_ProbeZ(24.0));
+                //machine.Messages.Add(GCommand.G_FinishMoves());
+                //machine.Messages.Add(GCommand.SetScaleResolutionCalibration(machine, target));
+                //machine.Messages.Add(GCommand.G_SetPosition(target.targetCircle.Center.X, target.targetCircle.Center.Y, 0, 0, 0));
+            }
         }
     }
 }

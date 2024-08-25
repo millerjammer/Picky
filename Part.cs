@@ -50,6 +50,14 @@ namespace Picky
             get { return _cassette; }
             set { _cassette = value; OnPropertyChanged(nameof(cassette)); }
         }
+        
+        private Feeder _feeder;
+        public Feeder feeder
+        {
+            get { return _feeder; }
+            set { _feeder = value; OnPropertyChanged(nameof(feeder)); }
+        }
+
 
         [JsonIgnore]
         public Mat Template;
@@ -69,6 +77,8 @@ namespace Picky
         private void SetPartMat()
         {
             Console.WriteLine("part setting Mat: " + templateFileName);
+            if (templateFileName == null)
+                return;
             Template = new Mat(templateFileName);
 
         }

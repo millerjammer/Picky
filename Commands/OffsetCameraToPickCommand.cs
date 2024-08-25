@@ -15,12 +15,24 @@ namespace Picky.Tools
     *-------------------------------------------------------------------------------*/
     {
         public MachineMessage msg;
-        
-        public OffsetCameraToPickCommand()
+        public Part part;
+        public double rotation;
+
+        public OffsetCameraToPickCommand(double head_rotation)
         {
             msg = new MachineMessage();
             msg.messageCommand = this;
             msg.cmd = Encoding.ASCII.GetBytes("J102 Offset Camera to Pick\n");
+            rotation = head_rotation;
+        }
+
+        public OffsetCameraToPickCommand(Part _part)
+        {
+            msg = new MachineMessage();
+            msg.messageCommand = this;
+            msg.cmd = Encoding.ASCII.GetBytes("J102 Offset Camera to Pick\n");
+            part = _part;
+            rotation = Convert.ToDouble(part.Rotation);
         }
 
         public MachineMessage GetMessage()
@@ -30,6 +42,16 @@ namespace Picky.Tools
 
         public bool PreMessageCommand(MachineMessage msg)
         {
+            if (part != null)
+            {
+                MachineModel machine = MachineModel.Instance;
+                machine.selectedPickListPart = part;
+                if (part.cassette != null)
+                {
+                    machine.selectedCassette = part.cassette;
+                    machine.selectedCassette.selectedFeeder = part.feeder;
+                }
+            }
             return true;
         }
 
@@ -45,7 +67,7 @@ namespace Picky.Tools
             message = machine.Messages.ElementAt(machine.Messages.IndexOf(msg) + 1);
             message.target.x = x;
             message.target.y = y;
-            message.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1}\n", message.target.x, message.target.y));
+            message.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} A{2}\n", message.target.x, message.target.y, rotation));
             return true;
         }
     }

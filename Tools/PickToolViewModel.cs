@@ -112,7 +112,7 @@ namespace Picky
             //Align and adjust next position command
             machine.Messages.Add(GCommand.OpticallyAlignToTool(Machine.SelectedPickTool));
             machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
-            machine.Messages.Add(GCommand.OffsetCameraToPick());
+            machine.Messages.Add(GCommand.OffsetCameraToPick(0));
             machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             
             machine.Messages.Add(GCommand.G_ProbeZ(Machine.SelectedPickTool.ToolStorageZ));
@@ -146,7 +146,7 @@ namespace Picky
             Machine.SelectedPickTool.TipState = PickToolModel.TipStates.Unloading;
             //Move to Camera Position
             machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolReturnLocation.X, Machine.SelectedPickTool.ToolReturnLocation.Y, 0, 0, 0));
-            machine.Messages.Add(GCommand.OffsetCameraToPick());
+            machine.Messages.Add(GCommand.OffsetCameraToPick(0));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_OpenToolStorage(true));
             machine.Messages.Add(GCommand.G_ProbeZ(Machine.SelectedPickTool.ToolStorageZ));

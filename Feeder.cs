@@ -174,26 +174,8 @@ namespace Picky
         public ICommand PickNextComponentCommand { get { return new RelayCommand(PickNextComponent); } }
         public void PickNextComponent()
         {
-            //Go to feeder Origin
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
-            machine.Messages.Add(GCommand.SetCameraAutoFocus(machine.downCamera, false, Constants.FOCUS_FEEDER_QR_CODE));
-            machine.Messages.Add(GCommand.G_SetPosition(x_origin, y_origin, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.SetCameraAutoFocus(machine.downCamera, false, Constants.FOCUS_FEEDER_PART));
-            machine.Messages.Add(GCommand.OpticallyAlignToPart(part));
-            machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
-            machine.Messages.Add(GCommand.OffsetCameraToPick());
-            machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_ProbeZ(Constants.PART_NOMINAL_Z_DRIVE_MM));
-            machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.G_EnablePump(true));
-            machine.Messages.Add(GCommand.G_EnableValve(false));
-            //Use this for delay
-            machine.Messages.Add(GCommand.SetCameraAutoFocus(machine.downCamera, false, Constants.FOCUS_FEEDER_PART));
-            machine.Messages.Add(GCommand.G_SetZPosition(0));
-            machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.G_SetPosition(x_origin, y_origin, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_FinishMoves());
+            machine.AddFeederPickToQueue(this);
         }
 
         public ICommand SetPartTemplateCommand { get { return new RelayCommand(SetPartTemplate); } }
