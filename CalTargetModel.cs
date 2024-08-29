@@ -103,7 +103,7 @@ namespace Picky
             for (int i = 0; i < 4; i++)
             {
                 machine.Messages.Add(GCommand.G_FinishMoves());
-                machine.Messages.Add(GCommand.StepAlignToCalCircle(machine, target, Grid00Location));
+                machine.Messages.Add(GCommand.StepAlignToCalCircle(target, Grid00Location));
                 machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             }
 
@@ -113,7 +113,7 @@ namespace Picky
             for (int i = 0; i < 4; i++)
             {
                 machine.Messages.Add(GCommand.G_FinishMoves());
-                machine.Messages.Add(GCommand.StepAlignToCalCircle(machine, target, Grid10Location));
+                machine.Messages.Add(GCommand.StepAlignToCalCircle(target, Grid10Location));
                 machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             }
                         
@@ -123,7 +123,7 @@ namespace Picky
             for (int i = 0; i < 4; i++)
             {
                 machine.Messages.Add(GCommand.G_FinishMoves());
-                machine.Messages.Add(GCommand.StepAlignToCalCircle(machine, target, Grid01Location));
+                machine.Messages.Add(GCommand.StepAlignToCalCircle(target, Grid01Location));
                 machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             }
 
@@ -133,7 +133,7 @@ namespace Picky
             for (int i = 0; i < 4; i++)
             {
                 machine.Messages.Add(GCommand.G_FinishMoves());
-                machine.Messages.Add(GCommand.StepAlignToCalCircle(machine, target, Grid11Location));
+                machine.Messages.Add(GCommand.StepAlignToCalCircle(target, Grid11Location));
                 machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             }
         }

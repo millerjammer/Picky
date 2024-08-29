@@ -24,15 +24,21 @@ namespace Picky
          *  
          ***********************************************************/
 
+        public static MachineMessage SendCustomGCode(string command, int msDelay)
+        {
+            SendCustomGCodeCommand cmd = new SendCustomGCodeCommand(command, msDelay);
+            return cmd.GetMessage();
+        }
+
         public static MachineMessage Delay(int msDelay)
         {
             DelayCommand cmd = new DelayCommand(msDelay);
             return cmd.GetMessage();
         }
 
-        public static MachineMessage SetCameraAutoFocus(CameraModel camera, bool enableAF, int value)
+        public static MachineMessage SetCameraManualFocus(CameraModel camera, bool enableMF, int value)
         {
-            SetCameraAutoFocusCommand cmd = new SetCameraAutoFocusCommand(camera, enableAF, value);
+            SetCameraManualFocusCommand cmd = new SetCameraManualFocusCommand(camera, enableMF, value);
             return cmd.GetMessage();
         }
 
@@ -60,9 +66,9 @@ namespace Picky
            return cmd.GetMessage();
         }
 
-        public static MachineMessage StepAlignToCalCircle(MachineModel machine, CircleSegment target, Circle3d dest)
+        public static MachineMessage StepAlignToCalCircle(CircleSegment target, Circle3d dest)
         {
-            StepAlignToCalCircleCommand cmd = new StepAlignToCalCircleCommand(machine, target, dest);
+            StepAlignToCalCircleCommand cmd = new StepAlignToCalCircleCommand(target, dest);
             return cmd.GetMessage();
         }
         
@@ -105,47 +111,78 @@ namespace Picky
 
         }
 
-        public static MachineMessage M_SetXYBacklashCompensation(double f, double s, double x, double y)
+        public static MachineMessage G_SetXYBacklashCompensation(double f, double s, double x, double y)
         {
             /******************************************************************
             * Units are mm, see https://marlinfw.org/docs/gcode/M425.html
             */
 
             MachineMessage msg = new MachineMessage();
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M425 F{0} S{1} X{2} Y{3}\n", f, s, x, y));
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M425 F0.00\n\rM425 X{0:0.00} Y{1:0.00} Z0.00 A0.00\n\rM425 F1.00\n\r", x, y, f));
+            Console.WriteLine("Backlash command: " + Encoding.UTF8.GetString(msg.cmd));
             return msg;
         }
 
         public static MachineMessage G_SetZPosition(double z)
         {
-            /******************************************************************
-            * Units are mm
-            * TODO b is actuall F{4} feedrate
-            */
+            /* Units are mm */
 
             MachineMessage msg = new MachineMessage();
             msg.target.z = z;
 
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 Z{0}\n", z));
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 Z{0} F9000\n", z));
+            return msg;
+        }
+
+        public static MachineMessage G_SetRotation(double a)
+        {
+            /* Units are deg - Feedrate in mm/min*/
+
+            MachineMessage msg = new MachineMessage();
+            msg.target.a = a; 
+
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 A{0} F9000\n", a));
+            return msg;
+        }
+
+        public static MachineMessage G_SetXYPosition(double x, double y)
+        {
+            /* Units are mm */
+
+            MachineMessage msg = new MachineMessage();
+            msg.target.x = x; msg.target.y = y;
+            
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} F9000\n", x, y));
             return msg;
         }
 
         public static MachineMessage G_SetPosition(double x, double y, double z, double a, double b)
         {
-            /******************************************************************
-            * Units are mm
-            * TODO b is actuall F{4} feedrate
-            */
+            /* Units are mm */
 
             MachineMessage msg = new MachineMessage();
             msg.target.x = x; msg.target.y = y;
             msg.target.z = z; msg.target.a = a;
             msg.target.b = b;
 
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} Z{2} A{3}\n", x, y, z, a));
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} Z{2} A{3} F9000\n", x, y, z, a));
             return msg;
         }
-        
+
+        public static MachineMessage G_ReportSettings()
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M503\n"));
+            return msg;
+        }
+
+        public static MachineMessage G_SaveSettings()
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M500\n"));
+            return msg;
+        }
+
         public static MachineMessage G_EnableSteppers(byte axis, bool enable)
         {
             MachineMessage msg = new MachineMessage();
@@ -310,7 +347,6 @@ namespace Picky
         public static MachineMessage G_FinishMoves()
         {
             MachineMessage msg = new MachineMessage();
-            msg.delay = 1000;
             msg.cmd = Encoding.UTF8.GetBytes(string.Format("M400\n"));
             return msg;
         }
@@ -324,11 +360,5 @@ namespace Picky
             msg.timeout = 5000;
             return msg;
         }
-
-      
-
-       
-
-        
-    }
+   }
 }

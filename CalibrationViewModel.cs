@@ -134,13 +134,17 @@ namespace Picky
         public ICommand GetResolutionAtPCBCommand { get { return new RelayCommand(GetResolutionAtPCB); } }
         private void GetResolutionAtPCB()
         {
+           machine.Messages.Add(GCommand.SetCameraManualFocus(machine.downCamera, true, Constants.FOCUS_PCB_062));
            GetScaleResolution(machine.Cal.TargetResAtPCB);
+           machine.Messages.Add(GCommand.SetCameraManualFocus(machine.downCamera, false, Constants.FOCUS_PCB_062));
         }
 
         public ICommand GetResolutionAtToolCommand { get { return new RelayCommand(GetResolutionAtTool); } }
         private void GetResolutionAtTool()
         {
+            machine.Messages.Add(GCommand.SetCameraManualFocus(machine.downCamera, true, Constants.FOCUS_TOOL_RETRIVAL));
             GetScaleResolution(machine.Cal.TargetResAtTool);
+            machine.Messages.Add(GCommand.SetCameraManualFocus(machine.downCamera, false, Constants.FOCUS_TOOL_RETRIVAL));
         }
               
         private void GetScaleResolution(CalResolutionTargetModel target)
@@ -153,10 +157,10 @@ namespace Picky
         {
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             machine.Messages.Add(GCommand.G_SetPosition(target.targetCircle.Center.X, target.targetCircle.Center.Y, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_FinishMoves());
             for(int i = 0; i < 5; i++)
-            {
-                machine.Messages.Add(GCommand.StepAlignToCalCircle(machine, target.targetCircle, null));
+            {   
+                machine.Messages.Add(GCommand.G_FinishMoves());
+                machine.Messages.Add(GCommand.StepAlignToCalCircle(target.targetCircle, null));
                 machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             }
             machine.Messages.Add(GCommand.G_ProbeZ(24.0));

@@ -101,10 +101,6 @@ namespace Picky
      
         }
         
-        public override string  ToString()
-        {
-            return string.Format("Circle3d: Point2d.X: {0} X: {1} Y: {2} Z: {3} IsValid: {4}", Radius, X, Y, Z, IsValid);
-        }
 
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged(string propertyName)
@@ -170,6 +166,8 @@ namespace Picky
         public static string CALIBRATION_FILE_NAME = "cal.json";
         public static string BOARD_FILE_NAME = "board.json";
         public static string TOOL_FILE_NAME = "tool.json";
+        public static string SETTINGS_FILE_NAME = "settings.json";
+
         public static string CALIBRATION_TIP_FILE_NAME = "toolCal.jpg";
 
         public static int DOWN_CAMERA_INDEX = 0;

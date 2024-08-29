@@ -167,7 +167,8 @@
     <Compile Include="Commands\GetFeederQRCodeCommand .cs" />
     <Compile Include="Commands\OffsetCameraToPickCommand.cs" />
     <Compile Include="Commands\OpticallyAlignToToolCommand.cs" />
-    <Compile Include="Commands\SetCameraAutoFocusCommand.cs" />
+    <Compile Include="Commands\SendCustomGCodeCommand.cs" />
+    <Compile Include="Commands\SetCameraManualFocusCommand.cs" />
     <Compile Include="Commands\SetToolOffsetCalibrationCommand.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="ControlWindow.xaml.cs">
@@ -192,6 +193,11 @@
     <Compile Include="PickListViewModel.cs" />
     <Compile Include="Commands\OpticallyAlignToPartCommand.cs" />
     <Compile Include="Commands\SetScaleResolutionCalibrationCommand.cs" />
+    <Compile Include="SettingsModel.cs" />
+    <Compile Include="SettingsViewModel.cs" />
+    <Compile Include="SettingsWindow.xaml.cs">
+      <DependentUpon>SettingsWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Tools\TipFitCalibration.cs" />
     <Compile Include="Tools\PickToolModel.cs" />
     <Compile Include="Tools\PickToolViewModel.cs" />
@@ -245,6 +251,10 @@
     <Page Include="PickListView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SettingsWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Tools\PickToolWindow.xaml">
       <SubType>Designer</SubType>

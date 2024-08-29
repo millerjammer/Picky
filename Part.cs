@@ -43,7 +43,8 @@ namespace Picky
         public string CenterY { get; set; }
         public string Rotation { get; set; }
         public string Description { get; set; }
-        
+        public string Thickness { get; set; }
+      
         private Cassette _cassette;
         public Cassette cassette
         {
@@ -57,8 +58,7 @@ namespace Picky
             get { return _feeder; }
             set { _feeder = value; OnPropertyChanged(nameof(feeder)); }
         }
-
-
+        
         [JsonIgnore]
         public Mat Template;
 

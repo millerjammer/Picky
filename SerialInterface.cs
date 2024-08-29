@@ -1,6 +1,7 @@
 ﻿using EnvDTE;
 using OpenCvSharp;
 using System;
+using System.Collections;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
@@ -19,7 +20,7 @@ namespace Picky
 
         private static MachineMessage.Pos lastPos = new MachineMessage.Pos();
         private int rx_msgCount { get; set; }
-       
+
         static SerialPort serialPort;
 
         public SerialInterface()
@@ -56,9 +57,11 @@ namespace Picky
 
             /* Initial Command Queue */
             machine.Messages.Add(GCommand.G_SetAutoPositionReporting(true));
-            machine.Messages.Add(GCommand.G_EnableIlluminator(false));
+            machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             machine.Messages.Add(GCommand.G_GetStepsPerUnit());
             machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+            machine.Messages.Add(GCommand.G_SetXYBacklashCompensation(1.0, 0.0, 0.30, 0.30));
+            machine.Messages.Add(GCommand.G_SetZPosition(0));
 
         }
 
@@ -94,7 +97,7 @@ namespace Picky
          *********************************************************************/
         {
 
-            int length, i, j, k ;
+            int length, i, j, k;
             int bytes_read;
             MachineMessage msg;
             byte[] sbuf = new byte[4096];  //17 bits
@@ -125,13 +128,8 @@ namespace Picky
                             {
                                 for (j = 0; j < length; j++)
                                     Console.Write((char)serial_buffer[j]);
-                                // Parse position message an wait till position is good.
-                                if (msg.cmdString.StartsWith("J100"))
-                                {
-                                    msg.state = MachineMessage.MessageState.PendingPosition;
-                                }
                                 // Parse Steps per Unit
-                                else if (msg.cmdString.StartsWith("M92"))
+                                if (msg.cmdString.StartsWith("M92") || msg.cmdString.StartsWith("M503"))
                                 {
                                     // The OK comes out AFTER the result - result parsed below
                                     msg.state = MachineMessage.MessageState.Complete;
@@ -192,7 +190,7 @@ namespace Picky
                                     }
                                 }
                                 // Parse Pin Set State Command
-                                else if (msg.cmdString.StartsWith("M42"))
+                                else if (msg.cmdString.StartsWith("M42 "))
                                 {
                                     string pattern = @"(?<=[P|S])\d+";
                                     Regex regex = new Regex(pattern);
@@ -241,13 +239,13 @@ namespace Picky
                                 }
                                 else if (msg.cmdString.StartsWith("G90"))
                                 {
-                                   
+
                                     msg.state = MachineMessage.MessageState.Complete;
                                     rx_msgCount++;
                                 }
                                 else if (msg.cmdString.StartsWith("G91"))
                                 {
-                                    
+
                                     msg.state = MachineMessage.MessageState.Complete;
                                     rx_msgCount++;
                                 }
@@ -266,7 +264,17 @@ namespace Picky
                                     msg.state = MachineMessage.MessageState.Complete;
                                     rx_msgCount++;
                                 }
+                                if (msg.cmd[4] == '*')
+                                {
+                                    machine.Settings.Response += Encoding.UTF8.GetString(serial_buffer, 0, Array.IndexOf(serial_buffer, (byte)'\n') + 1);
+                                }
                             }
+                            //Message "M503" output comes befor OK ends with ok
+                            else if (msg.cmdString.StartsWith("M503"))
+                            {
+                                machine.Settings.Response += Encoding.UTF8.GetString(serial_buffer, 0, Array.IndexOf(serial_buffer, (byte)'\n') + 1);
+                            }
+                            
                         }
                         // Messages waiting for valid position = Target position
                         if (msg.state == MachineMessage.MessageState.PendingPosition && isPositionGood(msg))
@@ -274,7 +282,7 @@ namespace Picky
                             msg.state = MachineMessage.MessageState.Complete;
                             rx_msgCount++;
                         }
-                        //Get Steps Response from query ("M92")
+                        //Get Steps Response from query ("M92") ok comes AFTER DATA
                         else if (serial_buffer[2] == (byte)'M' && serial_buffer[3] == (byte)'9' && serial_buffer[4] == (byte)'2')
                         {
                             string pattern = @"(\d+\.\d+)";     // Define a regular expression pattern for extracting doubles
@@ -285,11 +293,13 @@ namespace Picky
                             Console.WriteLine("Steps per MM: " + machine.Cal.StepsPerUnitX + " " + machine.Cal.StepsPerUnitY);
                         }
                     }
+
                     //Handle Unsolicited Messages
                     if (serial_buffer[0] == (byte)'X' && serial_buffer[1] == (byte)':')
                     {
                         getPositionFromMessage();
                     }
+                    
                     //Fixup the byte buffer by moving unread bytes and the pointer
                     for (k = 0; k < Constants.MAX_BUFFER_SIZE - length; k++)
                     {
@@ -301,122 +311,119 @@ namespace Picky
             }
             return false;
         }
+        
 
 
-        private bool ServiceOutboundMessage(MachineMessage msg)
-        /********************************************************************
-        * This is outbound messages to the machine.  If there is still a pending 
-        * message, no new message is sent
-        * Returns 'true' if a message was sent.
-        *********************************************************************/
-        {
-
-            if (msg.state == MachineMessage.MessageState.Complete)
-                return false;
-            if (msg.state == MachineMessage.MessageState.ReadyToSend)
+            private bool ServiceOutboundMessage(MachineMessage msg)
+            /********************************************************************
+            * This is outbound messages to the machine.  If there is still a pending 
+            * message, no new message is sent
+            * Returns 'true' if a message was sent.
+            *********************************************************************/
             {
-                machine.SelectedMachineMessage = machine.Messages.ElementAt(machine.Messages.IndexOf(msg));
-                if (machine.isMachinePaused == false || machine.advanceNextMessage == true)
+
+                if (msg.state == MachineMessage.MessageState.Complete)
+                    return false;
+                if (msg.state == MachineMessage.MessageState.ReadyToSend)
                 {
-                    msg.delay -= Constants.QUEUE_SERVICE_INTERVAL;
+                    machine.SelectedMachineMessage = machine.Messages.ElementAt(machine.Messages.IndexOf(msg));
+                    if (machine.isMachinePaused == false || machine.advanceNextMessage == true)
+                    {
+                        msg.delay -= Constants.QUEUE_SERVICE_INTERVAL;
+                        if (msg.delay <= 0)
+                        {
+                            msg.state = MachineMessage.MessageState.PendingDelay;
+                        }
+                    }
+                }
+                if (msg.state == MachineMessage.MessageState.PendingDelay)
+                {
+                    if (machine.isMachinePaused == false || machine.advanceNextMessage == true)
+                        msg.delay -= Constants.QUEUE_SERVICE_INTERVAL;
+
                     if (msg.delay <= 0)
                     {
-                        msg.state = MachineMessage.MessageState.PendingDelay;
-                    }
-                }
-            }
-            if (msg.state == MachineMessage.MessageState.PendingDelay)
-            {
-                if (machine.isMachinePaused == false || machine.advanceNextMessage == true)
-                    msg.delay -= Constants.QUEUE_SERVICE_INTERVAL;
-
-                if (msg.delay <= 0)
-                {
-                    // Set message start time
-                    DateTimeOffset now = DateTimeOffset.UtcNow;
-                    msg.start_time = now.ToUnixTimeMilliseconds();
-                    // Send Message, if this is a G-Code
-                    if ((msg.cmd[0] == 'G') || (msg.cmd[0] == 'M'))
-                    {
-                        int len = Array.LastIndexOf(msg.cmd, (byte)'\n');
-                        serialPort.Write(msg.cmd, 0, len + 1);
-                    }
-                    else if (msg.cmdString.StartsWith("J101"))
-                    {
-                        //machine.downCamera.RequestQRCodeLocation(msg.roi);
-                    }
-                    else if (msg.cmdString.StartsWith("J102"))
-                    {
-                        msg.messageCommand.PreMessageCommand(msg);
-                    }
-                    else if (msg.cmdString.StartsWith("J100"))
-                    {
-                        msg.messageCommand.PreMessageCommand(msg);
-                        byte[] cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} Z{2} A{3}\n", msg.target.x, msg.target.y, msg.target.z, msg.target.a));
-                        int len = Array.LastIndexOf(cmd, (byte)'\n');
-                        serialPort.Write(cmd, 0, len + 1);
-                    }
-                    // Reset the Next button
-                    machine.advanceNextMessage = false;
-                    msg.state = MachineMessage.MessageState.PendingOK;
-                    msg.delay = 0;
-                }
-            }
-            return true;
-        }
-
-        private bool getPositionFromMessage()
-        /********************************************************************
-         * Helper - Updates current position and message
-         *********************************************************************/
-        {
-            // Define a regular expression pattern for extracting doubles
-            string pattern = @"(\d+\.\d+)";
-            Regex regex = new Regex(pattern);
-
-            // Match the pattern in the input string
-            MatchCollection matches = regex.Matches(Encoding.UTF8.GetString(serial_buffer));
-
-            machine.CurrentX = double.Parse(matches[0].Value);
-            machine.CurrentY = double.Parse(matches[1].Value);
-            machine.CurrentZ = double.Parse(matches[2].Value);
-            machine.CurrentA = double.Parse(matches[3].Value);
-                        
-            return true;
-        }
-
-        private bool isPositionGood(MachineMessage msg)
-        /********************************************************************
-        * Helper - Checks if the machine has arrived and location is stable. 
-        * Generally used by morph commands that can't use FinishMoves()
-        *********************************************************************/
-        {
-            bool pOK = false;
-
-            // Make sure machine has stopped
-            if ((machine.CurrentX == lastPos.x) && (machine.CurrentY == lastPos.y) && (machine.CurrentZ == lastPos.z) && (machine.CurrentA == lastPos.a) && (machine.CurrentB == lastPos.b))
-            {
-                if ((Math.Abs(lastPos.x - msg.target.x) < 1))
-                {
-                    if ((Math.Abs(lastPos.y - msg.target.y) < 1))
-                    {
-                        if ((Math.Abs(lastPos.z - msg.target.z) < 20))
+                        // Set message start time
+                        DateTimeOffset now = DateTimeOffset.UtcNow;
+                        msg.start_time = now.ToUnixTimeMilliseconds();
+                        // Send Message, if this is a G-Code
+                        if ((msg.cmd[0] == 'G') || (msg.cmd[0] == 'M'))
                         {
-                            if ((Math.Abs(lastPos.a - msg.target.a) < 1))
+                            int len = Array.LastIndexOf(msg.cmd, (byte)'\n');
+                            serialPort.Write(msg.cmd, 0, len + 1);
+                        }
+                        else if (msg.cmdString.StartsWith("J102"))
+                        {
+                            msg.messageCommand.PreMessageCommand(msg);
+                            if (msg.cmd[4] == '*')
                             {
-                                if ((Math.Abs(lastPos.b - msg.target.b) < 1))
+                                int len = Array.LastIndexOf(msg.cmd, (byte)'*');
+                                msg.cmd[len] = (byte)'\n';
+                                serialPort.Write(msg.cmd, 5, len + 1 - 5);
+                            }
+                        }
+                        // Reset the Next button
+                        machine.advanceNextMessage = false;
+                        msg.state = MachineMessage.MessageState.PendingOK;
+                        msg.delay = 0;
+                    }
+                }
+                return true;
+            }
+
+            private bool getPositionFromMessage()
+            /********************************************************************
+             * Helper - Updates current position and message
+             *********************************************************************/
+            {
+                // Define a regular expression pattern for extracting doubles
+                string pattern = @"(\d+\.\d+)";
+                Regex regex = new Regex(pattern);
+
+                // Match the pattern in the input string
+                MatchCollection matches = regex.Matches(Encoding.UTF8.GetString(serial_buffer));
+
+                machine.CurrentX = double.Parse(matches[0].Value);
+                machine.CurrentY = double.Parse(matches[1].Value);
+                machine.CurrentZ = double.Parse(matches[2].Value);
+                machine.CurrentA = double.Parse(matches[3].Value);
+
+                return true;
+            }
+
+            private bool isPositionGood(MachineMessage msg)
+            /********************************************************************
+            * Helper - Checks if the machine has arrived and location is stable. 
+            * Generally used by morph commands that can't use FinishMoves()
+            *********************************************************************/
+            {
+                bool pOK = false;
+
+                // Make sure machine has stopped
+                if ((machine.CurrentX == lastPos.x) && (machine.CurrentY == lastPos.y) && (machine.CurrentZ == lastPos.z) && (machine.CurrentA == lastPos.a) && (machine.CurrentB == lastPos.b))
+                {
+                    if ((Math.Abs(lastPos.x - msg.target.x) < 1))
+                    {
+                        if ((Math.Abs(lastPos.y - msg.target.y) < 1))
+                        {
+                            if ((Math.Abs(lastPos.z - msg.target.z) < 20))
+                            {
+                                if ((Math.Abs(lastPos.a - msg.target.a) < 1))
                                 {
-                                    pOK = true;
+                                    if ((Math.Abs(lastPos.b - msg.target.b) < 1))
+                                    {
+                                        pOK = true;
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            lastPos.x = machine.CurrentX; lastPos.y = machine.CurrentY; lastPos.z = machine.CurrentZ; lastPos.a = machine.CurrentA; lastPos.b = machine.CurrentB;
-            return pOK;
+                lastPos.x = machine.CurrentX; lastPos.y = machine.CurrentY; lastPos.z = machine.CurrentZ; lastPos.a = machine.CurrentA; lastPos.b = machine.CurrentB;
+                return pOK;
+            }
         }
     }
-}
+
 

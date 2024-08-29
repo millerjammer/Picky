@@ -30,11 +30,13 @@ namespace Picky
         private readonly PickListView       pickListView;
         private readonly PickToolWindow     toolWindow;
         private readonly ControlWindow      controlWindow;
+        private readonly SettingsWindow     settingsWindow;
         
         public MainWindow()
         {
 
             InitializeComponent();
+            MachineModel machine = MachineModel.Instance;
             serialInterface = new SerialInterface();
 
             cassetteView = new CassetteView();
@@ -44,8 +46,8 @@ namespace Picky
             lView.Children.Add(pickListView);
 
             toolWindow = new PickToolWindow();
-            DataContext = this;
-
+            settingsWindow = new SettingsWindow();
+                        
             controlWindow = new ControlWindow();
             DataContext = this;
         }
@@ -68,7 +70,13 @@ namespace Picky
         {
             controlWindow.calibrationWindow.Show();
         }
-               
+
+        public ICommand OnSettingsCommand { get { return new RelayCommand(onSettings); } }
+        private void onSettings()
+        {
+            settingsWindow.Show();
+        }
+
         public ICommand OnAssembleCommand { get { return new RelayCommand(onAssemble); } }
         private void onAssemble()
         {

@@ -74,10 +74,10 @@
                                         <DataTemplate>
                                             <Grid Margin="10,10 " >
                                                 <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="300"/>
                                                     <ColumnDefinition Width="auto"/>
+                                                    <ColumnDefinition Width="*"/>
                                                 </Grid.ColumnDefinitions>
-                                                <DockPanel Grid.Column="0">
+                                                <DockPanel Grid.Column="0" HorizontalAlignment="Stretch">
                                                    <StackPanel Orientation="Vertical" Margin="0 0 0 0">
                                                         <DockPanel>
                                                             <TextBlock DockPanel.Dock="Left"  Text="QRCode: "/>
@@ -105,26 +105,34 @@
                                                                 <ColumnDefinition Width="*" />
                                                                 <ColumnDefinition Width="auto" />
                                                                 <ColumnDefinition Width="auto" />
+                          
                                                             </Grid.ColumnDefinitions>
                                                             <TextBlock  Grid.Column="0" Text="Next Part: (X,Y):"/>
                                                             <TextBlock  Grid.Column="1" TextAlignment="Right" Text="{Binding x_next_part, StringFormat={}{0:0.000}}"/>
                                                             <TextBlock  Grid.Column="2" Text=","/>
                                                             <TextBlock  Grid.Column="3" Text="{Binding y_next_part, StringFormat={}{0:0.000}}"/>
-                                                        </Grid>
+                                                         </Grid>
+                                                        <DockPanel>
+                                                            <TextBlock DockPanel.Dock="Left" Text="Template:"/>
+                                                            <TextBlock TextAlignment="Right" Text="{Binding part.TemplateFileName}"/>
+                                                        </DockPanel>
                                                     </StackPanel>
                                                 </DockPanel>
-                                                <Image Margin="10 0 20 0" Grid.Column="1" Source="{Binding part.TemplateFileName}" MaxHeight="100" MaxWidth="200" />
+                                                <DockPanel Grid.Column="1" DockPanel.Dock="Left">
+                                                    <Image Margin="10 0 20 0" Source="{Binding part.TemplateFileName}" MaxHeight="100" MaxWidth="200" />
+                                                </DockPanel>
                                             </Grid>
                                         </DataTemplate>
                                     </ui:DataGrid.RowDetailsTemplate>
                                     <!-- Placement Data Grid -->
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Binding="{Binding index}" Header="Index" Width="70"/>
-                                        <DataGridTextColumn Binding="{Binding part.Description}" Header="Description" Width="auto"/>
-                                        <DataGridTextColumn Binding="{Binding part.Footprint}" Header="Footprint" Width="160"/>
-                                        <DataGridTextColumn Binding="{Binding part.TemplateFileName}" Header="Template" Width="90"/>
+                                        <DataGridTextColumn Binding="{Binding part.Description}" Header="Description" Width="*"/>
+                                        <DataGridTextColumn Binding="{Binding part.Footprint}" Header="Footprint" Width="190"/>
+                                        <DataGridTextColumn Binding="{Binding part.Layer}" Header="Layer" Width="80"/>
+                                        <DataGridTextColumn Binding="{Binding PickToolName}" Header="Pick Tool" Width="90"/>
                                     </DataGrid.Columns>
-                                    
+                                   
                                     <ui:DataGrid.RowStyle>
                                         <Style TargetType="DataGridRow">
                                             <Style.Triggers>

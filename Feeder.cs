@@ -104,6 +104,12 @@ namespace Picky
         public double x_drive { get; set; }
         public double y_drive { get; set; }
 
+        private string pickToolName;
+        public string PickToolName
+        {
+            get { return pickToolName; }
+            set { pickToolName = value; OnPropertyChanged(nameof(pickToolName)); }
+        }
 
 
         public Feeder()

@@ -87,6 +87,12 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
         }
 
+        public ICommand AssignToSelectedFeederCommand { get { return new RelayCommand(assignToSelectedFeeder); } }
+        private void assignToSelectedFeeder()
+        {
+            machine.selectedCassette.selectedFeeder.PickToolName = Machine.SelectedPickTool.Name;
+        }
+
         public ICommand DisplayCalibrationCircleCommand { get { return new RelayCommand(displayCalibrationCircle); } }
         private void displayCalibrationCircle()
         {
@@ -106,7 +112,7 @@ namespace Picky
             Machine.SelectedPickTool.TipState = PickToolModel.TipStates.Loading;
             //Go to tool
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
-            machine.Messages.Add(GCommand.SetCameraAutoFocus(machine.downCamera, false, Constants.FOCUS_TOOL_RETRIVAL));
+            machine.Messages.Add(GCommand.SetCameraManualFocus(machine.downCamera, true, Constants.FOCUS_TOOL_RETRIVAL));
             machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
             //Align and adjust next position command
@@ -124,7 +130,7 @@ namespace Picky
             //Turn off down illuminator and turn up illuminator on
             machine.Messages.Add(GCommand.G_EnableIlluminator(false));
             machine.Messages.Add(GCommand.G_EnableUpIlluminator(true));
-            machine.Messages.Add(GCommand.SetCameraAutoFocus(machine.upCamera, false, Constants.FOCUS_TIP_CAL));
+            machine.Messages.Add(GCommand.SetCameraManualFocus(machine.upCamera, true, Constants.FOCUS_TIP_CAL));
             //Tool to home for calibration
             machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());

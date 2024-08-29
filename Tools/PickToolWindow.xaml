@@ -79,15 +79,16 @@
                                             <MenuItem Header="Remove Tool"  Command="{Binding RemoveToolCommand}"/>
                                             <MenuItem Header="New Tool"  Command="{Binding NewToolCommand}"/>
                                             <Separator Margin="2"/>
-                                            <MenuItem Header="Retrieve Tool" Command="{Binding RetrieveToolCommand}" />
-                                            <MenuItem Header="Return Tool" Command="{Binding ReturnToolCommand}" />
+                                            <MenuItem Header="Attach" Command="{Binding RetrieveToolCommand}" />
+                                            <MenuItem Header="Return" Command="{Binding ReturnToolCommand}" />
                                             <Separator Margin="2"/>
                                             <MenuItem Header="Set As Storage Location" Command="{Binding SetAsStorageLocationCommand}" />
                                             <MenuItem Header="Go To Storage Location" Command="{Binding GoToStorageLocationCommand}" />
+                                            <MenuItem Header="Mark State Unknown" Command="{Binding MarkStateUnknownCommand}" />
                                             <Separator Margin="2"/>
                                             <MenuItem Header="Show Calibration" Command="{Binding DisplayCalibrationCircleCommand}" />
                                             <Separator Margin="2"/>
-                                            <MenuItem Header="Mark State Unknown" Command="{Binding MarkStateUnknownCommand}" />
+                                            <MenuItem Header="Assign to Selected Feeder" Command="{Binding AssignToSelectedFeederCommand}" />
                                         </ContextMenu>
                                     </DataGrid.ContextMenu>
                                 </ui:DataGrid>

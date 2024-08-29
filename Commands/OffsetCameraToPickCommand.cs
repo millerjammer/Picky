@@ -16,8 +16,8 @@ namespace Picky.Tools
     {
         public MachineMessage msg;
         public Part part;
-        public double rotation;
-
+        public double rotation; //Used for correction only
+        
         public OffsetCameraToPickCommand(double head_rotation)
         {
             msg = new MachineMessage();
@@ -32,7 +32,6 @@ namespace Picky.Tools
             msg.messageCommand = this;
             msg.cmd = Encoding.ASCII.GetBytes("J102 Offset Camera to Pick\n");
             part = _part;
-            rotation = Convert.ToDouble(part.Rotation);
         }
 
         public MachineMessage GetMessage()
@@ -67,7 +66,7 @@ namespace Picky.Tools
             message = machine.Messages.ElementAt(machine.Messages.IndexOf(msg) + 1);
             message.target.x = x;
             message.target.y = y;
-            message.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} A{2}\n", message.target.x, message.target.y, rotation));
+            message.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1}\n", message.target.x, message.target.y));
             return true;
         }
     }

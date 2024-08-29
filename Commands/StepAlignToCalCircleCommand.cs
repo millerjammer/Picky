@@ -22,10 +22,11 @@ namespace Picky
         public CircleDetector detector;
         public CameraModel cameraToUse;
         public Circle3d dest;
+        private int delay = 4;
 
-        public StepAlignToCalCircleCommand(MachineModel mm, CircleSegment target, Circle3d destination)
+        public StepAlignToCalCircleCommand(CircleSegment target, Circle3d destination)
         {
-            machine = mm;
+            machine = MachineModel.Instance;
             detector = new CircleDetector(HoughModes.Gradient, 140, 50);
             if (target.Radius > 5)
                 detector.ROI = new OpenCvSharp.Rect(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
@@ -46,12 +47,10 @@ namespace Picky
             return msg;
         }
         public bool PreMessageCommand(MachineMessage msg)
-        {
+        {          
             cameraToUse.RequestCircleLocation(detector);
             return true;
         }
-
-
         public bool PostMessageCommand(MachineMessage msg)
         {
             if (cameraToUse.IsCircleSearchActive() == false)

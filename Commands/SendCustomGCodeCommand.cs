@@ -8,7 +8,7 @@ using System.Windows.Media.Media3D;
 
 namespace Picky.Tools
 {
-    public class SetCameraAutoFocusCommand : MessageRelayCommand
+    public class SendCustomGCodeCommand : MessageRelayCommand
     /*------------------------------------------------------------------------------
     * UPDATES position of the next command to add an offset to align pick head  
     * Requires valid position in last command.
@@ -16,19 +16,14 @@ namespace Picky.Tools
     {
         public MachineMessage msg;
         public CameraModel camera;
-        public bool autoFocus;
-        public int valFocus;
         public int delay;
 
-        public SetCameraAutoFocusCommand(CameraModel target_camera, bool enableAF, int value)
+        public SendCustomGCodeCommand(string gcode, int msDelay)
         {
             msg = new MachineMessage();
             msg.messageCommand = this;
-            msg.cmd = Encoding.ASCII.GetBytes("J102 Set Camera Focus\n");
-            valFocus = value;
-            autoFocus = enableAF;
-            camera = target_camera;
-            delay = (400 / Constants.QUEUE_SERVICE_INTERVAL);    //delay (ms)
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("J102*{0}*\n", gcode));
+            delay = (msDelay / Constants.QUEUE_SERVICE_INTERVAL);    //delay (ms) in units of service interval
         }
 
         public MachineMessage GetMessage()
@@ -38,8 +33,6 @@ namespace Picky.Tools
 
         public bool PreMessageCommand(MachineMessage msg)
         {
-            camera.IsManualFocus = autoFocus;
-            camera.Focus = valFocus;
             return true;
         }
 

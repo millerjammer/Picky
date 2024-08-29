@@ -168,7 +168,7 @@ namespace Picky
              
         public void FocusDragCompleted(object sender, DragCompletedEventArgs e)
         {
-            camera.Focus = (int)((Slider)sender).Value;
+            camera.camera.Focus = (int)((Slider)sender).Value;
         }
 
         public void ThresholdDragCompleted(object sender, DragCompletedEventArgs e)

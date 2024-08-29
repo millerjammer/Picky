@@ -24,7 +24,7 @@ namespace Picky
     {
         MachineModel machine = MachineModel.Instance;
 
-        CameraModel camera;
+        public CameraModel camera { get; set; }
 
         public List<VisualizationStyle> VisualizationView { get; set; }
 
@@ -50,17 +50,7 @@ namespace Picky
             }
         }
 
-        public bool IsManualFocus
-        {
-            get { return camera.IsManualFocus; }
-            set { camera.IsManualFocus = value; setCameraFocus(); OnPropertyChanged(nameof(IsManualFocus)); }
-        }
-
-        public int Focus
-        {
-            get { return camera.Focus; }
-            set { camera.Focus = value; setCameraFocus(); OnPropertyChanged(nameof(Focus)); }
-        }
+        
 
         private int detectionThreshold;
         public int DetectionThreshold
@@ -78,7 +68,7 @@ namespace Picky
             /* This should also fire when the camera image changes since camera is property of machine? */
             /* We use this to know what part we're looking for */
             machine.PropertyChanged += OnMachinePropertyChanged;
-
+            
             VisualizationView = new List<VisualizationStyle>
             {
                 new VisualizationStyle("Normal", camera.ColorImage),
@@ -105,22 +95,7 @@ namespace Picky
                 machine.downCamera.PartToFind = machine.selectedCassette.selectedFeeder.part;
             }
         }
-
-        public void setCameraFocus()
-        {
-            camera.IsManualFocus = IsManualFocus;
-            if (IsManualFocus)
-            {
-                int value = (int)camera.capture.Get(VideoCaptureProperties.Focus);
-                camera.capture.Set(VideoCaptureProperties.Focus, Focus);
-                Console.WriteLine("Manual Focus " + value + " -> " + Focus);
-            }
-            else
-            {
-                camera.capture.Set(VideoCaptureProperties.AutoFocus, 1);
-                Console.WriteLine("Auto Focus Mode");
-            }
-        }
+              
 
         public ICommand FullScreenCommand { get { return new RelayCommand(FullScreen); } }
         private void FullScreen()

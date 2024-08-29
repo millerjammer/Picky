@@ -4,7 +4,9 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Controls;
-
+using System.Windows.Media.Media3D;
+using Xamarin.Forms;
+using Image = System.Windows.Controls.Image;
 
 namespace Picky
 {
@@ -38,6 +40,7 @@ namespace Picky
         private bool searchCircleRequest = false;
         private CircleDetector circleDetector;
         private CircleSegment bestCircle;
+        private CircleSegment[] Circles;
         
         public bool searchQRRequest = false;
         private OpenCvSharp.Rect searchQRROI;
@@ -61,12 +64,22 @@ namespace Picky
             get { return frameImage; }
             set { frameImage = value; OnPropertyChanged(nameof(FrameImage)); } //Notify listeners
         }
-                
 
-        public int Focus { get; set; }
-        public bool IsManualFocus { get; set; }
+        private bool isManualFocus;
+        public bool IsManualFocus
+        {
+            get { return isManualFocus; }
+            set { isManualFocus = value; SetCameraFocus(); OnPropertyChanged(nameof(IsManualFocus)); }
+        }
+
+        private int focus;
+        public int Focus
+        {
+            get { return focus; }
+            set { focus = value; SetCameraFocus(); OnPropertyChanged(nameof(Focus)); }
+        }
+
         public Mat selectedViewMat { get; set; }
-
 
         private readonly BackgroundWorker bkgWorker;
 
@@ -80,6 +93,7 @@ namespace Picky
             ThresImage = new Mat();
             EdgeImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
             DilatedImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
+            
             PickROI = new Mat();
 
             grayTemplateImage = new Mat();
@@ -102,6 +116,21 @@ namespace Picky
             bkgWorker = new BackgroundWorker { WorkerSupportsCancellation = true };
             bkgWorker.DoWork += Worker_DoWork;
             bkgWorker.RunWorkerAsync();
+        }
+
+        public void SetCameraFocus()
+        {
+            if (IsManualFocus == true)
+            {
+                int value = (int)capture.Get(VideoCaptureProperties.Focus);
+                capture.Set(VideoCaptureProperties.Focus, Focus);
+                Console.WriteLine("Manual Focus " + value + " -> " + Focus);
+            }
+            else
+            {
+                capture.Set(VideoCaptureProperties.AutoFocus, 1);
+                Console.WriteLine("Auto Focus Mode");
+            }
         }
 
         /* Default Send Notification boilerplate - properties that notify use OnPropertyChanged */
@@ -212,7 +241,7 @@ namespace Picky
             }
         }
 
-        private CircleSegment[] FindCircleInROI()
+        private bool FindCircleInROI()
         {
             /****************************************************************************
              * Private function for finding circles.
@@ -226,11 +255,7 @@ namespace Picky
              * RequestCircleLocation(OpenCvSharp.Rect roi) to start search of ROI
              * 
              *****************************************************************************/
-
-            //Force GC
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-
+                        
             CircleROI = new Mat(DilatedImage, circleDetector.ROI);
 
             //Convert the estimated circle (in MM) to search criteria (in Pix) based on z.  
@@ -243,7 +268,7 @@ namespace Picky
             int minDist = maxR;
 
             // Find circles using HoughCircles
-            CircleSegment[] circles = Cv2.HoughCircles(
+            Circles = Cv2.HoughCircles(
                 CircleROI,
                 circleDetector.DetectorType,        // Usually HoughModes.Gradient or HoughModes.GradientAlt
                 dp: 1.5,
@@ -252,24 +277,25 @@ namespace Picky
                 param2: circleDetector.Param2,      //smaller means more false circles
                 minRadius: minR,            
                 maxRadius: maxR);
-
-            if (circles.Length == 0)
+            
+            if (Circles.Length == 0)
             {
-                Console.WriteLine("No circle found.");
-                bestCircle = new CircleSegment();
+                Console.WriteLine("No circles found.");
+                return false;
             }
             else
             {
                 // Calculate the center of the image, in pixels
                 Point2f imageCenter = new Point2f(CircleROI.Width / 2.0f, CircleROI.Height / 2.0f);
                 // Find the closest circle to the center
-                CircleSegment closestCircle = circles.OrderBy(circle => Math.Pow(circle.Center.X - imageCenter.X, 2) + Math.Pow(circle.Center.Y - imageCenter.Y, 2)).First();
+                CircleSegment closestCircle = Circles.OrderBy(circle => Math.Pow(circle.Center.X - imageCenter.X, 2) + Math.Pow(circle.Center.Y - imageCenter.Y, 2)).First();
                 // Calculate the offset of the closest circle from the center of the image, in pixels
                 Point2f CircleToFind = new Point2f(closestCircle.Center.X - imageCenter.X, closestCircle.Center.Y - imageCenter.Y);
                 bestCircle = closestCircle;
                 bestCircle.Center = CircleToFind;
             }
-            return circles;
+            OpenCvSharp.Cv2.Rectangle(ColorImage, circleDetector.ROI, new OpenCvSharp.Scalar(0, 255, 0), 4);
+            return true;
         }
 
         private bool FindPartInImage(Part part, Mat image)
@@ -282,7 +308,6 @@ namespace Picky
 
             double x_next = 0, y_next = 0, y_last = 0;
             int match_count = 0;
-            double x_offset_pixels, y_offset_pixels;
             double x_next_part, y_next_part;
             Mat res_32f;
 
@@ -373,54 +398,54 @@ namespace Picky
                     Cv2.Threshold(GrayImage, ThresImage, 80, 255, ThresholdTypes.Binary);
                     Cv2.Canny(ThresImage, EdgeImage, 50, 150, 3);
                     Cv2.Dilate(EdgeImage, DilatedImage, null, iterations: 2);
+                                                      
                     RawImage = null;  // hint garbage collection
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Ouchy - " + ex.ToString());
-                    GC.Collect();
-                    // Wait for all finalizers to complete before continuing.
-                    GC.WaitForPendingFinalizers();
+                   GC.Collect();
+                   GC.WaitForPendingFinalizers();
                 }
-
-                if (searchQRRequest)
-                {
-                    if (DecodeQRCode())
+                
+                    if (searchQRRequest)
                     {
-                        for (int i = 0; i < currentQRCodePoints.Length; i++)
+                        if (DecodeQRCode())
                         {
-                            OpenCvSharp.Cv2.DrawMarker(ColorImage, new OpenCvSharp.Point(currentQRCodePoints[i].X, currentQRCodePoints[i].Y), new OpenCvSharp.Scalar(255, 0, 0), OpenCvSharp.MarkerTypes.Cross, 200, 4);
+                            for (int i = 0; i < currentQRCodePoints.Length; i++)
+                            {
+                                OpenCvSharp.Cv2.DrawMarker(ColorImage, new OpenCvSharp.Point(currentQRCodePoints[i].X, currentQRCodePoints[i].Y), new OpenCvSharp.Scalar(255, 0, 0), OpenCvSharp.MarkerTypes.Cross, 200, 4);
+                            }
+                            OpenCvSharp.Cv2.Rectangle(ColorImage, searchQRROI, new OpenCvSharp.Scalar(0, 255, 0), 4);
+                            searchQRRequest = false;        //Don't cancel till you get a QR
                         }
-                        OpenCvSharp.Cv2.Rectangle (ColorImage, searchQRROI, new OpenCvSharp.Scalar(0, 255, 0), 4);
-                        searchQRRequest = false;
+                        else
+                        {
+                            OpenCvSharp.Cv2.Rectangle(ColorImage, searchQRROI, new OpenCvSharp.Scalar(0, 0, 255), 4);
+                        }
                     }
-                    else
+                    else if (searchCircleRequest)
                     {
-                        OpenCvSharp.Cv2.Rectangle(ColorImage, searchQRROI, new OpenCvSharp.Scalar(0, 0, 255), 4);
+                        if (FindCircleInROI())
+                        {
+                            foreach (CircleSegment circle in Circles)
+                            {
+                                // Draw the circle outline
+                                int x = (int)(circle.Center.X + circleDetector.ROI.X);
+                                int y = (int)(circle.Center.Y + circleDetector.ROI.Y);
+                                Cv2.Circle(ColorImage, x, y, (int)circle.Radius, Scalar.Green, 2);
+                                // Draw the circle center
+                                Cv2.Circle(ColorImage, x, y, 3, Scalar.Red, 3);
+                                searchCircleRequest = false;        //Don't cancel request till you get a circle
+                            }
+                        }
                     }
-                }
-                else if (PartToFind != null)
-                {
-                      FindPartInImage(PartToFind, ColorImage);
-                }
-                else if (searchCircleRequest)
-                {
-                    CircleSegment[] circles = FindCircleInROI();
-                    foreach (CircleSegment circle in circles)
+                    else if (PartToFind != null)
                     {
-                        // Draw the circle outline
-                        int x = (int)(circle.Center.X + circleDetector.ROI.X);
-                        int y = (int)(circle.Center.Y + circleDetector.ROI.Y);
-                        Cv2.Circle(ColorImage, x, y, (int)circle.Radius, Scalar.Green, 2);
-                        // Draw the circle center
-                        Cv2.Circle(ColorImage, x, y, 3, Scalar.Red, 3);
+                        FindPartInImage(PartToFind, ColorImage);
                     }
-                    searchCircleRequest = false;
-                }
-                                    
-
-                /* Draw default cursor */
-                OpenCvSharp.Cv2.DrawMarker(ColorImage, new OpenCvSharp.Point(ColorImage.Cols / 2, ColorImage.Rows / 2), new OpenCvSharp.Scalar(0, 0, 255), OpenCvSharp.MarkerTypes.Cross, 100, 1);
+                
+            /* Draw default cursor */
+            OpenCvSharp.Cv2.DrawMarker(ColorImage, new OpenCvSharp.Point(ColorImage.Cols / 2, ColorImage.Rows / 2), new OpenCvSharp.Scalar(0, 0, 255), OpenCvSharp.MarkerTypes.Cross, 100, 1);
                 App.Current.Dispatcher.Invoke(() =>
                 {
                     try
@@ -432,7 +457,7 @@ namespace Picky
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine("Ouch - Memory Exception: " + ex.ToString());
+                        //Console.WriteLine("Ouch - Memory Exception: " + ex.ToString());
                     }
                 });
                 Cv2.WaitKey(1);

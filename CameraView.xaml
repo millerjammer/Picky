@@ -11,8 +11,8 @@
 
                 <DockPanel>
                     <StackPanel Grid.Column="1" Orientation="Vertical" DockPanel.Dock="Right" Width="150">
-                        <ToggleButton x:Name="mftb" Content="Manual Focus" IsChecked="{Binding IsManualFocus}"  Margin="10 10 10 0" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
-                        <Slider IsEnabled="{Binding IsChecked, ElementName=mftb}" Value="{Binding Focus}"  Minimum="0" Maximum="600" HorizontalAlignment="Stretch" Margin="20 10 15 10" />
+                        <ToggleButton x:Name="mftb" Content="Manual Focus" IsChecked="{Binding camera.IsManualFocus}"  Margin="10 10 10 0" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+                        <Slider IsEnabled="{Binding IsChecked, ElementName=mftb}" Value="{Binding camera.Focus}"  Minimum="0" Maximum="600" HorizontalAlignment="Stretch" Margin="20 10 15 10" />
                         <TextBlock Text="Detection Threshold" IsEnabled="{Binding IsCassetteFeederSelected, Mode=OneWay}" Margin="20 0 0 0"/>
                         <Slider Value="{Binding DetectionThreshold, Mode=TwoWay}" IsEnabled="{Binding IsCassetteFeederSelected, Mode=OneWay}" Minimum="-255" Maximum="0" HorizontalAlignment="Stretch" Margin="20 10 15 10"/>
                         <ComboBox Name="ImageType" ItemsSource="{Binding VisualizationView}" DisplayMemberPath="viewName" SelectedItem="{Binding SelectedVisualizationViewItem}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 0 15 0" />

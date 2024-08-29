@@ -77,6 +77,7 @@ namespace Picky
         public ICommand PlaceAllPartsCommand { get { return new RelayCommand(PlaceAllParts); } }
         private void PlaceAllParts()
         {
+            Machine.Messages.Add(GCommand.SetCameraManualFocus(Machine.downCamera, true, Constants.FOCUS_PCB_062));
             Machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             for (int i=0;i<Machine.PickList.Count;i++)
             {

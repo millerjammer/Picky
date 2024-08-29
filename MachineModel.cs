@@ -40,6 +40,9 @@ namespace Picky
         /* Board */
         public BoardModel Board { get; set; }
 
+        /* Settings */
+        public SettingsModel Settings { get; set; }
+
         /* Cameras */
         public CameraModel upCamera { get; set; }
         public CameraModel downCamera { get; set; }
@@ -179,6 +182,20 @@ namespace Picky
 
             try
             {
+                using (StreamReader file = File.OpenText(path + "\\" + Constants.SETTINGS_FILE_NAME))
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    Settings = ((SettingsModel)serializer.Deserialize(file, typeof(SettingsModel)));
+                }
+            }
+            catch
+            {
+                Console.WriteLine("Can't find file: " + path + "\\" + Constants.SETTINGS_FILE_NAME);
+                Settings = new SettingsModel();
+            }
+
+            try
+            {
                 using (StreamReader file = File.OpenText(path + "\\" + Constants.BOARD_FILE_NAME))
                 {
                     JsonSerializer serializer = new JsonSerializer();
@@ -268,10 +285,10 @@ namespace Picky
         public bool AddFeederPickToQueue(Feeder feeder)
         {
             //Go to feeder Origin
-            Messages.Add(GCommand.SetCameraAutoFocus(downCamera, false, Constants.FOCUS_FEEDER_QR_CODE));
+            Messages.Add(GCommand.SetCameraManualFocus(downCamera, true, Constants.FOCUS_FEEDER_QR_CODE));
             Messages.Add(GCommand.G_SetPosition(feeder.x_origin, feeder.y_origin, 0, 0, 0));
             Messages.Add(GCommand.G_FinishMoves());
-            Messages.Add(GCommand.SetCameraAutoFocus(downCamera, false, Constants.FOCUS_FEEDER_PART));
+            Messages.Add(GCommand.SetCameraManualFocus(downCamera, true, Constants.FOCUS_FEEDER_PART));
             Messages.Add(GCommand.OpticallyAlignToPart(feeder.part));
             Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             Messages.Add(GCommand.OffsetCameraToPick(feeder.part));
@@ -293,13 +310,14 @@ namespace Picky
             double part_x = Board.PcbOriginX + (Convert.ToDouble(part.CenterX) * Constants.MIL_TO_MM);
             double part_y = Board.PcbOriginY + (Convert.ToDouble(part.CenterY) * Constants.MIL_TO_MM);
             Messages.Add(GCommand.OffsetCameraToPick(part));
-            Messages.Add(GCommand.G_SetPosition(part_x, part_y, 0, 0, 0));
+            Messages.Add(GCommand.G_SetXYPosition(part_x, part_y));
+            Messages.Add(GCommand.G_SetRotation(Convert.ToDouble(part.Rotation)));
             Messages.Add(GCommand.G_FinishMoves());
             Messages.Add(GCommand.G_ProbeZ(Constants.PCB_NOMINAL_Z_DRIVE_MM));
             Messages.Add(GCommand.G_FinishMoves());
             Messages.Add(GCommand.G_EnablePump(false));
             Messages.Add(GCommand.G_EnableValve(false));
-            Messages.Add(GCommand.Delay(100));
+            Messages.Add(GCommand.Delay(10));
             Messages.Add(GCommand.G_SetZPosition(0));
             return true;
         }
