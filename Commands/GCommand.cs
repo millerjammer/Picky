@@ -18,6 +18,7 @@ namespace Picky
 {
     public class GCommand
     {
+        
         /***********************************************************
          * 
          *  CAMERA, CALIBRATION AND IMAGING COMMANDS
@@ -127,10 +128,11 @@ namespace Picky
         {
             /* Units are mm */
 
+            MachineModel machine = MachineModel.Instance;
             MachineMessage msg = new MachineMessage();
             msg.target.z = z;
 
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 Z{0} F9000\n", z));
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 Z{0} F{1}\n", z, machine.Settings.ProbeRate));
             return msg;
         }
 
@@ -138,10 +140,11 @@ namespace Picky
         {
             /* Units are deg - Feedrate in mm/min*/
 
+            MachineModel machine = MachineModel.Instance;
             MachineMessage msg = new MachineMessage();
             msg.target.a = a; 
 
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 A{0} F9000\n", a));
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 A{0} F{1}\n", a, machine.Settings.RotationRate));
             return msg;
         }
 
@@ -149,23 +152,24 @@ namespace Picky
         {
             /* Units are mm */
 
+            MachineModel machine = MachineModel.Instance;
             MachineMessage msg = new MachineMessage();
             msg.target.x = x; msg.target.y = y;
             
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} F9000\n", x, y));
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} F{2}\n", x, y, machine.Settings.RateXY));
             return msg;
         }
 
         public static MachineMessage G_SetPosition(double x, double y, double z, double a, double b)
         {
             /* Units are mm */
-
+            MachineModel machine = MachineModel.Instance;
             MachineMessage msg = new MachineMessage();
             msg.target.x = x; msg.target.y = y;
             msg.target.z = z; msg.target.a = a;
             msg.target.b = b;
 
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} Z{2} A{3} F9000\n", x, y, z, a));
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} Z{2} A{3} F{4}\n", x, y, z, a, machine.Settings.RateXY));
             return msg;
         }
 

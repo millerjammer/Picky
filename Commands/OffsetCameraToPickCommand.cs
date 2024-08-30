@@ -28,6 +28,7 @@ namespace Picky.Tools
 
         public OffsetCameraToPickCommand(Part _part)
         {
+            /* Part is based so that it's selected in the Pick List and Feeder */
             msg = new MachineMessage();
             msg.messageCommand = this;
             msg.cmd = Encoding.ASCII.GetBytes("J102 Offset Camera to Pick\n");
@@ -56,6 +57,7 @@ namespace Picky.Tools
 
         public bool PostMessageCommand(MachineMessage msg)
         {
+            /* Move head from Camera to Pick */
             MachineModel machine = MachineModel.Instance;
             MachineMessage message = machine.Messages.ElementAt(machine.Messages.IndexOf(msg) - 1);
             //Get offset in mm and add to last target

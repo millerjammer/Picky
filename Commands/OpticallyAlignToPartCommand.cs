@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media.Media3D;
 
 namespace Picky.Tools
@@ -30,7 +31,7 @@ namespace Picky.Tools
         public OpticallyAlignToPartCommand(Part prt )
         {
             machine = MachineModel.Instance;
-            part = prt;            
+            part = prt;
             msg = new MachineMessage();
             msg.messageCommand = this;
             msg.cmd = Encoding.ASCII.GetBytes("J102 Optically Align to Part\n");
@@ -39,6 +40,7 @@ namespace Picky.Tools
 
         public MachineMessage GetMessage()
         {
+            
             return msg;
         }
 

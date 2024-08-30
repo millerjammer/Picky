@@ -65,8 +65,27 @@ namespace Picky
             fdr.part = Machine.selectedPickListPart;
             Machine.selectedCassette.Feeders.Add(fdr);
             Machine.selectedPickListPart.cassette = Machine.selectedCassette;
-        } 
-        
+        }
+
+        public ICommand PickPlaceAllPartsCommand { get { return new RelayCommand(PickPlaceAllParts); } }
+        private void PickPlaceAllParts()
+        {
+            Console.WriteLine("Pick-N-Place All");
+            for (int i = 0; i < Machine.PickList.Count; i++)
+            {
+                machine.AddFeederPickToQueue(Machine.PickList.ElementAt(i).feeder);
+                Machine.AddPartPlacementToQueue(Machine.PickList.ElementAt(i));
+            }
+        }
+
+        public ICommand PickPlaceSinglePartCommand { get { return new RelayCommand(PickPlaceSinglePart); } }
+        private void PickPlaceSinglePart()
+        {
+            Console.WriteLine("Pick-N-Place Single");
+            machine.AddFeederPickToQueue(Machine.selectedPickListPart.feeder);
+            Machine.AddPartPlacementToQueue(Machine.selectedPickListPart);
+        }
+
         public ICommand PlaceSinglePartCommand { get { return new RelayCommand(PlaceSinglePart); } }
         private void PlaceSinglePart()
         {
@@ -79,6 +98,7 @@ namespace Picky
         {
             Machine.Messages.Add(GCommand.SetCameraManualFocus(Machine.downCamera, true, Constants.FOCUS_PCB_062));
             Machine.Messages.Add(GCommand.G_EnableIlluminator(true));
+            Machine.Messages.Add(GCommand.G_SetZPosition(0));
             for (int i=0;i<Machine.PickList.Count;i++)
             {
                 Machine.AddPartPlacementToQueue(Machine.PickList.ElementAt(i));
@@ -88,10 +108,24 @@ namespace Picky
         public ICommand GoToPartLocationCommand { get { return new RelayCommand(GoToPartLocation); } }
         private void GoToPartLocation()
         {
+            Machine.Messages.Add(GCommand.SetCameraManualFocus(Machine.downCamera, true, Constants.FOCUS_PCB_062));
+            Machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             Machine.Messages.Add(GCommand.G_SetZPosition(0));
             double part_x = Machine.Board.PcbOriginX + (Convert.ToDouble(Machine.selectedPickListPart.CenterX) * Constants.MIL_TO_MM);
             double part_y = Machine.Board.PcbOriginY + (Convert.ToDouble(Machine.selectedPickListPart.CenterY) * Constants.MIL_TO_MM);
             Machine.Messages.Add(GCommand.G_SetPosition(part_x, part_y, 0, 0, 0));
+        }
+
+        public ICommand GoToAllPartLocationsCommand { get { return new RelayCommand(GoToAllPartLocations); } }
+        private void GoToAllPartLocations()
+        {
+            Machine.Messages.Add(GCommand.SetCameraManualFocus(Machine.downCamera, true, Constants.FOCUS_PCB_062));
+            Machine.Messages.Add(GCommand.G_EnableIlluminator(true));
+            Machine.Messages.Add(GCommand.G_SetZPosition(0));
+            for (int i = 0; i < Machine.PickList.Count; i++)
+            {
+                Machine.AddPartLocationToQueue(Machine.PickList.ElementAt(i));
+            }
         }
 
         public ICommand OpenPickListCommand { get { return new RelayCommand(OpenPickList); } }

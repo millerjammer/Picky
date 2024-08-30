@@ -23,7 +23,6 @@ namespace Picky
         public Mat EdgeImage { get; set; }
         public Mat DilatedImage { get; set; }
 
-        public Mat PickROI { get; set; }
         public Mat CircleROI { get; set; }
         public Mat QRImageROI { get; set; }
 
@@ -36,6 +35,7 @@ namespace Picky
 
         private Point2d nextPartOffset;
         public Part PartToFind { get; set; }
+        private OpenCvSharp.Rect partROI;
         
         private bool searchCircleRequest = false;
         private CircleDetector circleDetector;
@@ -94,7 +94,7 @@ namespace Picky
             EdgeImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
             DilatedImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
             
-            PickROI = new Mat();
+            partROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), (Constants.CAMERA_FRAME_HEIGHT / 2), Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 2);
 
             grayTemplateImage = new Mat();
             matchResultImage = new Mat();
@@ -141,7 +141,10 @@ namespace Picky
         }
 
        
-        /** Public methods for Circles **/
+        public void RequestPartLocation(OpenCvSharp.Rect roi)
+        {
+            partROI = roi;
+        }
 
         public CircleSegment GetBestCircle()
         {
@@ -298,7 +301,7 @@ namespace Picky
             return true;
         }
 
-        private bool FindPartInImage(Part part, Mat image)
+        private bool FindPartInImage(Part part, Mat grayImage)
         {
             /*------------------------------------------------------
              * Private function for finding parts.  This is the default
@@ -310,14 +313,16 @@ namespace Picky
             int match_count = 0;
             double x_next_part, y_next_part;
             Mat res_32f;
-
+            Mat image, thresImage;
             Mat template = part.Template;
 
             try
             {
+                //Convert template to gray
                 Cv2.CvtColor(template, grayTemplateImage, OpenCvSharp.ColorConversionCodes.BGR2GRAY);
+                image = new Mat(grayImage, partROI);
                 res_32f = new Mat(image.Rows - template.Rows + 1, image.Cols - template.Cols + 1, MatType.CV_32FC1);
-                Cv2.MatchTemplate(GrayImage, grayTemplateImage, res_32f, TemplateMatchModes.CCoeffNormed);
+                Cv2.MatchTemplate(image, grayTemplateImage, res_32f, TemplateMatchModes.CCoeffNormed);
             }catch (Exception e)
             {
                 Console.WriteLine($"Error matching: {e.Message}");
@@ -328,7 +333,8 @@ namespace Picky
             res_32f.ConvertTo(matchResultImage, MatType.CV_8U, 255.0);
 
             int size = ((template.Cols + template.Rows) / 4) * 2 + 1; //force size to be odd
-            Cv2.AdaptiveThreshold(matchResultImage, ThresImage, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.Binary, size, part.PartDetectionThreshold);
+            thresImage = new Mat(ThresImage, partROI);
+            Cv2.AdaptiveThreshold(matchResultImage, thresImage, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.Binary, size, part.PartDetectionThreshold);
 
             y_last = Constants.CAMERA_FRAME_HEIGHT;
             /* Show all matches */
@@ -336,26 +342,30 @@ namespace Picky
             {
                 double minval, maxval;
                 OpenCvSharp.Point minloc, maxloc;
-                Cv2.MinMaxLoc(ThresImage, out minval, out maxval, out minloc, out maxloc);
+                Cv2.MinMaxLoc(thresImage, out minval, out maxval, out minloc, out maxloc);
                 if (maxloc.Y > 0 && maxloc.X > 0 && maxloc.Y < y_last)
                 {
                     y_last = maxloc.Y;
+                    //Location within the ROI
                     x_next = (maxloc.X + template.Cols / 2);
                     y_next = (maxloc.Y + template.Rows / 2);
                 }
 
                 if (maxval > 0)
                 {
-                    Cv2.Rectangle(ColorImage, maxloc, new OpenCvSharp.Point(maxloc.X + template.Cols, maxloc.Y + template.Rows), new OpenCvSharp.Scalar(0, 255, 0), 2);
-                    Cv2.FloodFill(ThresImage, maxloc, 0); //mark drawn blob so we don't find it again
+                    OpenCvSharp.Rect rect = new OpenCvSharp.Rect(maxloc.X + partROI.X, maxloc.Y + partROI.Y, template.Cols, template.Rows);
+                    Cv2.Rectangle(ColorImage, rect, new OpenCvSharp.Scalar(0, 255, 0), 2);
+                    Cv2.FloodFill(thresImage, maxloc, 0); //mark drawn blob so we don't find it again
                     match_count++;
                 }
                 else if (match_count > 0)
                 {
                     part.IsInView = true;
                     // Tell Part where to pick the next part
-                    nextPartOffset.X = (x_next - (0.5 * Constants.CAMERA_FRAME_WIDTH));
-                    nextPartOffset.Y = (y_next - (0.5 * Constants.CAMERA_FRAME_HEIGHT));
+                    x_next += partROI.X;
+                    y_next += partROI.Y;
+                    nextPartOffset.X = (x_next - (Constants.CAMERA_FRAME_WIDTH / 2));
+                    nextPartOffset.Y = (y_next - (Constants.CAMERA_FRAME_HEIGHT / 2));
                     //var scale = machine.Cal.GetScaleMMPerPixAtZ(machine.Cal.TargetResAtPCB.MMHeightZ);
                     var scale = machine.Cal.GetScaleMMPerPixAtZ( 22 + 11.5);
                     x_next_part = machine.CurrentX - (nextPartOffset.X * scale.xScale);
@@ -441,7 +451,7 @@ namespace Picky
                     }
                     else if (PartToFind != null)
                     {
-                        FindPartInImage(PartToFind, ColorImage);
+                        FindPartInImage(PartToFind, GrayImage);
                     }
                 
             /* Draw default cursor */

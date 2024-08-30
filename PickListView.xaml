@@ -66,12 +66,16 @@
                         </ui:DataGrid.RowStyle>
                         <DataGrid.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Go to Location"  Command="{Binding GoToPartLocationCommand}"/>
-                                <MenuItem Header="Place Part"  Command="{Binding PlaceSinglePartCommand}"/>
-                                <Separator Margin="2"/>
                                 <MenuItem Header="Add to Cassette" Command="{Binding AddPartToCassetteCommand}" />
                                 <Separator Margin="2"/>
+                                <MenuItem Header="Locate Part"  Command="{Binding GoToPartLocationCommand}"/>
+                                <MenuItem Header="Locate All Parts"  Command="{Binding GoToAllPartLocationsCommand}"/>
+                                <Separator Margin="2"/>
+                                <MenuItem Header="Place Part"  Command="{Binding PlaceSinglePartCommand}"/>
                                 <MenuItem Header="Place All Parts" Command="{Binding PlaceAllPartsCommand}" />
+                                <Separator Margin="2"/>
+                                <MenuItem Header="Place-N-Place Part"  Command="{Binding PickPlaceSinglePartCommand}"/>
+                                <MenuItem Header="Place-N-Place All Parts" Command="{Binding PickPlaceAllPartsCommand}" />
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                     </ui:DataGrid>
