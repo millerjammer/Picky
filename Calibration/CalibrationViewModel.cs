@@ -79,21 +79,34 @@ namespace Picky
             machine.Messages.Add(GCommand.G_GetStepsPerUnit());
         }
 
+        public ICommand SetOriginToUpCameraCommand { get { return new RelayCommand(SetOriginToUpCamera); } }
+        private void SetOriginToUpCamera()
+        {
+            machine.Cal.OriginToUpCameraX = machine.CurrentX;
+            machine.Cal.OriginToUpCameraY = machine.CurrentY;
+        }
+
+        public ICommand GoToUpCameraCommand { get { return new RelayCommand(GoToUpCamera); } }
+        private void GoToUpCamera()
+        {
+            machine.Messages.Add(GCommand.G_SetXYPosition(machine.Cal.OriginToUpCameraX, machine.Cal.OriginToUpCameraY));
+        }
+
         public ICommand MOToPHZ1 { get { return new RelayCommand(mOToPHZ1); } }
         private void mOToPHZ1()
         {
-            machine.Cal.MachineOriginToPickHeadX1 = machine.CurrentX;
-            machine.Cal.MachineOriginToPickHeadY1 = machine.CurrentY;
-            machine.Cal.MachineOriginToPickHeadZ1 = machine.CurrentZ;
+            machine.Cal.OriginToPickHeadX1 = machine.CurrentX;
+            machine.Cal.OriginToPickHeadY1 = machine.CurrentY;
+            machine.Cal.OriginToPickHeadZ1 = machine.CurrentZ;
             machine.Cal.GetPickHeadOffsetToCameraAtZ(Machine.CurrentZ);
         }
 
         public ICommand MOToPHZ2 { get { return new RelayCommand(mOToPHZ2); } }
         private void mOToPHZ2()
         {
-            machine.Cal.MachineOriginToPickHeadX2 = machine.CurrentX;
-            machine.Cal.MachineOriginToPickHeadY2 = machine.CurrentY;
-            machine.Cal.MachineOriginToPickHeadZ2 = machine.CurrentZ;
+            machine.Cal.OriginToPickHeadX2 = machine.CurrentX;
+            machine.Cal.OriginToPickHeadY2 = machine.CurrentY;
+            machine.Cal.OriginToPickHeadZ2 = machine.CurrentZ;
             machine.Cal.GetPickHeadOffsetToCameraAtZ(Machine.CurrentZ);
         }
 

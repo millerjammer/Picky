@@ -326,12 +326,12 @@ namespace Picky
             double part_x = Board.PcbOriginX + (Convert.ToDouble(part.CenterX) * Constants.MIL_TO_MM);
             double part_y = Board.PcbOriginY + (Convert.ToDouble(part.CenterY) * Constants.MIL_TO_MM);
             Messages.Add(GCommand.G_SetXYPosition(part_x, part_y));
-            Messages.Add(GCommand.G_SetRotation(Convert.ToDouble(part.Rotation)));
+            //Messages.Add(GCommand.G_SetRotation(Convert.ToDouble(part.Rotation)));
             Messages.Add(GCommand.G_FinishMoves());
-            Messages.Add(GCommand.G_ProbeZ(Constants.PCB_NOMINAL_Z_DRIVE_MM));
+            //Messages.Add(GCommand.G_ProbeZ(Constants.PCB_NOMINAL_Z_DRIVE_MM));
             Messages.Add(GCommand.G_FinishMoves());
-            Messages.Add(GCommand.G_EnablePump(false));
-            Messages.Add(GCommand.G_EnableValve(false));
+            //Messages.Add(GCommand.G_EnablePump(false));
+            //Messages.Add(GCommand.G_EnableValve(false));
             Messages.Add(GCommand.Delay(10));
             Messages.Add(GCommand.G_SetZPosition(0));
             return true;

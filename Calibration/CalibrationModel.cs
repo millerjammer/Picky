@@ -60,50 +60,62 @@ namespace Picky
         }
 
         /* Camera/Pick Physics */
-        public double MachineOriginToDownCameraX { get; set; }
-        public double MachineOriginToDownCameraY { get; set; }
-        public double MachineOriginToDownCameraZ { get; set; }
+        private double originToUpCameraX;
+        public double OriginToUpCameraX
+        {
+            get { return originToUpCameraX; }
+            set { originToUpCameraX = value; OnPropertyChanged(nameof(originToUpCameraX)); }
+        }
+        private double originToUpCameraY;
+        public double OriginToUpCameraY
+        {
+            get { return originToUpCameraY; }
+            set { originToUpCameraY = value; OnPropertyChanged(nameof(originToUpCameraY)); }
+        }
 
-        private double machineOriginToPickHeadX1;
-        public double MachineOriginToPickHeadX1 
+        public double OriginToDownCameraX { get; set; }
+        public double OriginToDownCameraY { get; set; }
+      
+        private double originToPickHeadX1;
+        public double OriginToPickHeadX1 
         {  
-            get { return machineOriginToPickHeadX1; }
-            set { machineOriginToPickHeadX1 = value; OnPropertyChanged(nameof(MachineOriginToPickHeadX1)); }
+            get { return originToPickHeadX1; }
+            set { originToPickHeadX1 = value; OnPropertyChanged(nameof(OriginToPickHeadX1)); }
         }
 
-        private double machineOriginToPickHeadY1;
-        public double MachineOriginToPickHeadY1
+        private double originToPickHeadY1;
+        public double OriginToPickHeadY1
         {
-            get { return machineOriginToPickHeadY1; }
-            set { machineOriginToPickHeadY1 = value; OnPropertyChanged(nameof(MachineOriginToPickHeadY1)); }
+            get { return originToPickHeadY1; }
+            set { originToPickHeadY1 = value; OnPropertyChanged(nameof(OriginToPickHeadY1)); }
         }
 
-        private double machineOriginToPickHeadZ1;
-        public double MachineOriginToPickHeadZ1
+        private double originToPickHeadZ1;
+        public double OriginToPickHeadZ1
         {
-            get { return machineOriginToPickHeadZ1; }
-            set { machineOriginToPickHeadZ1 = value; OnPropertyChanged(nameof(MachineOriginToPickHeadZ1)); }
+            get { return originToPickHeadZ1; }
+            set { originToPickHeadZ1 = value; OnPropertyChanged(nameof(OriginToPickHeadZ1)); }
         }
 
-        private double machineOriginToPickHeadX2;
-        public double MachineOriginToPickHeadX2
+        private double originToPickHeadX2;
+        public double OriginToPickHeadX2
         {
-            get { return machineOriginToPickHeadX2; }
-            set { machineOriginToPickHeadX2 = value; OnPropertyChanged(nameof(MachineOriginToPickHeadX2)); }
+            get { return originToPickHeadX2; }
+            set { originToPickHeadX2 = value; OnPropertyChanged(nameof(OriginToPickHeadX2)); }
         }
 
-        private double machineOriginToPickHeadY2;
-        public double MachineOriginToPickHeadY2
+        private double originToPickHeadY2;
+        public double OriginToPickHeadY2
         {
-            get { return machineOriginToPickHeadY2; }
-            set { machineOriginToPickHeadY2 = value; OnPropertyChanged(nameof(MachineOriginToPickHeadY2)); }
+            get { return originToPickHeadY2; }
+            set { originToPickHeadY2 = value; OnPropertyChanged(nameof(OriginToPickHeadY2)); }
         }
 
-        private double machineOriginToPickHeadZ2;
-        public double MachineOriginToPickHeadZ2
+        private double originToPickHeadZ2;
+        public double OriginToPickHeadZ2
         {
-            get { return machineOriginToPickHeadZ2; }
-            set { machineOriginToPickHeadZ2 = value; OnPropertyChanged(nameof(MachineOriginToPickHeadZ2)); }
+            get { return originToPickHeadZ2; }
+            set { originToPickHeadZ2 = value; OnPropertyChanged(nameof(OriginToPickHeadZ2)); }
         }
 
         /* Steps Per Unit */
@@ -197,14 +209,14 @@ namespace Picky
          - is a downward z only. The target z should be the actual z from camera to surface
          --------------------------------------------------------------------------------------*/
         {
-            double slope_x = (MachineOriginToPickHeadX1 - MachineOriginToPickHeadX2) / (MachineOriginToPickHeadZ1 - MachineOriginToPickHeadZ2);
-            double slope_y = (MachineOriginToPickHeadY1 - MachineOriginToPickHeadY2) / (MachineOriginToPickHeadZ1 - MachineOriginToPickHeadZ2);
+            double slope_x = (OriginToPickHeadX1 - OriginToPickHeadX2) / (OriginToPickHeadZ1 - OriginToPickHeadZ2);
+            double slope_y = (OriginToPickHeadY1 - OriginToPickHeadY2) / (OriginToPickHeadZ1 - OriginToPickHeadZ2);
            
-            double offset_x = MachineOriginToPickHeadX2 + (slope_x * (targetZ - MachineOriginToPickHeadZ2));
-            double offset_y = MachineOriginToPickHeadY2 + (slope_y * (targetZ - MachineOriginToPickHeadZ2));
+            double offset_x = OriginToPickHeadX2 + (slope_x * (targetZ - OriginToPickHeadZ2));
+            double offset_y = OriginToPickHeadY2 + (slope_y * (targetZ - OriginToPickHeadZ2));
 
-            DownCameraToPickHeadX = (MachineOriginToDownCameraX - offset_x);
-            DownCameraToPickHeadY = (MachineOriginToDownCameraY + offset_y);
+            DownCameraToPickHeadX = (OriginToDownCameraX - offset_x);
+            DownCameraToPickHeadY = (OriginToDownCameraY + offset_y);
 
             return (DownCameraToPickHeadX, DownCameraToPickHeadY);
         }

@@ -131,13 +131,13 @@ namespace Picky
             machine.Messages.Add(GCommand.G_EnableIlluminator(false));
             machine.Messages.Add(GCommand.G_EnableUpIlluminator(true));
             machine.Messages.Add(GCommand.SetCameraManualFocus(machine.upCamera, true, Constants.FOCUS_TIP_CAL));
-            //Tool to home for calibration
-            machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
+            //Tool to up camera pick head for calibration
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.OriginToPickHeadX2, machine.Cal.OriginToPickHeadY2, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
             //Get offset to tip
             for(int i=0; i<360; i+=60)
             {
-                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, i, 0));
+                machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.OriginToPickHeadX2, machine.Cal.OriginToPickHeadY2, 0, i, 0));
                 machine.Messages.Add(GCommand.G_FinishMoves());
                 machine.Messages.Add(GCommand.SetToolOffsetCalibration(machine, machine.SelectedPickTool));
             }

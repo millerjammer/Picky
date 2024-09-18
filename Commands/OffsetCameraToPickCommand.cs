@@ -61,9 +61,11 @@ namespace Picky.Tools
             MachineModel machine = MachineModel.Instance;
             MachineMessage message = machine.Messages.ElementAt(machine.Messages.IndexOf(msg) - 1);
             //Get offset in mm and add to last target
-            var offset = machine.Cal.GetPickHeadOffsetToCameraAtZ(0);
-            double x = message.target.x + offset.x_offset;
-            double y = message.target.y + offset.y_offset;
+                       
+            double x = message.target.x + machine.Cal.OriginToDownCameraX;
+            double y = message.target.y + machine.Cal.OriginToDownCameraY;
+
+
             //Update next command
             message = machine.Messages.ElementAt(machine.Messages.IndexOf(msg) + 1);
             message.target.x = x;
