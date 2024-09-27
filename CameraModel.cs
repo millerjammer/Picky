@@ -80,26 +80,6 @@ namespace Picky
             set { isManualCircleSearch = value; SetManualCircleSearch(); OnPropertyChanged(nameof(IsManualCircleSearch)); }
         }
 
-        private double circleDetectorP1 = 280;
-        public double CircleDetectorP1
-        {
-            get { return circleDetectorP1; }
-            set { circleDetectorP1 = value; SetManualCircleSearch();  OnPropertyChanged(nameof(CircleDetectorP1)); }
-        }
-        private double circleDetectorP2 = 0.6;
-        public double CircleDetectorP2
-        {
-            get { return circleDetectorP2; }
-            set { circleDetectorP2 = value; SetManualCircleSearch();  OnPropertyChanged(nameof(CircleDetectorP2)); }
-        }
-
-        private int matThreshold = 80;
-        public int MatThreshold
-        {
-            get { return matThreshold; }
-            set { matThreshold = value; OnPropertyChanged(nameof(MatThreshold)); }
-        }
-
         private int focus;
         public int Focus
         {
@@ -148,7 +128,7 @@ namespace Picky
 
         public void SetManualCircleSearch()
         {
-            CircleDetector detector = new CircleDetector(HoughModes.GradientAlt, circleDetectorP1, circleDetectorP2, MatThreshold);
+            CircleDetector detector = new CircleDetector(HoughModes.GradientAlt, machine.SelectedPickTool.CircleDetectorP1, machine.SelectedPickTool.CircleDetectorP2, machine.SelectedPickTool.MatThreshold);
             detector.ROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), (Constants.CAMERA_FRAME_HEIGHT / 3), Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
             detector.zEstimate = 25.0;
             detector.CircleEstimate = new CircleSegment(new Point2f(0, 0), (float)(Constants.TOOL_28GA_TIP_DIA_MM / 3));
@@ -300,7 +280,7 @@ namespace Picky
 
             //Convert the estimated circle (in MM) to search criteria (in Pix) based on z.  
             var scale = machine.Cal.GetScaleMMPerPixAtZ(circleDetector.zEstimate);
-            int minR = (int)((circleDetector.CircleEstimate.Radius * .2) / scale.xScale);
+            int minR = (int)((circleDetector.CircleEstimate.Radius * .02) / scale.xScale);
             int maxR = (int)((circleDetector.CircleEstimate.Radius ) / scale.yScale);
             Console.WriteLine("minR/maxR: " + minR + "," + maxR + "@" + scale.xScale);
 
@@ -428,21 +408,22 @@ namespace Picky
 
         private void Worker_DoWork(object sender, DoWorkEventArgs e)
         {
-        /*----------------------------------------------------------------
-         * This is the real-time worker - don't abuse it
-         * 
-         * --------------------------------------------------------------*/
-
+            /*----------------------------------------------------------------
+             * This is the real-time worker - don't abuse it
+             * 
+             * --------------------------------------------------------------*/
+            
             var worker = (BackgroundWorker)sender;
             while (!worker.CancellationPending)
             {
                 try
                 {
+                                   
                     RawImage = capture.RetrieveMat();
                     Cv2.CopyTo(RawImage, ColorImage);
                     Cv2.CvtColor(RawImage, GrayImage, ColorConversionCodes.BGR2GRAY);
                     Cv2.GaussianBlur(GrayImage, GrayImage, new OpenCvSharp.Size(5, 5), 0);
-                    Cv2.Threshold(GrayImage, ThresImage, MatThreshold, 255, ThresholdTypes.Binary);  // Default is 80
+                    Cv2.Threshold(GrayImage, ThresImage, machine.SelectedPickTool?.MatThreshold ?? 80, 255, ThresholdTypes.Binary);  // Default is 80
                     Cv2.Canny(ThresImage, EdgeImage, 50, 150, 3);
                     Cv2.Dilate(EdgeImage, DilatedImage, null, iterations: 2);
                     

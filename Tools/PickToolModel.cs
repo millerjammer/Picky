@@ -81,7 +81,27 @@ namespace Picky
             get { return toolStorageZ; }
             set { toolStorageZ = value; OnPropertyChanged(nameof(ToolStorageZ)); }
         }
-        
+
+        private double circleDetectorP1;
+        public double CircleDetectorP1
+        {
+            get { return circleDetectorP1; }
+            set { circleDetectorP1 = value; OnPropertyChanged(nameof(CircleDetectorP1)); }
+        }
+        private double circleDetectorP2;
+        public double CircleDetectorP2
+        {
+            get { return circleDetectorP2; }
+            set { circleDetectorP2 = value; OnPropertyChanged(nameof(CircleDetectorP2)); }
+        }
+
+        private int matThreshold;
+        public int MatThreshold
+        {
+            get { return matThreshold; }
+            set { matThreshold = value; OnPropertyChanged(nameof(MatThreshold)); }
+        }
+
         private TipStates tipState;
         public TipStates TipState
         {
@@ -119,6 +139,10 @@ namespace Picky
             TipOffsetUpper = new Polar(0, 0, 0);
             TipOffsetLower = new Polar(0, 0, 0);
             TipState = TipStates.Unknown;
+
+            MatThreshold = 67;
+            CircleDetectorP1 = 260;
+            CircleDetectorP2 = 0.65;
 
             TipList = new List<TipStyle>
             {

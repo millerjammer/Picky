@@ -22,8 +22,7 @@ namespace Picky
 
     public class CameraViewModel : INotifyPropertyChanged
     {
-        MachineModel machine = MachineModel.Instance;
-
+        public MachineModel machine { get; set; }
         public CameraModel camera { get; set; }
 
         public List<VisualizationStyle> VisualizationView { get; set; }
@@ -63,6 +62,7 @@ namespace Picky
         {
             camera = iCamera;
             camera.FrameImage = iFrame;
+            machine = MachineModel.Instance;
 
             /* Listen for selectedCassette to change, then we can listen for selectedFeeder */
             /* This should also fire when the camera image changes since camera is property of machine? */
@@ -106,10 +106,7 @@ namespace Picky
         public ICommand SetCircleDetectorCommand { get { return new RelayCommand(SetCircleDetector); } }
         private void SetCircleDetector()
         {
-            machine.Settings.tipSearchThreshold = camera.MatThreshold;
-            machine.Settings.tipSearchParam1 = camera.CircleDetectorP1;
-            machine.Settings.tipSearchParam2 = camera.CircleDetectorP2;
-            machine.SaveSettings();
+           machine.SaveSettings();
         }
     }
 }

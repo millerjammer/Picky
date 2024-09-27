@@ -52,12 +52,7 @@ namespace Picky
             get { return gCodeCommand; }
             set { gCodeCommand = value; OnPropertyChanged(nameof(GCodeCommand)); }
         }
-
-        public double tipSearchThreshold { get; set; }
-        public double tipSearchParam1 { get; set; }
-        public double tipSearchParam2 { get; set; }
-
-
+        
         public SettingsModel() { 
         }
 

@@ -15,7 +15,7 @@ namespace Picky
 {
     public class PickToolViewModel : INotifyPropertyChanged, INotifyCollectionChanged
     {
-        private MachineModel machine;
+        public MachineModel machine { get; set; }
         
         /* Listen for changes on the machine properties and propagate to UI */
         public MachineModel Machine
@@ -27,6 +27,7 @@ namespace Picky
         {
             machine = MachineModel.Instance;
             machine.PickToolList.CollectionChanged += OnCollectionChanged;
+            machine.SelectedPickTool = machine.PickToolList.FirstOrDefault();
         }
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;

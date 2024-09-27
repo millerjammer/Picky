@@ -31,13 +31,15 @@ namespace Picky
         public CircleDetector detector;
         public CameraModel cameraToUse;
         public PickToolModel tool;
+
+        private double last_x, last_y;
         
 
         public SetToolOffsetCalibrationCommand(MachineModel mm, PickToolModel _tool) 
         {
             machine = mm;
             tool = _tool;
-            detector = new CircleDetector(HoughModes.GradientAlt, machine.Settings.tipSearchParam1, machine.Settings.tipSearchParam2, machine.Settings.tipSearchThreshold);
+            detector = new CircleDetector(HoughModes.GradientAlt, machine.SelectedPickTool.CircleDetectorP1, machine.SelectedPickTool.CircleDetectorP2, machine.SelectedPickTool.MatThreshold);
             detector.ROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), (Constants.CAMERA_FRAME_HEIGHT / 3), Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
             detector.zEstimate = tool.Length;
             detector.CircleEstimate = new CircleSegment(new Point2f(0, 0), (float)(tool.SelectedTip.TipDia/2));
@@ -75,14 +77,24 @@ namespace Picky
                 double radius = scale.yScale * bestCircle.Radius;
                 if (radius < 0.1)
                 {
-                    Console.WriteLine("PickOffset Failed, Repeating Request.");
+                    Console.WriteLine("PickOffset Failed, Repeating Request. Circle too small.");
                     cameraToUse.RequestCircleLocation(detector);
                     return false;
                 }
                 else
                 {
-                    Console.WriteLine("PickOffset (mm): " + x_offset + " " + y_offset + " radius: " + radius);
-                    tool.SetPickOffsetCalibrationData(new Polar() { x = x_offset, y = y_offset, z = machine.CurrentZ });
+                    if (Math.Abs(last_x - x_offset) < 0.2 && Math.Abs(last_y - y_offset) < 0.2)
+                    {
+                        Console.WriteLine("PickOffset (mm): " + x_offset + " " + y_offset + " radius: " + radius);
+                        tool.SetPickOffsetCalibrationData(new Polar() { x = x_offset, y = y_offset, z = machine.CurrentZ });
+                    }
+                    else
+                    {
+                        last_x = x_offset;
+                        last_y = y_offset;
+                        cameraToUse.RequestCircleLocation(detector);
+                        return false;
+                    }
                 }
                 return true;
             }
