@@ -66,13 +66,8 @@ namespace Picky
             OnPropertyChanged(e.PropertyName);
         }
 
-        public ICommand SaveSettingsCommand { get { return new RelayCommand(SaveSettings); } }
-        private void SaveSettings()
-        {
-            Console.WriteLine("Save Settings");
-            String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            File.WriteAllText(path + "\\" + Constants.SETTINGS_FILE_NAME, JsonConvert.SerializeObject(machine.Settings, Formatting.Indented));
-        }
+        public ICommand SaveSettingsCommand { get { return new RelayCommand(machine.SaveSettings); } }
+        
 
         public ICommand ReadActiveSettingsCommand { get { return new RelayCommand(ReadSettings); } }
         private void ReadSettings()

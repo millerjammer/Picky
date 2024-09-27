@@ -37,10 +37,10 @@ namespace Picky
         {
             machine = mm;
             tool = _tool;
-            detector = new CircleDetector(HoughModes.GradientAlt, 250, 0.5);
+            detector = new CircleDetector(HoughModes.GradientAlt, machine.Settings.tipSearchParam1, machine.Settings.tipSearchParam2, machine.Settings.tipSearchThreshold);
             detector.ROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), (Constants.CAMERA_FRAME_HEIGHT / 3), Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
-            detector.zEstimate = 25.0;
-            detector.CircleEstimate = new CircleSegment(new Point2f(0, 0), (float)(Constants.TOOL_28GA_TIP_DIA_MM / 3));
+            detector.zEstimate = tool.Length;
+            detector.CircleEstimate = new CircleSegment(new Point2f(0, 0), (float)(tool.SelectedTip.TipDia/2));
             msg = new MachineMessage();
             msg.messageCommand = this;
             msg.cmd = Encoding.ASCII.GetBytes("J102 Set Tool Offset\n");
@@ -82,7 +82,7 @@ namespace Picky
                 else
                 {
                     Console.WriteLine("PickOffset (mm): " + x_offset + " " + y_offset + " radius: " + radius);
-                    tool.SetPickOffsetCalibrationData(new Polar() { x = x_offset, y = y_offset });
+                    tool.SetPickOffsetCalibrationData(new Polar() { x = x_offset, y = y_offset, z = machine.CurrentZ });
                 }
                 return true;
             }

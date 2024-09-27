@@ -43,7 +43,7 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Label Grid.Row="1" Grid.Column="0" Content="Up Camera:" Margin="10 5 10 5" VerticalContentAlignment="Center" FontWeight="UltraBold" ToolTip="Set Home, then use up camera to center pick, then click 'use current'Fixed offset set by physical construction."/>
+            <Label Grid.Row="1" Grid.Column="0" Content="From Up Camera:" Margin="10 5 10 5" VerticalContentAlignment="Center" FontWeight="UltraBold" ToolTip="Set Home, then use up camera to center pick, then click 'use current'Fixed offset set by physical construction."/>
             <Label Grid.Row="1" Grid.Column="1" Content="X [mm]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>
             <Label Grid.Row="1" Grid.Column="2" Content="Y [mm]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>
             <Label Grid.Row="1" Grid.Column="3" Content="Z [mm]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>
@@ -52,30 +52,33 @@
             <TextBox Grid.Row="2" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.OriginToPickHeadX1, StringFormat={}{0:0.000},UpdateSourceTrigger=PropertyChanged}"/>
             <TextBox Grid.Row="2" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.OriginToPickHeadY1, StringFormat={}{0:0.000},UpdateSourceTrigger=PropertyChanged}"/>
             <TextBox Grid.Row="2" Grid.Column="3" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.OriginToPickHeadZ1, StringFormat={}{0:0.000},UpdateSourceTrigger=PropertyChanged}"/>
-            <Button Grid.Row="2" Grid.Column="4" Grid.ColumnSpan="1" Content="Use Current" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding SetPickHeadZ1}"/>
-            <Button Grid.Row="2" Grid.Column="5" Grid.ColumnSpan="1" Content="Go To" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GoToPickHeadZ1}"/>
+            <Button Grid.Row="2" Grid.Column="4" Grid.ColumnSpan="1" Content="Use Current" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding SetPickHeadZ1Command}"/>
+            <Button Grid.Row="2" Grid.Column="5" Grid.ColumnSpan="1" Content="Go To" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GoToPickHeadZ1Command}"/>
 
 
             <Label Grid.Row="3" Grid.Column="0" Content="Pick Head @ Z2:" Margin="10" VerticalContentAlignment="Center"/>
             <TextBox Grid.Row="3" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.OriginToPickHeadX2, StringFormat={}{0:0.000},UpdateSourceTrigger=PropertyChanged}"/>
             <TextBox Grid.Row="3" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.OriginToPickHeadY2, StringFormat={}{0:0.000},UpdateSourceTrigger=PropertyChanged}"/>
             <TextBox Grid.Row="3" Grid.Column="3" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.OriginToPickHeadZ2, StringFormat={}{0:0.000},UpdateSourceTrigger=PropertyChanged}"/>
-            <Button Grid.Row="3" Grid.Column="4" Grid.ColumnSpan="1" Content="Use Current" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding SetPickHeadZ2}"/>
-            <Button Grid.Row="3" Grid.Column="5" Grid.ColumnSpan="1" Content="Go To" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GoToPickHeadZ2}"/>
+            <Button Grid.Row="3" Grid.Column="4" Grid.ColumnSpan="1" Content="Use Current" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding SetPickHeadZ2Command}"/>
+            <Button Grid.Row="3" Grid.Column="5" Grid.ColumnSpan="1" Content="Go To" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GoToPickHeadZ2Command}"/>
 
 
             <Label Grid.Row="4" Grid.Column="0" Content="Down Camera:" Margin="10" VerticalContentAlignment="Center"/>
             <TextBox Grid.Row="4" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.OriginToDownCameraX, StringFormat={}{0:0.000},UpdateSourceTrigger=PropertyChanged}"/>
             <TextBox Grid.Row="4" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.OriginToDownCameraY, StringFormat={}{0:0.000},UpdateSourceTrigger=PropertyChanged}"/>
-            <Button Grid.Row="4" Grid.Column="4" Grid.ColumnSpan="1" Content="Use Current" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding SetDownCamera}"/>
-            <Button Grid.Row="4" Grid.Column="5" Grid.ColumnSpan="1" Content="Go To" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GoToDownCamera}"/>
+            <Button Grid.Row="4" Grid.Column="4" Grid.ColumnSpan="1" Content="Use Current" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding SetOriginToDownCameraCommand}"/>
+            <Button Grid.Row="4" Grid.Column="5" Grid.ColumnSpan="1" Content="Go To" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GoToDownCameraCommand}"/>
 
-            <Label Grid.Row="5" Grid.Column="0" Content="Pick/Camera Offset @ Z:" Margin="10" VerticalContentAlignment="Center"/>
-            <TextBlock Grid.Row="5" Grid.Column="1" Margin="10 5 10 5" Foreground="White" FontSize="14" HorizontalAlignment="Center" Text="{Binding Machine.Cal.DownCameraToPickHeadX, StringFormat={}{0:0.000}, UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBlock Grid.Row="5" Grid.Column="2" Margin="10 5 10 5" Foreground="White" FontSize="14" HorizontalAlignment="Center" Text="{Binding  Machine.Cal.DownCameraToPickHeadY, StringFormat={}{0:0.000}, UpdateSourceTrigger=PropertyChanged}"/>
+            <Label Grid.Row="5" Grid.Column="0" Content="Pick-Camera Offset @ Z:" Margin="10" VerticalContentAlignment="Center"/>
+            <TextBlock Grid.Row="5" Grid.Column="1" Margin="10 5 10 5" Foreground="White" FontSize="14" HorizontalAlignment="Center" Text="{Binding Machine.Cal.PickHeadToCameraX, StringFormat={}{0:0.000}, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock Grid.Row="5" Grid.Column="2" Margin="10 5 10 5" Foreground="White" FontSize="14" HorizontalAlignment="Center" Text="{Binding  Machine.Cal.PickHeadToCameraY, StringFormat={}{0:0.000}, UpdateSourceTrigger=PropertyChanged}"/>
             <TextBlock Grid.Row="5" Grid.Column="3" Margin="10 5 10 5" Foreground="White" FontSize="14" HorizontalAlignment="Center" Text="{Binding Machine.CurrentZ, StringFormat={}@{0:0.000}}"/>
-            
-            <Label Grid.Row="6" Grid.Column="0" Content="Down Camera" Margin="10 5 10 5" VerticalContentAlignment="Center" FontWeight="UltraBold"/>
+            <Button Grid.Row="5" Grid.Column="4" Grid.ColumnSpan="1" Content="Offset To Head" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding OffsetCameraToHeadCommand}"/>
+            <Button Grid.Row="5" Grid.Column="5" Grid.ColumnSpan="1" Content="Offset To Cam" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding OffsetHeadToCameraCommand}"/>
+
+
+            <Label Grid.Row="6" Grid.Column="0" Content="From Down Camera:" Margin="10 5 10 5" VerticalContentAlignment="Center" FontWeight="UltraBold"/>
             <Label Grid.Row="6" Grid.Column="1" Content="X [mm]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>
             <Label Grid.Row="6" Grid.Column="2" Content="Y [mm]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>
 

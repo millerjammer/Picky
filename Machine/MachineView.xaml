@@ -53,7 +53,7 @@
                                 <ColumnDefinition Width="auto"/>
                                 <ColumnDefinition Width="auto"/>
                             </Grid.ColumnDefinitions>
-                            <Slider x:Name="zSlider" Thumb.DragCompleted ="SliderZ" Value ="{Binding Machine.CurrentZ}" Grid.Column="0" HorizontalAlignment="Stretch" Margin="2,2,0,0" Orientation="Vertical" SmallChange="1" Maximum="100" LargeChange="10" IsDirectionReversed="True" VerticalAlignment="Stretch"/>
+                            <Slider x:Name="zSlider" Thumb.DragCompleted ="SliderZ" Value ="{Binding Machine.CurrentZ}" Grid.Column="0" HorizontalAlignment="Stretch" Margin="2,2,0,0" Orientation="Vertical" SmallChange="1" Maximum="50" IsDirectionReversed="True" VerticalAlignment="Stretch"/>
                             <Grid Grid.Column="1" VerticalAlignment="Center">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="auto"/>
@@ -91,7 +91,7 @@
                             <ColumnDefinition Width="auto"/>
                         </Grid.ColumnDefinitions>
                         <ui:Button Command="{Binding ButtonRLeftCommand}" Grid.Column="0" Height="45" CornerRadius="4" Width="45" Margin="3" Padding="0" Icon="CaretLeft24" Content="L+"/>
-                        <Slider  x:Name="rSlider" Thumb.DragCompleted ="SliderR" Value ="{Binding Machine.CurrentA}" Grid.Column="1" Width="123" Margin="2,2,0,0" Orientation="Horizontal" SmallChange="1" Maximum="180" LargeChange="10" IsDirectionReversed="True" VerticalAlignment="Center"/>
+                        <Slider  x:Name="rSlider" Thumb.DragCompleted ="SliderR" Value ="{Binding Machine.CurrentA}" Grid.Column="1" Width="123" Margin="2,2,0,0" Orientation="Horizontal" SmallChange="1" Maximum="360" LargeChange="10" IsDirectionReversed="True" VerticalAlignment="Center"/>
                         <ui:Button Command="{Binding ButtonRRightCommand}" Grid.Column="2" Height="45" CornerRadius="4" Width="45" Margin="3" Padding="0" Icon="CaretRight24" Content="R+"/>
                         <ui:Button Command="{Binding ButtonBLeftCommand}" Grid.Column="3" Height="45" CornerRadius="4" Width="45" Margin="12 3 3 3" Padding="0" Icon="CaretLeft24" Content="B-"/>
                         <ui:Button Command="{Binding ButtonBRightCommand}" Grid.Column="4" Height="45" CornerRadius="4" Width="45" Margin="3" Padding="0" Icon="CaretRight24" Content="B+"/>

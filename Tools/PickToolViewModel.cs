@@ -8,13 +8,15 @@ using System.ComponentModel;
 using System.Linq;
 using System.Net.Configuration;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace Picky
 {
     public class PickToolViewModel : INotifyPropertyChanged, INotifyCollectionChanged
     {
         private MachineModel machine;
-
+        
         /* Listen for changes on the machine properties and propagate to UI */
         public MachineModel Machine
         {
@@ -37,12 +39,18 @@ namespace Picky
         protected virtual void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            
         }
 
         public PickToolModel selectedPickTool
         {
             get { return machine.SelectedPickTool; }
-            set { Machine.SelectedPickTool = value; }
+            set
+            {
+                Machine.SelectedPickTool = value;
+                Console.WriteLine("Pick Tool Selection Changed");
+                OnPropertyChanged(nameof(selectedPickTool));
+            }
         }
 
         public ObservableCollection<PickToolModel> PickToolList
@@ -90,15 +98,9 @@ namespace Picky
         public ICommand AssignToSelectedFeederCommand { get { return new RelayCommand(assignToSelectedFeeder); } }
         private void assignToSelectedFeeder()
         {
-            machine.selectedCassette.selectedFeeder.PickToolName = Machine.SelectedPickTool.Name;
+            machine.selectedCassette.selectedFeeder.PickToolName = Machine.SelectedPickTool.UniqueID;
         }
-
-        public ICommand DisplayCalibrationCircleCommand { get { return new RelayCommand(displayCalibrationCircle); } }
-        private void displayCalibrationCircle()
-        {
-            machine.SelectedPickTool.DisplayCalibrationCircle();    
-        }
-
+        
         public ICommand MarkStateUnknownCommand { get { return new RelayCommand(markStateUnknown); } }
         private void markStateUnknown()
         {
@@ -108,42 +110,52 @@ namespace Picky
         public ICommand RetrieveToolCommand { get { return new RelayCommand(RetrieveTool); } }
         private void RetrieveTool()
         {
-
+            
             Machine.SelectedPickTool.TipState = PickToolModel.TipStates.Loading;
             //Go to tool
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
-            machine.Messages.Add(GCommand.SetCameraManualFocus(machine.downCamera, true, Constants.FOCUS_TOOL_RETRIVAL));
-            machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
+            //machine.Messages.Add(GCommand.SetCameraManualFocus(machine.downCamera, true, Constants.FOCUS_TOOL_RETRIVAL));
+            var head = machine.Cal.GetPickHeadOffsetToCameraAtZ(Constants.TOOL_NOMINAL_Z_DRIVE_MM);
+            machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX + head.x_offset, Machine.SelectedPickTool.ToolStorageY - head.y_offset, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
-            //Align and adjust next position command
-            machine.Messages.Add(GCommand.OpticallyAlignToTool(Machine.SelectedPickTool));
-            machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
-            machine.Messages.Add(GCommand.OffsetCameraToPick(0));
-            machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
-            
+                 //Align and adjust next position command
+            //machine.Messages.Add(GCommand.OpticallyAlignToTool(Machine.SelectedPickTool));
+            //machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
+            //machine.Messages.Add(GCommand.OffsetCameraToPick(0));
+            //machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
+
             machine.Messages.Add(GCommand.G_ProbeZ(Machine.SelectedPickTool.ToolStorageZ));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_OpenToolStorage(true));
             machine.Messages.Add(GCommand.G_SetZPosition(0));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_OpenToolStorage(false));
-            //Turn off down illuminator and turn up illuminator on
+            CalibrateTool();
+            
+        }
+
+        public ICommand CalibrateToolCommand { get { return new RelayCommand(CalibrateTool); } }
+        private void CalibrateTool()
+        {
+            machine.SelectedPickTool.ResetPickOffsetCalibrationData();
+
+            machine.Messages.Add(GCommand.SetCameraManualFocus(machine.upCamera, true, Constants.FOCUS_TIP_CAL));
             machine.Messages.Add(GCommand.G_EnableIlluminator(false));
             machine.Messages.Add(GCommand.G_EnableUpIlluminator(true));
-            machine.Messages.Add(GCommand.SetCameraManualFocus(machine.upCamera, true, Constants.FOCUS_TIP_CAL));
-            //Tool to up camera pick head for calibration
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.OriginToPickHeadX2, machine.Cal.OriginToPickHeadY2, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.OriginToPickHeadX1, machine.Cal.OriginToPickHeadY1, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
-            //Get offset to tip
-            for(int i=0; i<360; i+=60)
+            //Get offset to tip at two elevations
+            for (int z = 0; z <= 10; z += 10)
             {
-                machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.OriginToPickHeadX2, machine.Cal.OriginToPickHeadY2, 0, i, 0));
+                for (int i = 0; i < 360; i += 60)
+                {
+                    machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.OriginToPickHeadX1, machine.Cal.OriginToPickHeadY1, z, i, 0));
+                    machine.Messages.Add(GCommand.G_FinishMoves());
+                    machine.Messages.Add(GCommand.SetToolOffsetCalibration(machine, machine.SelectedPickTool));
+                }
+                machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.OriginToPickHeadX1, machine.Cal.OriginToPickHeadY1, 0, 0, 0));
                 machine.Messages.Add(GCommand.G_FinishMoves());
-                machine.Messages.Add(GCommand.SetToolOffsetCalibration(machine, machine.SelectedPickTool));
             }
-            machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_EnableUpIlluminator(false));
-            
         }
 
         public ICommand ReturnToolCommand { get { return new RelayCommand(ReturnTool); } }
@@ -151,8 +163,11 @@ namespace Picky
         {
             Machine.SelectedPickTool.TipState = PickToolModel.TipStates.Unloading;
             //Move to Camera Position
-            machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolReturnLocation.X, Machine.SelectedPickTool.ToolReturnLocation.Y, 0, 0, 0));
-            machine.Messages.Add(GCommand.OffsetCameraToPick(0));
+            //machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolReturnLocation.X, Machine.SelectedPickTool.ToolReturnLocation.Y, 0, 0, 0));
+            //machine.Messages.Add(GCommand.OffsetCameraToPick(0));
+            var head = machine.Cal.GetPickHeadOffsetToCameraAtZ(Constants.TOOL_NOMINAL_Z_DRIVE_MM);
+            machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX + head.x_offset, Machine.SelectedPickTool.ToolStorageY - head.y_offset, 0, 0, 0));
+            
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_OpenToolStorage(true));
             machine.Messages.Add(GCommand.G_ProbeZ(Machine.SelectedPickTool.ToolStorageZ));
@@ -161,8 +176,8 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetZPosition(0));
             machine.Messages.Add(GCommand.G_FinishMoves());
             //Camera to Tool (former) location
-            machine.Messages.Add(GCommand.OpticallyAlignToTool(Machine.SelectedPickTool));
-            machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
+            //machine.Messages.Add(GCommand.OpticallyAlignToTool(Machine.SelectedPickTool));
+            //machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

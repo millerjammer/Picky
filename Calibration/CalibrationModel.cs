@@ -73,9 +73,19 @@ namespace Picky
             set { originToUpCameraY = value; OnPropertyChanged(nameof(originToUpCameraY)); }
         }
 
-        public double OriginToDownCameraX { get; set; }
-        public double OriginToDownCameraY { get; set; }
-      
+        private double originToDownCameraX;
+        public double OriginToDownCameraX
+        {
+            get { return originToDownCameraX; }
+            set { originToDownCameraX = value; OnPropertyChanged(nameof(originToDownCameraX)); }
+        }
+        private double originToDownCameraY;
+        public double OriginToDownCameraY
+        {
+            get { return originToDownCameraY; }
+            set { originToDownCameraY = value; OnPropertyChanged(nameof(originToDownCameraY)); }
+        }
+
         private double originToPickHeadX1;
         public double OriginToPickHeadX1 
         {  
@@ -155,17 +165,17 @@ namespace Picky
 
        
         private double downCameraToPickHeadX;
-        public double DownCameraToPickHeadX 
+        public double PickHeadToCameraX 
         {
             get { return downCameraToPickHeadX; }
-            set { downCameraToPickHeadX = value; OnPropertyChanged(nameof(DownCameraToPickHeadX)); }
+            set { downCameraToPickHeadX = value; OnPropertyChanged(nameof(PickHeadToCameraX)); }
         }
 
         private double downCameraToPickHeadY;
-        public double DownCameraToPickHeadY
+        public double PickHeadToCameraY
         {
             get { return downCameraToPickHeadY; }
-            set { downCameraToPickHeadY = value; OnPropertyChanged(nameof(DownCameraToPickHeadY)); }
+            set { downCameraToPickHeadY = value; OnPropertyChanged(nameof(PickHeadToCameraY)); }
         }
 
 
@@ -204,21 +214,22 @@ namespace Picky
         public (double x_offset, double y_offset) GetPickHeadOffsetToCameraAtZ(double targetZ)
         /*----------------------------------------------------------------------------------
          - When you've centered the camera and want to pick something you need to call here 
-         - with the approximate z of the Target.  This function will return the offset.  After you 
-         - pick the item you need to subtract the offset.  Do not call with the upward z.  This
-         - is a downward z only. The target z should be the actual z from camera to surface
+         - with the approximate z of the destination.  This function will return the offset.  After you 
+         - pick the item you need to subtract the offset.  Why is this needed?  Because the probe
+         - head may not be perfectly square to the surface - or the camera may not be square.
+         - This is a simple slope-intercept in xy and z.  Slope is rise over run.    
          --------------------------------------------------------------------------------------*/
         {
-            double slope_x = (OriginToPickHeadX1 - OriginToPickHeadX2) / (OriginToPickHeadZ1 - OriginToPickHeadZ2);
-            double slope_y = (OriginToPickHeadY1 - OriginToPickHeadY2) / (OriginToPickHeadZ1 - OriginToPickHeadZ2);
-           
-            double offset_x = OriginToPickHeadX2 + (slope_x * (targetZ - OriginToPickHeadZ2));
-            double offset_y = OriginToPickHeadY2 + (slope_y * (targetZ - OriginToPickHeadZ2));
+            double slope_x = (OriginToPickHeadX2 - OriginToPickHeadX1) / (OriginToPickHeadZ2 - OriginToPickHeadZ1);
+            double slope_y = (OriginToPickHeadY2 - OriginToPickHeadY1) / (OriginToPickHeadZ2 - OriginToPickHeadZ1);
 
-            DownCameraToPickHeadX = (OriginToDownCameraX - offset_x);
-            DownCameraToPickHeadY = (OriginToDownCameraY + offset_y);
+            double offset_x = -(slope_x * targetZ) - OriginToPickHeadX1 + OriginToDownCameraX;
+            double offset_y = -(slope_y * targetZ) - OriginToPickHeadY1 + OriginToDownCameraY;
 
-            return (DownCameraToPickHeadX, DownCameraToPickHeadY);
+            PickHeadToCameraX = offset_x;
+            PickHeadToCameraY = offset_y;
+            
+            return (offset_x, offset_y);
         }
         
                        

@@ -103,6 +103,13 @@ namespace Picky
             Console.WriteLine("Full Screen Clicked");
         }
 
-
+        public ICommand SetCircleDetectorCommand { get { return new RelayCommand(SetCircleDetector); } }
+        private void SetCircleDetector()
+        {
+            machine.Settings.tipSearchThreshold = camera.MatThreshold;
+            machine.Settings.tipSearchParam1 = camera.CircleDetectorP1;
+            machine.Settings.tipSearchParam2 = camera.CircleDetectorP2;
+            machine.SaveSettings();
+        }
     }
 }

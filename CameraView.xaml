@@ -9,22 +9,84 @@
              mc:Ignorable="d" 
              d:DesignHeight="500" d:DesignWidth="600" Height="800" Width="1200">
 
-                <DockPanel>
-                    <StackPanel Grid.Column="1" Orientation="Vertical" DockPanel.Dock="Right" Width="150">
-                        <ToggleButton x:Name="mftb" Content="Manual Focus" IsChecked="{Binding camera.IsManualFocus}"  Margin="10 10 10 0" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
-                        <Slider IsEnabled="{Binding IsChecked, ElementName=mftb}" Value="{Binding camera.Focus}"  Minimum="0" Maximum="600" HorizontalAlignment="Stretch" Margin="20 10 15 10" />
-                        <TextBlock Text="Detection Threshold" IsEnabled="{Binding IsCassetteFeederSelected, Mode=OneWay}" Margin="20 0 0 0"/>
-                        <Slider Value="{Binding DetectionThreshold, Mode=TwoWay}" IsEnabled="{Binding IsCassetteFeederSelected, Mode=OneWay}" Minimum="-255" Maximum="0" HorizontalAlignment="Stretch" Margin="20 10 15 10"/>
-                        <ComboBox Name="ImageType" ItemsSource="{Binding VisualizationView}" DisplayMemberPath="viewName" SelectedItem="{Binding SelectedVisualizationViewItem}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 0 15 0" />
-                        <StackPanel Orientation="Horizontal" Margin="20 15 0 0">
-                            <TextBlock Text="Part In View"/>
-                            <Ellipse Fill="{Binding PartInViewIconColor}" Height="15" Width="15" Margin="3 0 0 5" StrokeThickness="0" Stroke="Black"/>
-                        </StackPanel>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto"/>
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" x:Name="border" ClipToBounds="True" HorizontalAlignment="Stretch">
+            <Image ClipToBounds="True" x:Name="FrameImage" Margin="5 5 5 5"/>
+        </Border>
+
+
+        <Grid Grid.Column="1" Width="auto">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <ToggleButton Grid.Row="1" x:Name="mftb" Content="Manual Focus" IsChecked="{Binding camera.IsManualFocus}"  Margin="10 10 10 0" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+            <Slider Grid.Row="2" IsEnabled="{Binding IsChecked, ElementName=mftb}" Value="{Binding camera.Focus}"  Minimum="0" Maximum="600" HorizontalAlignment="Stretch" Margin="20 10 15 10" />
+            <TextBlock Grid.Row="3" Text="Detection Threshold" Margin="20 0 0 0"/>
+            <Slider Grid.Row="4" Value="{Binding DetectionThreshold, Mode=TwoWay}" IsEnabled="{Binding IsCassetteFeederSelected, Mode=OneWay}" Minimum="-255" Maximum="0" HorizontalAlignment="Stretch" Margin="20 10 15 10"/>
+            <ComboBox Grid.Row="5" Name="ImageType" ItemsSource="{Binding VisualizationView}" DisplayMemberPath="viewName" SelectedItem="{Binding SelectedVisualizationViewItem}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 0 15 0" />
+            <StackPanel Grid.Row="6" Orientation="Horizontal" Margin="20 15 0 0">
+                <TextBlock Text="Part In View"/>
+                <Ellipse Fill="{Binding PartInViewIconColor}" Height="15" Width="15" Margin="30 0 0 5" StrokeThickness="0" Stroke="Black"/>
+            </StackPanel>
+
+            <GroupBox Grid.Row="7" BorderBrush="Gray" BorderThickness=".2" Header="Circle Detector" Margin="10 15 0 0">
+                <Grid Grid.Row="7">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+
+                    <ToggleButton Grid.Row="0" x:Name="ManualCircleSearchToggle" Content="Manual Search" IsChecked="{Binding camera.IsManualCircleSearch}"  Margin="10 20 10 10" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+
+                    <TextBlock Grid.Row="1" Text="Threshold" Margin="10 10 0 0"/>
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="20 15 0 0">
+                        <Slider Value="{Binding camera.MatThreshold}" Minimum="0" Maximum="255" SmallChange="1" TickFrequency="1" HorizontalAlignment="Left" Margin="0 0 0 0"/>
+                        <TextBlock Text="{Binding camera.MatThreshold, StringFormat={}{0:0}}" Margin="10 0 10 0"/>
                     </StackPanel>
-                    <Border x:Name="border" Grid.Column="0" ClipToBounds="True" DockPanel.Dock="Left" HorizontalAlignment="Left">
-                        <Image ClipToBounds="True" x:Name="FrameImage" Margin="5 5 5 5"/>
-                    </Border>
-                </DockPanel>
-            
-    
+
+                    <TextBlock Grid.Row="3" Text="Detector Param 1" Margin="10 10 0 0"/>
+                    <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="20 15 0 0">
+                        <Slider Value="{Binding camera.CircleDetectorP1}" Minimum="1" Maximum="300" SmallChange="1" TickFrequency="1" HorizontalAlignment="Left" Margin="0 0 0 0"/>
+                        <TextBlock Text="{Binding camera.CircleDetectorP1, StringFormat={}{0:0}}" Margin="10 0 10 0"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="5" Text="Detector Param 2" Margin="10 10 0 0"/>
+                    <StackPanel Grid.Row="6" Orientation="Horizontal" Margin="20 15 0 0">
+                        <Slider Value="{Binding camera.CircleDetectorP2}" Minimum="0" Maximum="1" SmallChange="0.01" TickFrequency="0.01" HorizontalAlignment="Left" Margin="0 0 0 0"/>
+                        <TextBlock Text="{Binding camera.CircleDetectorP2, StringFormat={}{0:0.00}}" Margin="10 0 10 0"/>
+                    </StackPanel>
+                    <Button Grid.Row="7" x:Name="SetDefault" Content="Set Default" Margin="10 10 10 10" HorizontalAlignment="Stretch" VerticalAlignment="Center" Command="{Binding SetCircleDetectorCommand}"/>
+                </Grid>
+            </GroupBox>
+        </Grid>
+    </Grid>
+
+
 </UserControl>

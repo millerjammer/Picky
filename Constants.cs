@@ -17,9 +17,18 @@ namespace Picky
     {
         public double x { get; set; }
         public double y { get; set; }
+        public double z { get; set; }
         public double angle { get; set; }
         public double radius { get; set; }
         public double quality { get; set; }
+
+        public Polar(double x, double y, double z, double angle)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.angle = angle;
+        }
 
         public Polar(double x, double y, double angle)
         {
@@ -27,13 +36,8 @@ namespace Picky
             this.y = y;
             this.angle = angle;
         }
-        public Polar(double x, double y, double radius, double quality)
-        {
-            this.x = x;
-            this.y = y;
-            this.radius = radius;
-            this.quality = quality;
-        }
+
+        
         public Polar() { }
     }
 
@@ -41,16 +45,18 @@ namespace Picky
     {
         public double Param1;
         public double Param2;
+        public double Exposure;
         public HoughModes DetectorType;                    
 
         public double zEstimate;                    //In mm to optical plane
         public CircleSegment CircleEstimate;        //In mm
         public OpenCvSharp.Rect ROI;                //In mm
 
-        public CircleDetector(HoughModes mode, double param1, double param2) {
+        public CircleDetector(HoughModes mode, double param1, double param2, double exposure) {
             DetectorType = mode;
             Param1 = param1;
             Param2 = param2;
+            Exposure = exposure;
         }
     }
   
@@ -122,13 +128,14 @@ namespace Picky
         //public static int CAMERA_FRAME_WIDTH = 1280;
         //public static int CAMERA_FRAME_HEIGHT = 960;
         //public static int CAMERA_FPS = 45;
-        
+
+        /* The tools */
         public static int    TOOL_COUNT = 4;
         public static double TOOL_CENTER_RADIUS_MILS = 80;
         public static double TOOL_LENGTH_MM = 28.575;
-
-        /* The tools */
         public static double TOOL_28GA_TIP_DIA_MM = 1.0;
+        public static double TOOL_LOWER_Z_CAL = 0;
+        public static double TOOL_UPPER_Z_CAL = 10;
 
         /* GUI */
         public static string PAUSE_ICON = "\uE769";
@@ -137,8 +144,7 @@ namespace Picky
         public static int    DEFAULT_PART_DETECTION_THRESHOLD = 160;
         public static double CASSETTE_ORIGIN_X = -261.56;
         public static double CASSETTE_ORIGIN_Y = -115.24;
-               
-
+        
         /* Camera Messages */
         public static int FOCUS_TIP_CAL = 600;
         public static int FOCUS_TOOL_RETRIVAL = 600;
@@ -158,7 +164,8 @@ namespace Picky
         /* Serial Port */       
         public static int MAX_BUFFER_SIZE = 4096;
         public static int QUEUE_SERVICE_INTERVAL = 100;     //100mS
-            
+        public static string SERIAL_PORT = "COM12";  
+        
         /* Constants */
         public static double MIL_TO_MM = 0.0254;
         
@@ -167,12 +174,11 @@ namespace Picky
         public static string BOARD_FILE_NAME = "board.json";
         public static string TOOL_FILE_NAME = "tool.json";
         public static string SETTINGS_FILE_NAME = "settings.json";
-
-        public static string CALIBRATION_TIP_FILE_NAME = "toolCal.jpg";
+            
 
         public static int DOWN_CAMERA_INDEX = 0;
         public static int UP_CAMERA_INDEX = 1;
-        public static string SERIAL_PORT = "COM12";
+        
 
     }
 }

@@ -253,19 +253,18 @@ namespace Picky
                 item.TipState = PickToolModel.TipStates.Unknown;
                 
             }
-
         }
 
         public static MachineModel Instance
         {
             get { return lazy.Value; }
         }
-           
-
+        
         public void SaveSettings()
         {
-            SaveCalibration();
-            SaveTools();
+            String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            File.WriteAllText(path + "\\" + Constants.SETTINGS_FILE_NAME, JsonConvert.SerializeObject(Settings, Formatting.Indented));
+            Console.WriteLine("Save Settings");
         }
 
         public void SaveTools()

@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media.Media3D;
 using Xamarin.Forms;
 using Image = System.Windows.Controls.Image;
@@ -22,7 +23,7 @@ namespace Picky
         public Mat ThresImage { get; set; }
         public Mat EdgeImage { get; set; }
         public Mat DilatedImage { get; set; }
-
+              
         public Mat CircleROI { get; set; }
         public Mat QRImageROI { get; set; }
 
@@ -72,6 +73,33 @@ namespace Picky
             set { isManualFocus = value; SetCameraFocus(); OnPropertyChanged(nameof(IsManualFocus)); }
         }
 
+        private bool isManualCircleSearch;
+        public bool IsManualCircleSearch
+        {
+            get { return isManualCircleSearch; }
+            set { isManualCircleSearch = value; SetManualCircleSearch(); OnPropertyChanged(nameof(IsManualCircleSearch)); }
+        }
+
+        private double circleDetectorP1 = 280;
+        public double CircleDetectorP1
+        {
+            get { return circleDetectorP1; }
+            set { circleDetectorP1 = value; SetManualCircleSearch();  OnPropertyChanged(nameof(CircleDetectorP1)); }
+        }
+        private double circleDetectorP2 = 0.6;
+        public double CircleDetectorP2
+        {
+            get { return circleDetectorP2; }
+            set { circleDetectorP2 = value; SetManualCircleSearch();  OnPropertyChanged(nameof(CircleDetectorP2)); }
+        }
+
+        private int matThreshold = 80;
+        public int MatThreshold
+        {
+            get { return matThreshold; }
+            set { matThreshold = value; OnPropertyChanged(nameof(MatThreshold)); }
+        }
+
         private int focus;
         public int Focus
         {
@@ -86,7 +114,7 @@ namespace Picky
         public CameraModel(int cameraIndex, MachineModel mm)
         {
             machine = mm;
-
+            
             RawImage = new Mat();
             ColorImage = new Mat();
             GrayImage = new Mat();
@@ -116,6 +144,15 @@ namespace Picky
             bkgWorker = new BackgroundWorker { WorkerSupportsCancellation = true };
             bkgWorker.DoWork += Worker_DoWork;
             bkgWorker.RunWorkerAsync();
+        }
+
+        public void SetManualCircleSearch()
+        {
+            CircleDetector detector = new CircleDetector(HoughModes.GradientAlt, circleDetectorP1, circleDetectorP2, MatThreshold);
+            detector.ROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), (Constants.CAMERA_FRAME_HEIGHT / 3), Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
+            detector.zEstimate = 25.0;
+            detector.CircleEstimate = new CircleSegment(new Point2f(0, 0), (float)(Constants.TOOL_28GA_TIP_DIA_MM / 3));
+            RequestCircleLocation(detector);
         }
 
         public void SetCameraFocus()
@@ -258,13 +295,13 @@ namespace Picky
              * RequestCircleLocation(OpenCvSharp.Rect roi) to start search of ROI
              * 
              *****************************************************************************/
-                        
+
             CircleROI = new Mat(DilatedImage, circleDetector.ROI);
 
             //Convert the estimated circle (in MM) to search criteria (in Pix) based on z.  
             var scale = machine.Cal.GetScaleMMPerPixAtZ(circleDetector.zEstimate);
-            int minR = (int)((circleDetector.CircleEstimate.Radius * .5) / scale.xScale);
-            int maxR = (int)((circleDetector.CircleEstimate.Radius * 2.5) / scale.yScale);
+            int minR = (int)((circleDetector.CircleEstimate.Radius * .2) / scale.xScale);
+            int maxR = (int)((circleDetector.CircleEstimate.Radius ) / scale.yScale);
             Console.WriteLine("minR/maxR: " + minR + "," + maxR + "@" + scale.xScale);
 
             //Set Min distance between matches
@@ -405,10 +442,10 @@ namespace Picky
                     Cv2.CopyTo(RawImage, ColorImage);
                     Cv2.CvtColor(RawImage, GrayImage, ColorConversionCodes.BGR2GRAY);
                     Cv2.GaussianBlur(GrayImage, GrayImage, new OpenCvSharp.Size(5, 5), 0);
-                    Cv2.Threshold(GrayImage, ThresImage, 80, 255, ThresholdTypes.Binary);
+                    Cv2.Threshold(GrayImage, ThresImage, MatThreshold, 255, ThresholdTypes.Binary);  // Default is 80
                     Cv2.Canny(ThresImage, EdgeImage, 50, 150, 3);
                     Cv2.Dilate(EdgeImage, DilatedImage, null, iterations: 2);
-                                                      
+                    
                     RawImage = null;  // hint garbage collection
                 }
                 catch (Exception ex)
@@ -445,7 +482,10 @@ namespace Picky
                                 Cv2.Circle(ColorImage, x, y, (int)circle.Radius, Scalar.Green, 2);
                                 // Draw the circle center
                                 Cv2.Circle(ColorImage, x, y, 3, Scalar.Red, 3);
-                                searchCircleRequest = false;        //Don't cancel request till you get a circle
+                                if (!IsManualCircleSearch)
+                                {
+                                    searchCircleRequest = false;        //Don't cancel request till you get a circle
+                                }
                             }
                         }
                     }

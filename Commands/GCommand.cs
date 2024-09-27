@@ -112,14 +112,15 @@ namespace Picky
 
         }
 
-        public static MachineMessage G_SetXYBacklashCompensation(double f, double s, double x, double y)
+        public static MachineMessage G_SetXYBacklashCompensationOff()
         {
             /******************************************************************
             * Units are mm, see https://marlinfw.org/docs/gcode/M425.html
+            * THIS IS CURRENTLY DISABLED 0---->
             */
 
             MachineMessage msg = new MachineMessage();
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M425 F0.00\n\rM425 X{0:0.00} Y{1:0.00} Z0.00 A0.00\n\rM425 F1.00\n\r", x, y, f));
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M425 F0.00\n\r"));
             Console.WriteLine("Backlash command: " + Encoding.UTF8.GetString(msg.cmd));
             return msg;
         }

@@ -53,6 +53,10 @@ namespace Picky
             set { gCodeCommand = value; OnPropertyChanged(nameof(GCodeCommand)); }
         }
 
+        public double tipSearchThreshold { get; set; }
+        public double tipSearchParam1 { get; set; }
+        public double tipSearchParam2 { get; set; }
+
 
         public SettingsModel() { 
         }
@@ -62,5 +66,7 @@ namespace Picky
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(e));
         }
+
+
     }
 }

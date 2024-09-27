@@ -61,6 +61,7 @@ namespace Picky
             machine.Messages.Add(GCommand.G_GetStepsPerUnit());
             machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
             machine.Messages.Add(GCommand.G_SetZPosition(0));
+            machine.Messages.Add(GCommand.G_SetXYBacklashCompensationOff());
 
         }
 

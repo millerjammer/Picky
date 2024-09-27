@@ -27,7 +27,7 @@ namespace Picky
         public StepAlignToCalCircleCommand(CircleSegment target, Circle3d destination)
         {
             machine = MachineModel.Instance;
-            detector = new CircleDetector(HoughModes.Gradient, 140, 50);
+            detector = new CircleDetector(HoughModes.Gradient, 140, 50, 80);
             if (target.Radius > 5)
                 detector.ROI = new OpenCvSharp.Rect(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
             else
