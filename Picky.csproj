@@ -169,6 +169,7 @@
     <Compile Include="Commands\OpticallyAlignToToolCommand.cs" />
     <Compile Include="Commands\SendCustomGCodeCommand.cs" />
     <Compile Include="Commands\SetCameraManualFocusCommand.cs" />
+    <Compile Include="Commands\SetToolLengthCommand.cs" />
     <Compile Include="Commands\SetToolOffsetCalibrationCommand.cs" />
     <Compile Include="Commands\SetZProbeCalibrationCommand.cs" />
     <Compile Include="Constants.cs" />

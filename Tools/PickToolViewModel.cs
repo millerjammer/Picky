@@ -135,6 +135,17 @@ namespace Picky
             
         }
 
+        public ICommand MeasureToolLengthCommand { get { return new RelayCommand(MeasureToolLength); } }
+        private void MeasureToolLength()
+        {
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalPadX, machine.Cal.ZCalPadY, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            machine.Messages.Add(GCommand.SetToolLength(machine.SelectedPickTool));
+            machine.Messages.Add(GCommand.G_SetZPosition(0));
+        }
+
         public ICommand CalibrateToolCommand { get { return new RelayCommand(CalibrateTool); } }
         private void CalibrateTool()
         {

@@ -56,7 +56,7 @@
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Binding="{Binding Description}" Header="Description" Width="*"/>
 
-                                        <DataGridTextColumn Binding="{Binding TipState}" Header="State" Width="70"/>
+                                        <DataGridTextColumn Binding="{Binding TipState}" Header="State" Width="100"/>
                                         <DataGridTextColumn Binding="{Binding ToolStorageX,StringFormat={}{0:0.000}}" Header="X [mm]" Width="70"/>
                                         <DataGridTextColumn Binding="{Binding ToolStorageY,StringFormat={}{0:0.000}}" Header="Y [mm]" Width="70"/>
                                         <DataGridTextColumn Binding="{Binding ToolStorageZ,StringFormat={}{0:0.000}}" Header="Z [mm]" Width="70"/>
@@ -98,6 +98,7 @@
                                             <MenuItem Header="Mark State Unknown" Command="{Binding MarkStateUnknownCommand}" />
                                             <Separator Margin="2"/>
                                             <MenuItem Header="Calibrate" Command="{Binding CalibrateToolCommand}" />
+                                            <MenuItem Header="Measure Tool Length" Command="{Binding MeasureToolLengthCommand}" />
                                             <Separator Margin="2"/>
                                             <MenuItem Header="Assign to Selected Feeder" Command="{Binding AssignToSelectedFeederCommand}" />
                                         </ContextMenu>

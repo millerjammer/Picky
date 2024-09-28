@@ -91,6 +91,12 @@ namespace Picky
             return cmd.GetMessage();
         }
 
+        public static MachineMessage SetToolLength(PickToolModel tool)
+        {
+            SetToolLengthCommand cmd = new SetToolLengthCommand(tool);
+            return cmd.GetMessage();
+        }
+
         public static MachineMessage GetFeederQRCode(Feeder feeder)
         {
             GetFeederQRCodeCommand cmd = new GetFeederQRCodeCommand(feeder);

@@ -7,20 +7,21 @@ using System.Threading.Tasks;
 
 namespace Picky
 {
-    public class SetZProbeCalibrationCommand : MessageRelayCommand
+    public class SetToolLengthCommand : MessageRelayCommand
     /*----------------------------------------------------------------------
-     * This command writes the current Z location the Z Probe Calibration 
-     * field.
+     * This command measures the length of a tool.
      * --------------------------------------------------------------------*/
     {
         public MachineMessage msg;
+        private PickToolModel Tool;
         private int delay;
-        
-        public SetZProbeCalibrationCommand()
+
+        public SetToolLengthCommand(PickToolModel tool)
         {
+            Tool = tool;
             msg = new MachineMessage();
             msg.messageCommand = this;
-            msg.cmd = Encoding.ASCII.GetBytes("J102 Set Z Probe Calibration\n");
+            msg.cmd = Encoding.ASCII.GetBytes("J102 Set Tool Length\n");
             delay = (200 / Constants.QUEUE_SERVICE_INTERVAL);
         }
 
@@ -31,17 +32,16 @@ namespace Picky
 
         public bool PreMessageCommand(MachineMessage msg)
         {
-            
             return true;
         }
 
         public bool PostMessageCommand(MachineMessage msg)
         {
-            if (delay-- > 0)
+            if(delay-- > 0)
                 return false;
             MachineModel machine = MachineModel.Instance;
-            machine.Cal.ZCalPadZ = machine.CurrentZ;
-            Console.WriteLine("Z Cal: " + machine.Cal.ZCalPadZ);
+            Tool.Length = machine.Cal.ZCalPadZ - machine.CurrentZ;
+            Console.WriteLine("Tool Length: " + Tool.Length + "mm");
             return true;
         }
     }

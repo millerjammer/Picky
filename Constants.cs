@@ -162,6 +162,8 @@ namespace Picky
         public static double TOOL_NOMINAL_Z_DRIVE_MM = 40.5;
 
         /* Physical Constants */
+        /* We use 4mm as distance from the top of the camera to the focal plane.  This is an estimate. */
+        public static double CAMERA_FOCAL_PLANE_TO_CAMERA_FOCAL_PLANE_MM = 72.0715;
         public static double UP_CAMERA_FOCAL_PLANE_TO_PAD_MM = 28.5392368;
         public static double ZPROBE_LIMIT = 53.0;
         public static double ZPROBE_CAL_PAD_X = 0;

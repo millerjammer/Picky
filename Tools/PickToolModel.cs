@@ -36,8 +36,6 @@ namespace Picky
         public enum TipStates { Unknown, Loading, Calibrating, Ready, Unloading, Stored, Error }
         
         /* Measured Properties */
-        public double Length { get; set; }
-        public double Diameter { get; set; }
         public string Description { get; set; }
         public string UniqueID { get; set; }
 
@@ -80,6 +78,13 @@ namespace Picky
         {
             get { return toolStorageZ; }
             set { toolStorageZ = value; OnPropertyChanged(nameof(ToolStorageZ)); }
+        }
+
+        private double length;
+        public double Length
+        {
+            get { return length; }
+            set { length = value; OnPropertyChanged(nameof(Length)); }
         }
 
         private double circleDetectorP1;
