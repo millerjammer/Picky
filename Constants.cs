@@ -160,8 +160,14 @@ namespace Picky
         public static double PCB_NOMINAL_Z_DRIVE_MM = 22.0;
         public static double PART_NOMINAL_Z_DRIVE_MM = 32.0;
         public static double TOOL_NOMINAL_Z_DRIVE_MM = 40.5;
-                                
-        /* Serial Port */       
+
+        /* Physical Constants */
+        public static double UP_CAMERA_FOCAL_PLANE_TO_PAD_MM = 28.5392368;
+        public static double ZPROBE_LIMIT = 53.0;
+        public static double ZPROBE_CAL_PAD_X = 0;
+        public static double ZPROBE_CAL_PAD_Y = 195;
+
+        /* Serial Port */
         public static int MAX_BUFFER_SIZE = 4096;
         public static int QUEUE_SERVICE_INTERVAL = 100;     //100mS
         public static string SERIAL_PORT = "COM12";  

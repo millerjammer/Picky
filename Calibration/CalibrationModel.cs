@@ -177,6 +177,27 @@ namespace Picky
             get { return downCameraToPickHeadY; }
             set { downCameraToPickHeadY = value; OnPropertyChanged(nameof(PickHeadToCameraY)); }
         }
+                
+        private double zCalPadX = Constants.ZPROBE_CAL_PAD_X;
+        public double ZCalPadX
+        {
+            get { return zCalPadX; }
+            set { zCalPadX = value; OnPropertyChanged(nameof(ZCalPadX)); }
+        }
+
+        private double zCalPadY = Constants.ZPROBE_CAL_PAD_Y;
+        public double ZCalPadY
+        {
+            get { return zCalPadY; }
+            set { zCalPadY = value; OnPropertyChanged(nameof(ZCalPadY)); }
+        }
+
+        private double zCalPadZ;
+        public double ZCalPadZ
+        {
+            get { return zCalPadZ; }
+            set { zCalPadZ = value; OnPropertyChanged(nameof(ZCalPadZ)); }
+        }
 
 
         public CalibrationModel()

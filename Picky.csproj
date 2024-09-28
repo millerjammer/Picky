@@ -170,6 +170,7 @@
     <Compile Include="Commands\SendCustomGCodeCommand.cs" />
     <Compile Include="Commands\SetCameraManualFocusCommand.cs" />
     <Compile Include="Commands\SetToolOffsetCalibrationCommand.cs" />
+    <Compile Include="Commands\SetZProbeCalibrationCommand.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="ControlWindow.xaml.cs">
       <DependentUpon>ControlWindow.xaml</DependentUpon>

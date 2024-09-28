@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Newtonsoft.Json.Linq;
 using OpenCvSharp;
+using OpenCvSharp.Dnn;
 
 namespace Picky
 {
@@ -197,6 +198,17 @@ namespace Picky
             machine.Messages.Add(GCommand.SetCameraManualFocus(machine.downCamera, true, Constants.FOCUS_TOOL_RETRIVAL));
             GetScaleResolution(machine.Cal.TargetResAtTool);
             machine.Messages.Add(GCommand.SetCameraManualFocus(machine.downCamera, false, Constants.FOCUS_TOOL_RETRIVAL));
+        }
+        
+        public ICommand CalZProbeCommand { get { return new RelayCommand(CalZProbe); } }
+        private void CalZProbe()
+        {
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalPadX, machine.Cal.ZCalPadY, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            machine.Messages.Add(GCommand.SetZProbeCalibration());
+            machine.Messages.Add(GCommand.G_SetZPosition(0));
         }
               
         private void GetScaleResolution(CalResolutionTargetModel target)

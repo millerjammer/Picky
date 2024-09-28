@@ -84,6 +84,12 @@ namespace Picky
             SetScaleResolutionCalibrationCommand cmd = new SetScaleResolutionCalibrationCommand(machine, crtm);
             return cmd.GetMessage();
         }
+        
+        public static MachineMessage SetZProbeCalibration()            
+        {
+            SetZProbeCalibrationCommand cmd = new SetZProbeCalibrationCommand();
+            return cmd.GetMessage();
+        }
 
         public static MachineMessage GetFeederQRCode(Feeder feeder)
         {
