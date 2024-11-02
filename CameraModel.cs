@@ -1,10 +1,13 @@
 ﻿using OpenCvSharp;
+using OpenCvSharp.Internal.Vectors;
 using OpenCvSharp.WpfExtensions;
 using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Forms.VisualStyles;
 using System.Windows.Media.Media3D;
 using Xamarin.Forms;
 using Image = System.Windows.Controls.Image;
@@ -25,6 +28,7 @@ namespace Picky
         public Mat DilatedImage { get; set; }
               
         public Mat CircleROI { get; set; }
+        public Mat RectangleROI { get; set; }
         public Mat QRImageROI { get; set; }
 
         /* What we are currently viewing */
@@ -38,11 +42,18 @@ namespace Picky
         public Part PartToFind { get; set; }
         private OpenCvSharp.Rect partROI;
         
+        /* Circle Request */
         private bool searchCircleRequest = false;
         private CircleDetector circleDetector;
         private CircleSegment bestCircle;
         private CircleSegment[] Circles;
+
+        /* Rectangle Request */
+        private bool searchRectangleRequest = false;
+        private RectangleDetector rectangleDetector;
+        private OpenCvSharp.Rect bestRectangle;
         
+        /* QR Request */
         public bool searchQRRequest = false;
         private OpenCvSharp.Rect searchQRROI;
         private string[] currentQRCode;
@@ -73,11 +84,25 @@ namespace Picky
             set { isManualFocus = value; SetCameraFocus(); OnPropertyChanged(nameof(IsManualFocus)); }
         }
 
+        private int binaryThreshold;
+        public int BinaryThreshold
+        {
+            get { return binaryThreshold; }
+            set { binaryThreshold = value; OnPropertyChanged(nameof(BinaryThreshold)); }
+        }
+
         private bool isManualCircleSearch;
         public bool IsManualCircleSearch
         {
             get { return isManualCircleSearch; }
             set { isManualCircleSearch = value; SetManualCircleSearch(); OnPropertyChanged(nameof(IsManualCircleSearch)); }
+        }
+
+        private bool isManualRectangleSearch;
+        public bool IsManualRectangleSearch
+        {
+            get { return isManualRectangleSearch; }
+            set { isManualRectangleSearch = value; SetManualRectangleSearch(); OnPropertyChanged(nameof(IsManualRectangleSearch)); }
         }
 
         private int focus;
@@ -135,6 +160,13 @@ namespace Picky
             RequestCircleLocation(detector);
         }
 
+        public void SetManualRectangleSearch()
+        {
+            RectangleDetector detector = new RectangleDetector(machine.SelectedPickTool.CircleDetectorP1, machine.SelectedPickTool.CircleDetectorP2);
+            detector.ROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), 0, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
+            RequestRectangleLocation(detector);
+        }
+
         public void SetCameraFocus()
         {
             if (IsManualFocus == true)
@@ -161,6 +193,32 @@ namespace Picky
         public void RequestPartLocation(OpenCvSharp.Rect roi)
         {
             partROI = roi;
+        }
+
+        public OpenCvSharp.Rect GetBestRectangle()
+        {
+            Console.WriteLine("Best Rectangle (in pixels): " + bestRectangle.ToString());
+            return bestRectangle;
+        }
+
+        public bool IsRectangleSearchActive()
+        {
+            return searchRectangleRequest;
+        }
+
+        public void RequestRectangleLocation(RectangleDetector detector)
+        /*-------------------------------------------------------------------------
+         * Call here to start the process, use IsRectangleSearchActive to monitor
+         * progress and GetBestRectangle when it's no longer active. roi is the region 
+         * of interest in pixels.  sc is the rectangle to find, an estimate in mm.  ZOptical in mm
+         * ZOptical should include length of the tool.
+         * Note: zOpticalDistance is needed ONLY to qualify the rectangle we are searching for
+         * TODO - eliminate zOpticalDistance.
+         * ------------------------------------------------------------------------*/
+        {
+            //sc is in MM
+            searchRectangleRequest = true;
+            rectangleDetector = detector;
         }
 
         public CircleSegment GetBestCircle()
@@ -261,7 +319,50 @@ namespace Picky
             }
         }
 
-        private bool FindCircleInROI()
+        private bool FindRectangleInROI()
+        {
+            /****************************************************************************
+             * Private function for finding rectangles.
+             * Returns false if no rectangle found
+             * Returns true if rect found, call GetBestRectangle() to get Rect
+             * where center contains the offset from the center of the image.
+             * ROI in pixels.
+             * Use:
+             * IsRectangleSearchActive() to see if a search is active 
+             * GetBestRectangle() to get result of last successful search. 
+             * RequestRectangleLocation(OpenCvSharp.Rect roi) to start search of ROI
+             * 
+             *****************************************************************************/
+
+            RectangleROI = new Mat(DilatedImage, rectangleDetector.ROI);
+
+            OpenCvSharp.Point[][] contours;
+            HierarchyIndex[] hierarchy;
+            Cv2.FindContours(RectangleROI, out contours, out hierarchy, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
+
+            // Loop through contours to find rectangles
+            foreach (var contour in contours)
+            {
+                // Approximate the contour to reduce the number of points
+                OpenCvSharp.Point[] approxContour = Cv2.ApproxPolyDP(contour, 0.02 * Cv2.ArcLength(contour, true), true);
+
+                // Check if contour is a rectangle (4 vertices)
+                if (approxContour.Length == 4)
+                {
+                    // Check if it's convex
+                    if (Cv2.IsContourConvex(approxContour))
+                    {
+                        // Get bounding rectangle
+                        bestRectangle = Cv2.BoundingRect(approxContour);
+                        OpenCvSharp.Cv2.Rectangle(ColorImage, rectangleDetector.ROI, new OpenCvSharp.Scalar(0, 255, 0), 4);
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+            private bool FindCircleInROI()
         {
             /****************************************************************************
              * Private function for finding circles.
@@ -423,8 +524,8 @@ namespace Picky
                     Cv2.CopyTo(RawImage, ColorImage);
                     Cv2.CvtColor(RawImage, GrayImage, ColorConversionCodes.BGR2GRAY);
                     Cv2.GaussianBlur(GrayImage, GrayImage, new OpenCvSharp.Size(5, 5), 0);
-                    Cv2.Threshold(GrayImage, ThresImage, machine.SelectedPickTool?.MatThreshold ?? 80, 255, ThresholdTypes.Binary);  // Default is 80
-                    Cv2.Canny(ThresImage, EdgeImage, 50, 150, 3);
+                    Cv2.Threshold(GrayImage, ThresImage, BinaryThreshold, 255, ThresholdTypes.Binary);  // Default is 80
+                    Cv2.Canny(ThresImage, EdgeImage, 50, 150, 3);  //50 150 3
                     Cv2.Dilate(EdgeImage, DilatedImage, null, iterations: 2);
                     
                     RawImage = null;  // hint garbage collection

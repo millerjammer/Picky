@@ -180,7 +180,7 @@ namespace Picky
                                     MatchCollection matches = regex.Matches(Encoding.UTF8.GetString(msg.cmd));
                                     msg.state = MachineMessage.MessageState.Complete;
                                     rx_msgCount++;
-                                    if (matches[0].Value == "0" && matches[1].Value == "50")
+                                    if (matches[0].Value == "0" && matches[1].Value == "68")
                                     {
                                         machine.IsToolStorageOpen = true;
                                     }

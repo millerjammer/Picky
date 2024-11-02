@@ -131,7 +131,7 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetZPosition(0));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_OpenToolStorage(false));
-            CalibrateTool();
+            //CalibrateTool();
             
         }
 

@@ -48,15 +48,14 @@ namespace Picky
                 return (new SolidColorBrush(Color.FromArgb(128, 255, 0, 0)));
             }
         }
-
         
-
         private int detectionThreshold;
         public int DetectionThreshold
         {
             get { return detectionThreshold; }
             set { detectionThreshold = value; machine.selectedCassette.selectedFeeder.part.PartDetectionThreshold = (double)detectionThreshold; OnPropertyChanged(nameof(DetectionThreshold)); }
         }
+               
 
         public CameraViewModel(Image iFrame, CameraModel iCamera)
         {

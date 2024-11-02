@@ -163,6 +163,7 @@
       <DependentUpon>CassetteView.xaml</DependentUpon>
     </Compile>
     <Compile Include="CassetteViewModel.cs" />
+    <Compile Include="CircleDetector.cs" />
     <Compile Include="Commands\DelayCommand.cs" />
     <Compile Include="Commands\GetFeederQRCodeCommand .cs" />
     <Compile Include="Commands\OffsetCameraToPickCommand.cs" />
@@ -171,6 +172,7 @@
     <Compile Include="Commands\SetCameraManualFocusCommand.cs" />
     <Compile Include="Commands\SetToolLengthCommand.cs" />
     <Compile Include="Commands\SetToolOffsetCalibrationCommand.cs" />
+    <Compile Include="Commands\SetToolTipLocationCommand.cs" />
     <Compile Include="Commands\SetZProbeCalibrationCommand.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="ControlWindow.xaml.cs">
@@ -195,6 +197,7 @@
     <Compile Include="PickListViewModel.cs" />
     <Compile Include="Commands\OpticallyAlignToPartCommand.cs" />
     <Compile Include="Commands\SetScaleResolutionCalibrationCommand.cs" />
+    <Compile Include="RectangleDetector.cs" />
     <Compile Include="SettingsModel.cs" />
     <Compile Include="SettingsViewModel.cs" />
     <Compile Include="SettingsWindow.xaml.cs">

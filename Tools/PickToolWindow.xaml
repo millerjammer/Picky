@@ -179,7 +179,7 @@
                                                 <RowDefinition Height="auto"/>
                                             </Grid.RowDefinitions>
 
-                                            <ToggleButton Grid.Row="0" x:Name="ManualCircleSearchToggle" Content="Manual Search" IsChecked="{Binding machine.upCamera.IsManualCircleSearch}" Margin="10 20 10 10" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+                                            <ToggleButton Grid.Row="0" x:Name="ManualRectangleSearchToggle" Content="Manual Search" IsChecked="{Binding machine.upCamera.IsManualRectangleSearch}" Margin="10 20 10 10" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
 
                                             <TextBlock Grid.Row="1" Text="Threshold" Margin="10 10 0 0"/>
                                             <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="20 15 0 0">

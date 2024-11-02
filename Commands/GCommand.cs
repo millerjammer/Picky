@@ -8,6 +8,7 @@
 
 using Microsoft.VisualStudio.Shell.Interop;
 using OpenCvSharp;
+using Picky.Commands;
 using Picky.Tools;
 using System;
 using System.Text;
@@ -40,6 +41,12 @@ namespace Picky
         public static MachineMessage SetCameraManualFocus(CameraModel camera, bool enableMF, int value)
         {
             SetCameraManualFocusCommand cmd = new SetCameraManualFocusCommand(camera, enableMF, value);
+            return cmd.GetMessage();
+        }
+
+        public static MachineMessage SetToolTipLocation(PickToolModel tool)
+        {
+            SetToolTipLocationCommand cmd = new SetToolTipLocationCommand(tool);
             return cmd.GetMessage();
         }
 
@@ -286,7 +293,7 @@ namespace Picky
             MachineMessage msg = new MachineMessage();
 
             if (open == true)
-                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M280 P0 S50\n"));
+                msg.cmd = Encoding.UTF8.GetBytes(string.Format("M280 P0 S68\n"));
             else
                 msg.cmd = Encoding.UTF8.GetBytes(string.Format("M280 P0 S9\n"));
             return msg;

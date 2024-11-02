@@ -43,8 +43,10 @@
             <Slider Grid.Row="2" IsEnabled="{Binding IsChecked, ElementName=mftb}" Value="{Binding camera.Focus}"  Minimum="0" Maximum="600" HorizontalAlignment="Stretch" Margin="20 10 15 10" />
             <TextBlock Grid.Row="3" Text="Detection Threshold" Margin="20 0 0 0"/>
             <Slider Grid.Row="4" Value="{Binding DetectionThreshold, Mode=TwoWay}" IsEnabled="{Binding IsCassetteFeederSelected, Mode=OneWay}" Minimum="-255" Maximum="0" HorizontalAlignment="Stretch" Margin="20 10 15 10"/>
-            <ComboBox Grid.Row="5" Name="ImageType" ItemsSource="{Binding VisualizationView}" DisplayMemberPath="viewName" SelectedItem="{Binding SelectedVisualizationViewItem}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 0 15 0" />
-            <StackPanel Grid.Row="6" Orientation="Horizontal" Margin="20 15 0 0">
+            <TextBlock Grid.Row="5" Text="Binary Threshold" Margin="20 0 0 0"/>
+            <Slider Grid.Row="6" Value="{Binding camera.BinaryThreshold, Mode=TwoWay}" Minimum="0" Maximum="255" HorizontalAlignment="Stretch" Margin="20 10 15 10"/>
+            <ComboBox Grid.Row="7" Name="ImageType" ItemsSource="{Binding VisualizationView}" DisplayMemberPath="viewName" SelectedItem="{Binding SelectedVisualizationViewItem}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 0 15 0" />
+            <StackPanel Grid.Row="8" Orientation="Horizontal" Margin="20 15 0 0">
                 <TextBlock Text="Part In View"/>
                 <Ellipse Fill="{Binding PartInViewIconColor}" Height="15" Width="15" Margin="30 0 0 5" StrokeThickness="0" Stroke="Black"/>
             </StackPanel>
