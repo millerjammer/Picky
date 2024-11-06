@@ -25,7 +25,7 @@ namespace Picky.Commands
         public MachineMessage msg;
         MachineModel machine;
         public PickToolModel tool;
-        public RectangleDetector detector;
+        public CircleDetector detector;
         CameraModel cameraToUse;
 
         private double last_x, last_y;
@@ -36,7 +36,7 @@ namespace Picky.Commands
             tool = _tool;
             machine = MachineModel.Instance;
             cameraToUse = machine.downCamera;
-            detector = new RectangleDetector(machine.SelectedPickTool.CircleDetectorP1, machine.SelectedPickTool.CircleDetectorP2);
+            detector = new CircleDetector(HoughModes.GradientAlt, machine.SelectedPickTool.CircleDetectorP1, machine.SelectedPickTool.CircleDetectorP2, machine.SelectedPickTool.MatThreshold);
             detector.ROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), 0, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
             msg = new MachineMessage();
             msg.messageCommand = this;
@@ -52,24 +52,24 @@ namespace Picky.Commands
         {
             cameraToUse.IsManualFocus = true;
             cameraToUse.Focus = 600;
-            cameraToUse.RequestRectangleLocation(detector);
+            cameraToUse.RequestCircleLocation(detector);
             return true;
         }
 
 
         public bool PostMessageCommand(MachineMessage msg)
         {
-            if (cameraToUse.IsRectangleSearchActive() == false)
+            if (cameraToUse.IsCircleSearchActive() == false)
             {
                 //Get offset in mm
                 var scale = machine.Cal.GetScaleMMPerPixAtZ(25.0);
-                OpenCvSharp.Rect bestRectangle = cameraToUse.GetBestRectangle();
-                double x_offset = scale.xScale * (bestRectangle.Left + bestRectangle.Width/2);
-                double y_offset = scale.yScale * (bestRectangle.Top + bestRectangle.Height);
-                if (bestRectangle.Width > bestRectangle.Height)
+                OpenCvSharp.CircleSegment bestCircle = cameraToUse.GetBestCircle();
+                double x_offset = scale.xScale * (bestCircle.Center.X);
+                double y_offset = scale.yScale * (bestCircle.Center.Y);
+                if (bestCircle.Center.X > bestCircle.Center.Y)
                 {
                     Console.WriteLine("Find Tool Tip Failed, Repeating Request. W > H");
-                    cameraToUse.RequestRectangleLocation(detector);
+                    cameraToUse.RequestCircleLocation(detector);
                     return false;
                 }
                 else
@@ -83,7 +83,7 @@ namespace Picky.Commands
                     {
                         last_x = x_offset;
                         last_y = y_offset;
-                        cameraToUse.RequestRectangleLocation(detector);
+                        cameraToUse.RequestCircleLocation(detector);
                         return false;
                     }
                 }

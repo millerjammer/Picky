@@ -6,7 +6,7 @@
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:local="clr-namespace:Picky.Tools"
         mc:Ignorable="d"
-        Height="650" Width="1200">
+        Height="700" Width="1200">
     <Border Background="#151f2d" Margin="0 0 0 0">
         <Grid Margin="10 5 10 5" VerticalAlignment="Top">
             <Grid.RowDefinitions>
@@ -165,7 +165,7 @@
                                             </Grid>
                                         </Grid>
                                     </GroupBox>
-                                    <GroupBox Grid.Column="1" BorderBrush="Gray" BorderThickness=".2" Header="Circle Detector" Margin="10 15 0 0">
+                                    <GroupBox Grid.Column="1" BorderBrush="Gray" BorderThickness=".2" Header="Tool Detector" Margin="10 15 0 0">
                                         <Grid Grid.Row="7">
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="auto"/>
@@ -179,7 +179,7 @@
                                                 <RowDefinition Height="auto"/>
                                             </Grid.RowDefinitions>
 
-                                            <ToggleButton Grid.Row="0" x:Name="ManualRectangleSearchToggle" Content="Manual Search" IsChecked="{Binding machine.upCamera.IsManualRectangleSearch}" Margin="10 20 10 10" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+                                            <ToggleButton Grid.Row="0" x:Name="ManualRectangleSearchToggle" Content="Manual Search" IsChecked="{Binding machine.downCamera.IsManualToolTipSearch}" Margin="10 20 10 10" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
 
                                             <TextBlock Grid.Row="1" Text="Threshold" Margin="10 10 0 0"/>
                                             <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="20 15 0 0">
@@ -189,7 +189,7 @@
 
                                             <TextBlock Grid.Row="3" Text="Detector Param 1" Margin="10 10 0 0"/>
                                             <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="20 15 0 0">
-                                                <Slider Value="{Binding selectedPickTool.CircleDetectorP1}" Minimum="1" Maximum="300" SmallChange="1" TickFrequency="1" HorizontalAlignment="Left" Margin="0 0 0 0"/>
+                                                <Slider Value="{Binding selectedPickTool.CircleDetectorP1}" Minimum="1" Maximum="200" SmallChange="1" TickFrequency="1" HorizontalAlignment="Left" Margin="0 0 0 0"/>
                                                 <TextBlock Text="{Binding selectedPickTool.CircleDetectorP1, StringFormat={}{0:0}}" Margin="10 0 10 0"/>
                                             </StackPanel>
 

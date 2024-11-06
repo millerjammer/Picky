@@ -2,6 +2,7 @@
 using OpenCvSharp.Internal.Vectors;
 using OpenCvSharp.WpfExtensions;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Security.Cryptography;
@@ -48,11 +49,6 @@ namespace Picky
         private CircleSegment bestCircle;
         private CircleSegment[] Circles;
 
-        /* Rectangle Request */
-        private bool searchRectangleRequest = false;
-        private RectangleDetector rectangleDetector;
-        private OpenCvSharp.Rect bestRectangle;
-        
         /* QR Request */
         public bool searchQRRequest = false;
         private OpenCvSharp.Rect searchQRROI;
@@ -91,19 +87,13 @@ namespace Picky
             set { binaryThreshold = value; OnPropertyChanged(nameof(BinaryThreshold)); }
         }
 
-        private bool isManualCircleSearch;
-        public bool IsManualCircleSearch
+        private bool isManualToolTipSearch;
+        public bool IsManualToolTipSearch
         {
-            get { return isManualCircleSearch; }
-            set { isManualCircleSearch = value; SetManualCircleSearch(); OnPropertyChanged(nameof(IsManualCircleSearch)); }
+            get { return isManualToolTipSearch; }
+            set { isManualToolTipSearch = value; SetManualCircleSearch(); OnPropertyChanged(nameof(IsManualToolTipSearch)); }
         }
-
-        private bool isManualRectangleSearch;
-        public bool IsManualRectangleSearch
-        {
-            get { return isManualRectangleSearch; }
-            set { isManualRectangleSearch = value; SetManualRectangleSearch(); OnPropertyChanged(nameof(IsManualRectangleSearch)); }
-        }
+     
 
         private int focus;
         public int Focus
@@ -154,18 +144,12 @@ namespace Picky
         public void SetManualCircleSearch()
         {
             CircleDetector detector = new CircleDetector(HoughModes.GradientAlt, machine.SelectedPickTool.CircleDetectorP1, machine.SelectedPickTool.CircleDetectorP2, machine.SelectedPickTool.MatThreshold);
-            detector.ROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), (Constants.CAMERA_FRAME_HEIGHT / 3), Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
+            detector.ROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), 0, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
             detector.zEstimate = 25.0;
-            detector.CircleEstimate = new CircleSegment(new Point2f(0, 0), (float)(Constants.TOOL_28GA_TIP_DIA_MM / 3));
+            detector.CircleEstimate = new CircleSegment(new Point2f(0, 0), (float)(Constants.TOOL_28GA_TIP_DIA_MM / 2));
             RequestCircleLocation(detector);
         }
-
-        public void SetManualRectangleSearch()
-        {
-            RectangleDetector detector = new RectangleDetector(machine.SelectedPickTool.CircleDetectorP1, machine.SelectedPickTool.CircleDetectorP2);
-            detector.ROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), 0, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
-            RequestRectangleLocation(detector);
-        }
+           
 
         public void SetCameraFocus()
         {
@@ -195,32 +179,6 @@ namespace Picky
             partROI = roi;
         }
 
-        public OpenCvSharp.Rect GetBestRectangle()
-        {
-            Console.WriteLine("Best Rectangle (in pixels): " + bestRectangle.ToString());
-            return bestRectangle;
-        }
-
-        public bool IsRectangleSearchActive()
-        {
-            return searchRectangleRequest;
-        }
-
-        public void RequestRectangleLocation(RectangleDetector detector)
-        /*-------------------------------------------------------------------------
-         * Call here to start the process, use IsRectangleSearchActive to monitor
-         * progress and GetBestRectangle when it's no longer active. roi is the region 
-         * of interest in pixels.  sc is the rectangle to find, an estimate in mm.  ZOptical in mm
-         * ZOptical should include length of the tool.
-         * Note: zOpticalDistance is needed ONLY to qualify the rectangle we are searching for
-         * TODO - eliminate zOpticalDistance.
-         * ------------------------------------------------------------------------*/
-        {
-            //sc is in MM
-            searchRectangleRequest = true;
-            rectangleDetector = detector;
-        }
-
         public CircleSegment GetBestCircle()
         {
             Console.WriteLine("Best Circle (in pixels): " + bestCircle.ToString());
@@ -243,8 +201,9 @@ namespace Picky
          * ------------------------------------------------------------------------*/
         {
             //sc is in MM
-            searchCircleRequest = true;
             circleDetector = detector;
+            searchCircleRequest = true;
+            
         }
 
         /** Public methods for QR Code **/
@@ -319,50 +278,7 @@ namespace Picky
             }
         }
 
-        private bool FindRectangleInROI()
-        {
-            /****************************************************************************
-             * Private function for finding rectangles.
-             * Returns false if no rectangle found
-             * Returns true if rect found, call GetBestRectangle() to get Rect
-             * where center contains the offset from the center of the image.
-             * ROI in pixels.
-             * Use:
-             * IsRectangleSearchActive() to see if a search is active 
-             * GetBestRectangle() to get result of last successful search. 
-             * RequestRectangleLocation(OpenCvSharp.Rect roi) to start search of ROI
-             * 
-             *****************************************************************************/
-
-            RectangleROI = new Mat(DilatedImage, rectangleDetector.ROI);
-
-            OpenCvSharp.Point[][] contours;
-            HierarchyIndex[] hierarchy;
-            Cv2.FindContours(RectangleROI, out contours, out hierarchy, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
-
-            // Loop through contours to find rectangles
-            foreach (var contour in contours)
-            {
-                // Approximate the contour to reduce the number of points
-                OpenCvSharp.Point[] approxContour = Cv2.ApproxPolyDP(contour, 0.02 * Cv2.ArcLength(contour, true), true);
-
-                // Check if contour is a rectangle (4 vertices)
-                if (approxContour.Length == 4)
-                {
-                    // Check if it's convex
-                    if (Cv2.IsContourConvex(approxContour))
-                    {
-                        // Get bounding rectangle
-                        bestRectangle = Cv2.BoundingRect(approxContour);
-                        OpenCvSharp.Cv2.Rectangle(ColorImage, rectangleDetector.ROI, new OpenCvSharp.Scalar(0, 255, 0), 4);
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-            private bool FindCircleInROI()
+        private bool FindCircleInROI()
         {
             /****************************************************************************
              * Private function for finding circles.
@@ -385,6 +301,15 @@ namespace Picky
             int maxR = (int)((circleDetector.CircleEstimate.Radius ) / scale.yScale);
             Console.WriteLine("minR/maxR: " + minR + "," + maxR + "@" + scale.xScale);
 
+            double param1 = machine.SelectedPickTool.CircleDetectorP1;
+            double param2 = machine.SelectedPickTool.CircleDetectorP2;
+            if (!IsManualToolTipSearch)
+            {
+                param1 = circleDetector.Param1;
+                param2 = circleDetector.Param2;
+            }
+
+
             //Set Min distance between matches
             int minDist = maxR;
 
@@ -394,8 +319,8 @@ namespace Picky
                 circleDetector.DetectorType,        // Usually HoughModes.Gradient or HoughModes.GradientAlt
                 dp: 1.5,
                 minDist: minDist,                   //Was 800, formally set to 2xmin raduis
-                param1: circleDetector.Param1,      //smaller means more false circles
-                param2: circleDetector.Param2,      //smaller means more false circles
+                param1: param1,      //smaller means more false circles
+                param2: param2,      //smaller means more false circles
                 minRadius: minR,            
                 maxRadius: maxR);
             
@@ -524,7 +449,7 @@ namespace Picky
                     Cv2.CopyTo(RawImage, ColorImage);
                     Cv2.CvtColor(RawImage, GrayImage, ColorConversionCodes.BGR2GRAY);
                     Cv2.GaussianBlur(GrayImage, GrayImage, new OpenCvSharp.Size(5, 5), 0);
-                    Cv2.Threshold(GrayImage, ThresImage, BinaryThreshold, 255, ThresholdTypes.Binary);  // Default is 80
+                    Cv2.Threshold(GrayImage, ThresImage, machine.SelectedPickTool?.MatThreshold ?? BinaryThreshold, 255, ThresholdTypes.Binary);  // Default is 80
                     Cv2.Canny(ThresImage, EdgeImage, 50, 150, 3);  //50 150 3
                     Cv2.Dilate(EdgeImage, DilatedImage, null, iterations: 2);
                     
@@ -535,46 +460,46 @@ namespace Picky
                    GC.Collect();
                    GC.WaitForPendingFinalizers();
                 }
-                
-                    if (searchQRRequest)
+
+                if (searchQRRequest)
+                {
+                    if (DecodeQRCode())
                     {
-                        if (DecodeQRCode())
+                        for (int i = 0; i < currentQRCodePoints.Length; i++)
                         {
-                            for (int i = 0; i < currentQRCodePoints.Length; i++)
+                            OpenCvSharp.Cv2.DrawMarker(ColorImage, new OpenCvSharp.Point(currentQRCodePoints[i].X, currentQRCodePoints[i].Y), new OpenCvSharp.Scalar(255, 0, 0), OpenCvSharp.MarkerTypes.Cross, 200, 4);
+                        }
+                        OpenCvSharp.Cv2.Rectangle(ColorImage, searchQRROI, new OpenCvSharp.Scalar(0, 255, 0), 4);
+                        searchQRRequest = false;        //Don't cancel till you get a QR
+                    }
+                    else
+                    {
+                        OpenCvSharp.Cv2.Rectangle(ColorImage, searchQRROI, new OpenCvSharp.Scalar(0, 0, 255), 4);
+                    }
+                }
+                else if (searchCircleRequest)
+                {
+                    if (FindCircleInROI())
+                    {
+                        foreach (CircleSegment circle in Circles)
+                        {
+                            // Draw the circle outline
+                            int x = (int)(circle.Center.X + circleDetector.ROI.X);
+                            int y = (int)(circle.Center.Y + circleDetector.ROI.Y);
+                            Cv2.Circle(ColorImage, x, y, (int)circle.Radius, Scalar.Green, 2);
+                            // Draw the circle center
+                            Cv2.Circle(ColorImage, x, y, 3, Scalar.Red, 3);
+                            if (!IsManualToolTipSearch)
                             {
-                                OpenCvSharp.Cv2.DrawMarker(ColorImage, new OpenCvSharp.Point(currentQRCodePoints[i].X, currentQRCodePoints[i].Y), new OpenCvSharp.Scalar(255, 0, 0), OpenCvSharp.MarkerTypes.Cross, 200, 4);
-                            }
-                            OpenCvSharp.Cv2.Rectangle(ColorImage, searchQRROI, new OpenCvSharp.Scalar(0, 255, 0), 4);
-                            searchQRRequest = false;        //Don't cancel till you get a QR
-                        }
-                        else
-                        {
-                            OpenCvSharp.Cv2.Rectangle(ColorImage, searchQRROI, new OpenCvSharp.Scalar(0, 0, 255), 4);
-                        }
-                    }
-                    else if (searchCircleRequest)
-                    {
-                        if (FindCircleInROI())
-                        {
-                            foreach (CircleSegment circle in Circles)
-                            {
-                                // Draw the circle outline
-                                int x = (int)(circle.Center.X + circleDetector.ROI.X);
-                                int y = (int)(circle.Center.Y + circleDetector.ROI.Y);
-                                Cv2.Circle(ColorImage, x, y, (int)circle.Radius, Scalar.Green, 2);
-                                // Draw the circle center
-                                Cv2.Circle(ColorImage, x, y, 3, Scalar.Red, 3);
-                                if (!IsManualCircleSearch)
-                                {
-                                    searchCircleRequest = false;        //Don't cancel request till you get a circle
-                                }
+                                searchCircleRequest = false;        //Don't cancel request till you get a circle
                             }
                         }
                     }
-                    else if (PartToFind != null)
-                    {
-                        FindPartInImage(PartToFind, GrayImage);
-                    }
+                }
+                else if (PartToFind != null)
+                {
+                    FindPartInImage(PartToFind, GrayImage);
+                }
                 
             /* Draw default cursor */
             OpenCvSharp.Cv2.DrawMarker(ColorImage, new OpenCvSharp.Point(ColorImage.Cols / 2, ColorImage.Rows / 2), new OpenCvSharp.Scalar(0, 0, 255), OpenCvSharp.MarkerTypes.Cross, 100, 1);
