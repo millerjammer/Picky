@@ -26,7 +26,8 @@ namespace Picky
     {
                
         private readonly CassetteView       cassetteView;
-        private readonly SerialInterface    serialInterface;
+        public MachineModel machine { get; set; }
+        public SerialInterface serialInterface { get; set; }
         private readonly PickListView       pickListView;
         private readonly PickToolWindow     toolWindow;
         private readonly ControlWindow      controlWindow;
@@ -36,7 +37,8 @@ namespace Picky
         {
 
             InitializeComponent();
-            MachineModel machine = MachineModel.Instance;
+            this.Closing += MainWindow_Closing;
+            machine = MachineModel.Instance;
             serialInterface = new SerialInterface();
 
             cassetteView = new CassetteView();
@@ -52,35 +54,48 @@ namespace Picky
             DataContext = this;
         }
 
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // Terminate the application
+            machine.upCamera.Dispose();
+            machine.downCamera.Dispose();
+            serialInterface.Dispose();
+            Application.Current.Shutdown();
+        }
 
         public ICommand OnToolsCommand { get { return new RelayCommand(onTools); } }
         private void onTools()
         {
             toolWindow.Show();
+            toolWindow.Activate();
         }
 
         public ICommand OnControlsCommand { get { return new RelayCommand(onControl); } }
         private void onControl()
         {
             controlWindow.Show();
+            controlWindow.Activate();
         }
 
         public ICommand OnCalibrateCommand { get { return new RelayCommand(onCalibrate); } }
         private void onCalibrate()
         {
             controlWindow.calibrationWindow.Show();
+            controlWindow.calibrationWindow.Activate();
         }
 
         public ICommand OnSettingsCommand { get { return new RelayCommand(onSettings); } }
         private void onSettings()
         {
             settingsWindow.Show();
+            settingsWindow.Activate();
         }
 
         public ICommand OnAssembleCommand { get { return new RelayCommand(onAssemble); } }
         private void onAssemble()
         {
             controlWindow.messageWindow.Show();
+            controlWindow.messageWindow.Activate();
         }
 
     }

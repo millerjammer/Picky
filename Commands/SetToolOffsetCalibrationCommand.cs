@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
+using System.Windows.Media;
 using System.Windows.Media.Media3D;
 
 namespace Picky
@@ -33,20 +35,29 @@ namespace Picky
         public PickToolModel tool;
 
         private double last_x, last_y;
-        
+        private int threshold;
+        private int circleCount = 2;
+        private int tolerance = 2;
+        private OpenCvSharp.CircleSegment lastCircle;
 
-        public SetToolOffsetCalibrationCommand(MachineModel mm, PickToolModel _tool) 
+
+        public SetToolOffsetCalibrationCommand(PickToolModel _tool, bool isUpper)
         {
-            machine = mm;
+            machine = MachineModel.Instance;
             tool = _tool;
-            detector = new CircleDetector(HoughModes.GradientAlt, machine.SelectedPickTool.CircleDetectorP1, machine.SelectedPickTool.CircleDetectorP2, machine.SelectedPickTool.MatThreshold);
-            detector.ROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), (Constants.CAMERA_FRAME_HEIGHT / 3), Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
+            if (isUpper)
+                threshold = machine.SelectedPickTool.MatUpperThreshold;
+            else
+                threshold = machine.SelectedPickTool.MatLowerThreshold;
+            detector = new CircleDetector(HoughModes.GradientAlt, machine.SelectedPickTool.CircleDetectorP1, machine.SelectedPickTool.CircleDetectorP2, threshold);
+            detector.ROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), 0, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 4);
             detector.zEstimate = tool.Length;
-            detector.CircleEstimate = new CircleSegment(new Point2f(0, 0), (float)(tool.SelectedTip.TipDia/2));
+            detector.CircleEstimate = new CircleSegment(new Point2f(0, 0), (float)(tool.SelectedTip.TipDia / 2));
+
             msg = new MachineMessage();
             msg.messageCommand = this;
             msg.cmd = Encoding.ASCII.GetBytes("J102 Set Tool Offset\n");
-            cameraToUse = machine.upCamera;
+            cameraToUse = machine.downCamera;
         }
 
         public MachineMessage GetMessage()
@@ -56,10 +67,8 @@ namespace Picky
 
         public bool PreMessageCommand(MachineMessage msg)
         {
-            cameraToUse.IsManualFocus = true;
-            cameraToUse.Focus = 600;
-            if (tool.TipState != PickToolModel.TipStates.Ready)
-                tool.TipState = PickToolModel.TipStates.Calibrating;
+            tool.TipState = PickToolModel.TipStates.Calibrating;
+            cameraToUse.BinaryThreshold = threshold;
             cameraToUse.RequestCircleLocation(detector);
             return true;
         }
@@ -69,38 +78,32 @@ namespace Picky
         {
             if (cameraToUse.IsCircleSearchActive() == false)
             {
-                //Get offset in mm
-                var scale = machine.Cal.GetScaleMMPerPixAtZ(25.0);
-                OpenCvSharp.CircleSegment bestCircle = cameraToUse.GetBestCircle();
-                double x_offset = scale.xScale * bestCircle.Center.X;
-                double y_offset = scale.yScale * bestCircle.Center.Y;
-                double radius = scale.yScale * bestCircle.Radius;
-                if (radius < 0.1)
+                OpenCvSharp.CircleSegment circleSegment = cameraToUse.GetBestCircle();
+                if (CircleCompare(lastCircle, circleSegment))
                 {
-                    Console.WriteLine("PickOffset Failed, Repeating Request. Circle too small.");
-                    cameraToUse.RequestCircleLocation(detector);
-                    return false;
+                    if (--circleCount == 0)
+                    {
+                        tool.SetPickOffsetCalibrationData(new Polar() { x = circleSegment.Center.X, y = circleSegment.Center.Y, z = machine.CurrentZ });
+                        return true;
+                    }
                 }
                 else
                 {
-                    if (Math.Abs(last_x - x_offset) < 0.2 && Math.Abs(last_y - y_offset) < 0.2)
-                    {
-                        Console.WriteLine("PickOffset (mm): " + x_offset + " " + y_offset + " radius: " + radius);
-                        tool.SetPickOffsetCalibrationData(new Polar() { x = x_offset, y = y_offset, z = machine.CurrentZ });
-                    }
-                    else
-                    {
-                        last_x = x_offset;
-                        last_y = y_offset;
-                        cameraToUse.RequestCircleLocation(detector);
-                        return false;
-                    }
+                    circleCount = 2;
+                    lastCircle = circleSegment;
+                    cameraToUse.RequestCircleLocation(detector);
+                    return false;
                 }
-                return true;
             }
             return false;
         }
-    }
 
-    
+        public bool CircleCompare(CircleSegment segment1, CircleSegment segment2)
+        {
+            bool centersEqual = Math.Abs(segment1.Center.X - segment2.Center.X) < tolerance &&
+                        Math.Abs(segment1.Center.Y - segment2.Center.Y) < tolerance;
+
+            return centersEqual;
+        }
+    }
 }

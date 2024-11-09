@@ -150,24 +150,36 @@ namespace Picky
         private void CalibrateTool()
         {
             machine.SelectedPickTool.ResetPickOffsetCalibrationData();
-
-            machine.Messages.Add(GCommand.SetCameraManualFocus(machine.upCamera, true, Constants.FOCUS_TIP_CAL));
-            machine.Messages.Add(GCommand.G_EnableIlluminator(false));
-            machine.Messages.Add(GCommand.G_EnableUpIlluminator(true));
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.OriginToPickHeadX1, machine.Cal.OriginToPickHeadY1, 0, 0, 0));
+            machine.Messages.Add(GCommand.SetCameraManualFocus(machine.upCamera, true, Constants.FOCUS_PCB_031));
+            machine.Messages.Add(GCommand.G_EnableIlluminator(true));
+            machine.Messages.Add(GCommand.G_EnableUpIlluminator(false));
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalPadX, machine.Cal.ZCalPadY, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
-            //Get offset to tip at two elevations
-            for (int z = 0; z <= 10; z += 10)
+            machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
+            machine.Messages.Add(GCommand.G_SetZPosition(-2.0));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            for (int i = 0; i < 360; i += 60)
             {
-                for (int i = 0; i < 360; i += 60)
-                {
-                    machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.OriginToPickHeadX1, machine.Cal.OriginToPickHeadY1, z, i, 0));
-                    machine.Messages.Add(GCommand.G_FinishMoves());
-                    machine.Messages.Add(GCommand.SetToolOffsetCalibration(machine, machine.SelectedPickTool));
-                }
-                machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.OriginToPickHeadX1, machine.Cal.OriginToPickHeadY1, 0, 0, 0));
+                machine.Messages.Add(GCommand.G_SetRotation(i));
                 machine.Messages.Add(GCommand.G_FinishMoves());
+                machine.Messages.Add(GCommand.SetToolOffsetCalibration(machine.SelectedPickTool, true));
             }
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalDeckPadX, machine.Cal.ZCalDeckPadY, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
+            machine.Messages.Add(GCommand.G_SetZPosition(-2.0));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            for (int i = 0; i < 360; i += 60)
+            {
+                machine.Messages.Add(GCommand.G_SetRotation(i));
+                machine.Messages.Add(GCommand.G_FinishMoves());
+                machine.Messages.Add(GCommand.SetToolOffsetCalibration(machine.SelectedPickTool, false));
+            }
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalDeckPadX, machine.Cal.ZCalDeckPadY, 0, 0, 0));
         }
 
         public ICommand ReturnToolCommand { get { return new RelayCommand(ReturnTool); } }

@@ -53,7 +53,7 @@
                                 <ColumnDefinition Width="auto"/>
                                 <ColumnDefinition Width="auto"/>
                             </Grid.ColumnDefinitions>
-                            <Slider x:Name="zSlider" Thumb.DragCompleted ="SliderZ" Value ="{Binding Machine.CurrentZ}" Grid.Column="0" HorizontalAlignment="Stretch" Margin="2,2,0,0" Orientation="Vertical" SmallChange="1" Maximum="50" IsDirectionReversed="True" VerticalAlignment="Stretch"/>
+                            <Slider x:Name="zSlider" Thumb.DragCompleted ="SliderZ" Value ="{Binding Machine.CurrentZ}" Grid.Column="0" HorizontalAlignment="Stretch" Margin="2,2,0,0" Orientation="Vertical" SmallChange="1" Maximum="30" IsDirectionReversed="True" VerticalAlignment="Stretch"/>
                             <Grid Grid.Column="1" VerticalAlignment="Center">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="auto"/>

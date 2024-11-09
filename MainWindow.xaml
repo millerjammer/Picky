@@ -20,6 +20,18 @@
     </Window.Resources>
     <Border CornerRadius="10" Background="#151f2d" Margin="0 0 0 0">
         <DockPanel>
+            <!-- Status Bar at the Bottom -->
+            <StatusBar DockPanel.Dock="Bottom" Height="30" Padding="10 0 0 0">
+                <StatusBarItem>
+                    <TextBlock Text="{Binding serialInterface.ComPortStatus}"/>
+                </StatusBarItem>
+                <StatusBarItem Padding="40 0 0 0">
+                    <TextBlock Text="{Binding machine.RxMessageCount,StringFormat='Message Status [Rx/Queued]: {0:0} /'}"/>
+                </StatusBarItem>
+                <StatusBarItem Padding="0">
+                    <TextBlock Text="{Binding machine.Messages.Count}"/>
+                </StatusBarItem>
+            </StatusBar>
             <!-- Buttons on the left side -->
             <StackPanel DockPanel.Dock="Left" Orientation="Vertical">
                 <ui:Button Width="85" Height="80" Command="{Binding OnCalibrateCommand}">
@@ -61,7 +73,7 @@
             </StackPanel>
 
             <!-- Main content of the window -->
-            <Grid DockPanel.Dock="Right">
+            <Grid DockPanel.Dock="Top">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" x:Name="mainUpperRow"/>
                     <RowDefinition Height="auto" x:Name="mainLowerRow"/>
@@ -78,9 +90,6 @@
                 <Grid Name="lView" Grid.Row="0"  Grid.Column="0" Margin="10 10 10 10" />
                 <Grid Name="cView" Grid.Row="1"  Grid.Column="0" Margin="10 10 10 10" />
             </Grid>
-
-
         </DockPanel>
     </Border>
-
 </Window>

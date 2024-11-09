@@ -117,6 +117,10 @@ namespace Picky
         public static double TOOL_28GA_TIP_DIA_MM = 1.0;
         public static double TOOL_LOWER_Z_CAL = 0;
         public static double TOOL_UPPER_Z_CAL = 10;
+        public static int TOOL_LOWER_THRESHOLD = 149;
+        public static int TOOL_UPPER_THRESHOLD = 230;
+        public static int TOOL_DETECTOR_P1 = 100;
+        public static double TOOL_DETECTOR_P2 = 0.65;
 
         /* GUI */
         public static string PAUSE_ICON = "\uE769";
@@ -148,11 +152,14 @@ namespace Picky
         public static double UP_CAMERA_FOCAL_PLANE_TO_PAD_MM = 28.5392368;
         public static double ZPROBE_LIMIT = 53.0;
         public static double ZPROBE_CAL_PAD_X = 0;
-        public static double ZPROBE_CAL_PAD_Y = 195;
+        public static double ZPROBE_CAL_PAD_Y = 185;
+        public static double ZPROBE_CAL_DECK_PAD_X = 0;
+        public static double ZPROBE_CAL_DECK_PAD_Y = 195;
 
         /* Serial Port */
         public static int MAX_BUFFER_SIZE = 4096;
         public static int QUEUE_SERVICE_INTERVAL = 100;     //100mS
+        public static int OPEN_PORT_INTERVAL = 2000;        //2 Sec
         public static string SERIAL_PORT = "COM12";  
         
         /* Constants */

@@ -82,8 +82,7 @@ namespace Picky
         public ICommand ButtonXYHomeCommand { get { return new RelayCommand(ButtonXYHome); } }
         private void ButtonXYHome()
         {
-            MachineMessage.Pos dest = machine.Messages.Last().target;
-            machine.Messages.Add(GCommand.G_SetPosition(dest.x, dest.y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetZPosition(0));
             machine.Messages.Add(GCommand.G_FindMachineHome());
             
         }
@@ -93,7 +92,7 @@ namespace Picky
         private void ButtonZUp()
         {
             MachineMessage.Pos dest = machine.Messages.Last().target;
-            machine.Messages.Add(GCommand.G_SetPosition(dest.x, dest.y, dest.z - distanceToAdvance, dest.a, dest.b));
+            machine.Messages.Add(GCommand.G_SetZPosition(dest.z - distanceToAdvance));
         }
 
            

@@ -87,24 +87,31 @@ namespace Picky
             set { length = value; OnPropertyChanged(nameof(Length)); }
         }
 
-        private double circleDetectorP1;
+        private double circleDetectorP1 = Constants.TOOL_DETECTOR_P1;
         public double CircleDetectorP1
         {
             get { return circleDetectorP1; }
             set { circleDetectorP1 = value; OnPropertyChanged(nameof(CircleDetectorP1)); }
         }
-        private double circleDetectorP2;
+        private double circleDetectorP2 = Constants.TOOL_DETECTOR_P2;
         public double CircleDetectorP2
         {
             get { return circleDetectorP2; }
             set { circleDetectorP2 = value; OnPropertyChanged(nameof(CircleDetectorP2)); }
         }
 
-        private int matThreshold;
-        public int MatThreshold
+        private int matLowerThreshold = Constants.TOOL_LOWER_THRESHOLD;
+        public int MatLowerThreshold
         {
-            get { return matThreshold; }
-            set { matThreshold = value; OnPropertyChanged(nameof(MatThreshold)); }
+            get { return matLowerThreshold; }
+            set { matLowerThreshold = value; OnPropertyChanged(nameof(MatLowerThreshold)); }
+        }
+
+        private int matUpperThreshold = Constants.TOOL_UPPER_THRESHOLD;
+        public int MatUpperThreshold
+        {
+            get { return matUpperThreshold; }
+            set { matUpperThreshold = value; OnPropertyChanged(nameof(MatUpperThreshold)); }
         }
 
         private TipStates tipState;
@@ -144,11 +151,7 @@ namespace Picky
             TipOffsetUpper = new Polar(0, 0, 0);
             TipOffsetLower = new Polar(0, 0, 0);
             TipState = TipStates.Unknown;
-
-            MatThreshold = 67;
-            CircleDetectorP1 = 260;
-            CircleDetectorP2 = 0.65;
-
+                        
             TipList = new List<TipStyle>
             {
                 new TipStyle("28GA <Fine>", 1.0),
@@ -177,8 +180,10 @@ namespace Picky
             /* Calculate PickOffset from Calibration Data */
             CalDataPoints.Add(point);
             if(CalDataPoints.Count >= 12) {
-                List<Polar> lower = CalDataPoints.Where(e => e.z == Constants.TOOL_LOWER_Z_CAL).ToList();
-                List<Polar> upper = CalDataPoints.Where(e => e.z == Constants.TOOL_UPPER_Z_CAL).ToList();
+                double maxZ = CalDataPoints.Max(e => e.z);
+                double minZ = CalDataPoints.Min(e => e.z);
+                List<Polar> lower = CalDataPoints.Where(e => e.z == maxZ).ToList();
+                List<Polar> upper = CalDataPoints.Where(e => e.z == minZ).ToList();
 
                 TipFitCalibration fitter = new TipFitCalibration();
                 TipOffsetLower = fitter.CalculateBestFitCircle(lower);
@@ -207,36 +212,35 @@ namespace Picky
         {
             int x, y, r;
             MachineModel machine = MachineModel.Instance;
-            OpenCvSharp.Rect roi = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), (Constants.CAMERA_FRAME_HEIGHT / 3), Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
-            Mat roiImage = new Mat(machine.upCamera.ColorImage, roi);
+            OpenCvSharp.Rect roi = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), 0, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 4);
+            Mat roiImage = new Mat(machine.downCamera.ColorImage, roi);
             Mat CalMat = roiImage.Clone();
-            var scale = machine.Cal.GetScaleMMPerPixAtZ(25);
             for (int i = 0; i < 12; i++)
             {
                 // Draw the circle outline
                 Polar item = CalDataPoints.ElementAt(i);
-                x = (int)((CalMat.Width / 2) + (item.x / scale.xScale));
-                y = (int)((CalMat.Height / 2) + (item.y / scale.yScale));
-                r = (int)(item.radius / scale.xScale);
+                x = (int)((CalMat.Width / 2) + (item.x));
+                y = (int)((CalMat.Height / 2) + (item.y));
+                r = (int)(item.radius);
                 // Draw the circle center
-                if(item.z == 0)
+                if(item.z == CalDataPoints.Min(e => e.z))
                     Cv2.Circle(CalMat, x, y, 3, Scalar.Red, 3);
                 else
                     Cv2.Circle(CalMat, x, y, 3, Scalar.Green, 3);
             }
             // Draw Result Calibration Upper and Lower
-            x = (int)((CalMat.Width / 2) + (TipOffsetUpper.x / scale.xScale));
-            y = (int)((CalMat.Height / 2) + (TipOffsetUpper.y / scale.yScale));
-            r = (int)(TipOffsetUpper.radius / scale.xScale);
+            x = (int)((CalMat.Width / 2) + (TipOffsetUpper.x));
+            y = (int)((CalMat.Height / 2) + (TipOffsetUpper.y));
+            r = (int)(TipOffsetUpper.radius);
             Cv2.Circle(CalMat, x, y, r, Scalar.Black, 1);
             // Draw the circle center - Upper
             Cv2.Circle(CalMat, x, y, 3, Scalar.Black, 3);
-            x = (int)((CalMat.Width / 2) + (TipOffsetLower.x / scale.xScale));
-            y = (int)((CalMat.Height / 2) + (TipOffsetLower.y / scale.yScale));
-            r = (int)(TipOffsetLower.radius / scale.xScale);
-            Cv2.Circle(CalMat, x, y, r, Scalar.White, 1);
+            x = (int)((CalMat.Width / 2) + (TipOffsetLower.x));
+            y = (int)((CalMat.Height / 2) + (TipOffsetLower.y));
+            r = (int)(TipOffsetLower.radius);
+            Cv2.Circle(CalMat, x, y, r, Scalar.Black, 1);
             // Draw the circle center - Lower
-            Cv2.Circle(CalMat, x, y, 3, Scalar.White, 3);
+            Cv2.Circle(CalMat, x, y, 3, Scalar.Black, 3);
                         
             String path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), (UniqueID + "_tipCal.jpg"));
             Cv2.ImWrite(path, CalMat);

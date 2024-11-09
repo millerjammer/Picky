@@ -8,7 +8,6 @@
 
 using Microsoft.VisualStudio.Shell.Interop;
 using OpenCvSharp;
-using Picky.Commands;
 using Picky.Tools;
 using System;
 using System.Text;
@@ -44,12 +43,6 @@ namespace Picky
             return cmd.GetMessage();
         }
 
-        public static MachineMessage SetToolTipLocation(PickToolModel tool)
-        {
-            SetToolTipLocationCommand cmd = new SetToolTipLocationCommand(tool);
-            return cmd.GetMessage();
-        }
-
         public static MachineMessage OffsetCameraToPick(double angle)
         {
             OffsetCameraToPickCommand cmd = new OffsetCameraToPickCommand(angle);
@@ -68,9 +61,9 @@ namespace Picky
             return cmd.GetMessage();
         }
 
-        public static MachineMessage SetToolOffsetCalibration(MachineModel machine, PickToolModel tool)
+        public static MachineMessage SetToolOffsetCalibration(PickToolModel tool, bool isUpper)
         {
-           SetToolOffsetCalibrationCommand cmd = new SetToolOffsetCalibrationCommand(machine, tool);
+           SetToolOffsetCalibrationCommand cmd = new SetToolOffsetCalibrationCommand(tool, isUpper);
            return cmd.GetMessage();
         }
 
@@ -92,9 +85,9 @@ namespace Picky
             return cmd.GetMessage();
         }
         
-        public static MachineMessage SetZProbeCalibration()            
+        public static MachineMessage SetZProbeCalibration( Point2d location)            
         {
-            SetZProbeCalibrationCommand cmd = new SetZProbeCalibrationCommand();
+            SetZProbeCalibrationCommand cmd = new SetZProbeCalibrationCommand(location);
             return cmd.GetMessage();
         }
 
@@ -151,7 +144,7 @@ namespace Picky
             MachineModel machine = MachineModel.Instance;
             MachineMessage msg = new MachineMessage();
             msg.target.z = z;
-
+            Console.WriteLine("xx:" + z);
             msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 Z{0} F{1}\n", z, machine.Settings.ProbeRate));
             return msg;
         }

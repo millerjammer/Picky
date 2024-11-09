@@ -2,16 +2,19 @@
 using OpenCvSharp;
 using System;
 using System.Collections;
+using System.ComponentModel;
 using System.IO.Ports;
 using System.Linq;
+using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Timers;
+using System.Windows;
 using static Picky.MachineMessage;
 
 namespace Picky
 {
-    public class SerialInterface
+    public class SerialInterface : INotifyPropertyChanged
     {
         private static byte[] serial_buffer = new byte[Constants.MAX_BUFFER_SIZE];
         private static int s_in = 0;
@@ -19,56 +22,116 @@ namespace Picky
         MachineModel machine = MachineModel.Instance;
 
         private static MachineMessage.Pos lastPos = new MachineMessage.Pos();
-        private int rx_msgCount { get; set; }
+        
+        private string comPortStatus;
+        public string ComPortStatus
+        {
+            get { return comPortStatus; }
+            set { comPortStatus = value; OnPropertyChanged(nameof(ComPortStatus)); }
+        }
+
+        private string comPortName = Constants.SERIAL_PORT;
+        public string ComPortName
+        {
+            get {  return comPortName;}
+            set { comPortName = value; OnPropertyChanged(nameof(ComPortName));}
+        }
 
         static SerialPort serialPort;
+        System.Timers.Timer msgTimer;
 
         public SerialInterface()
-        {
-
-            /* Open Port */
+        {   
+            /* Create Serial Port */
             serialPort = new SerialPort();
-            serialPort.PortName = Constants.SERIAL_PORT;
+            serialPort.PortName = ComPortName;
             serialPort.BaudRate = 115200;
             /* The following is critial! Or no RX for you */
             serialPort.RtsEnable = true;
             serialPort.DtrEnable = true;
+            serialPort.PinChanged += SerialPort_PinChanged;
+            
+            /* Start a Timer to Handle Message Queue */
+            msgTimer = new System.Timers.Timer();
+            msgTimer.Elapsed += new ElapsedEventHandler(OnTimer);
+            msgTimer.Interval = Constants.QUEUE_SERVICE_INTERVAL;
+            msgTimer.Enabled = true;
+        }
+
+        public void Dispose()
+        {
+            serialPort.Close();
+            msgTimer.Stop();
+            msgTimer.Close();
+            msgTimer.Dispose();
+
+        }
+
+        private bool StartSerialPortCommunication() { 
+           
             try
             {
+                /* Initial Comm */
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    machine.RxMessageCount = 0;
+                    machine.Messages.Clear();
+                });
                 serialPort.Open();
             }
             catch (Exception exc)
             {
+                ComPortStatus = string.Format("Disconnected: {0}", ComPortName);
                 Console.WriteLine("Couldn't Open Port:" + exc.Message);
+                return false;
             }
             if (serialPort.IsOpen)
             {
                 serialPort.DiscardInBuffer();
                 serialPort.DiscardOutBuffer();
                 serialPort.ReadExisting();
+                ComPortStatus = string.Format("Connected: {0}", ComPortName);
                 Console.WriteLine("Machine Serial Port Opened. " + System.Environment.CurrentDirectory);
             }
-
-            /* Start a Timer to Handle Message Queue */
-            System.Timers.Timer msgTimer = new System.Timers.Timer();
-            msgTimer.Elapsed += new ElapsedEventHandler(OnTimer);
-            msgTimer.Interval = Constants.QUEUE_SERVICE_INTERVAL;
-            msgTimer.Enabled = true;
-
+            
+            
             /* Initial Command Queue */
-            machine.Messages.Add(GCommand.G_SetAutoPositionReporting(true));
-            machine.Messages.Add(GCommand.G_EnableIlluminator(true));
-            machine.Messages.Add(GCommand.G_GetStepsPerUnit());
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
-            machine.Messages.Add(GCommand.G_SetZPosition(0));
-            machine.Messages.Add(GCommand.G_SetXYBacklashCompensationOff());
-
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                machine.Messages.Add(GCommand.G_SetAutoPositionReporting(true));
+                machine.Messages.Add(GCommand.G_EnableIlluminator(true));
+                machine.Messages.Add(GCommand.G_GetStepsPerUnit());
+                machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+                machine.Messages.Add(GCommand.G_SetZPosition(0));
+                machine.Messages.Add(GCommand.G_SetXYBacklashCompensationOff());
+            });
+            return true;
         }
 
-        public int GetCurrentMessageIndex()
+        private void SerialPort_PinChanged(object sender, SerialPinChangedEventArgs e)
         {
-            return rx_msgCount;
+            if (e.EventType == SerialPinChange.CDChanged || e.EventType == SerialPinChange.DsrChanged || e.EventType == SerialPinChange.Break)
+            {
+                // Handle the disconnection if the DCD or DSR pins change state
+                Console.WriteLine("Serial port disconnected.");
+                ComPortStatus = string.Format("Disconnected: {0}", ComPortName);
+                // Perform cleanup or reconnection logic as necessary
+                if (serialPort.IsOpen)
+                {
+                    serialPort.Close();
+                    Console.WriteLine("Serial port closed.");
+                    ComPortStatus = string.Format("Port Closed: {0}", ComPortName);
+                }
+            }
         }
+              
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+               
 
         public void OnTimer(object source, ElapsedEventArgs e)
         /************************************************************
@@ -77,16 +140,26 @@ namespace Picky
          * complete message in the queue to process. 
          * **********************************************************/
         {
-            if (machine.IsSerialMessageResetRequested == true)
+            if (serialPort.IsOpen)
             {
-                rx_msgCount = 0;
-                return;
+                ServiceInboundMessages();
+                if (machine.Messages.Count() > 0 && machine.Messages.Count() > machine.RxMessageCount)
+                {
+                    MachineMessage msg = machine.Messages.ElementAt(machine.RxMessageCount);
+                    ServiceOutboundMessage(msg);
+                }
             }
-            ServiceInboundMessages();
-            if (machine.Messages.Count() > 0 && machine.Messages.Count() > rx_msgCount)
+            else
+            // Port not open try to re-open on slower interval
             {
-                MachineMessage msg = machine.Messages.ElementAt(rx_msgCount);
-                ServiceOutboundMessage(msg);
+                if (StartSerialPortCommunication())
+                {
+                    msgTimer.Interval = Constants.QUEUE_SERVICE_INTERVAL;
+                }
+                else
+                {
+                    msgTimer.Interval = Constants.OPEN_PORT_INTERVAL;
+                }
             }
         }
 
@@ -119,9 +192,9 @@ namespace Picky
                     //Console.Write((char)serial_buffer[j]);
 
                     //Check return message, OK message is always the last to send
-                    if (machine.Messages.Count > 0 && machine.Messages.Count > rx_msgCount)
+                    if (machine.Messages.Count > 0 && machine.Messages.Count > machine.RxMessageCount)
                     {
-                        msg = machine.Messages.ElementAt(rx_msgCount);
+                        msg = machine.Messages.ElementAt(machine.RxMessageCount);
                         if (msg.state == MachineMessage.MessageState.PendingOK)
                         {
                             if (serial_buffer[0] == (byte)'o' && serial_buffer[1] == (byte)'k')
@@ -133,7 +206,7 @@ namespace Picky
                                 {
                                     // The OK comes out AFTER the result - result parsed below
                                     msg.state = MachineMessage.MessageState.Complete;
-                                    rx_msgCount++;
+                                    machine.RxMessageCount++;
                                 }
                                 // Parse Illuminator Status
                                 else if (msg.cmdString.StartsWith("M260"))
@@ -153,7 +226,7 @@ namespace Picky
                                     }
                                     // Ack all I2C messages
                                     msg.state = MachineMessage.MessageState.Complete;
-                                    rx_msgCount++;
+                                    machine.RxMessageCount++;
                                 }
                                 // Parse Fan Status
                                 else if (msg.cmdString.StartsWith("M106"))
@@ -162,7 +235,7 @@ namespace Picky
                                     Regex regex = new Regex(pattern);
                                     MatchCollection matches = regex.Matches(Encoding.UTF8.GetString(msg.cmd));
                                     msg.state = MachineMessage.MessageState.Complete;
-                                    rx_msgCount++;
+                                    machine.RxMessageCount++;
                                     if (matches[0].Value == "0" && matches[1].Value == "0")
                                     {
                                         machine.IsValveActive = false;
@@ -179,7 +252,7 @@ namespace Picky
                                     Regex regex = new Regex(pattern);
                                     MatchCollection matches = regex.Matches(Encoding.UTF8.GetString(msg.cmd));
                                     msg.state = MachineMessage.MessageState.Complete;
-                                    rx_msgCount++;
+                                    machine.RxMessageCount++;
                                     if (matches[0].Value == "0" && matches[1].Value == "68")
                                     {
                                         machine.IsToolStorageOpen = true;
@@ -196,7 +269,7 @@ namespace Picky
                                     Regex regex = new Regex(pattern);
                                     MatchCollection matches = regex.Matches(Encoding.UTF8.GetString(msg.cmd));
                                     msg.state = MachineMessage.MessageState.Complete;
-                                    rx_msgCount++;
+                                    machine.RxMessageCount++;
                                     if (matches[0].Value == "203")
                                     {
                                         if (matches[1].Value == "0")
@@ -241,19 +314,19 @@ namespace Picky
                                 {
 
                                     msg.state = MachineMessage.MessageState.Complete;
-                                    rx_msgCount++;
+                                    machine.RxMessageCount++;
                                 }
                                 else if (msg.cmdString.StartsWith("G91"))
                                 {
 
                                     msg.state = MachineMessage.MessageState.Complete;
-                                    rx_msgCount++;
+                                    machine.RxMessageCount++;
                                 }
                                 else
                                 {
                                     //Some message we don't care about, mark it complete
                                     msg.state = MachineMessage.MessageState.Complete;
-                                    rx_msgCount++;
+                                    machine.RxMessageCount++;
                                 }
                             }
                             // Handle commands do not output an OK to the serial port - these are mostly camera commands
@@ -262,7 +335,7 @@ namespace Picky
                                 if (msg.messageCommand.PostMessageCommand(msg) == true)
                                 {
                                     msg.state = MachineMessage.MessageState.Complete;
-                                    rx_msgCount++;
+                                    machine.RxMessageCount++;
                                 }
                                 if (msg.cmd[4] == '*')
                                 {
@@ -280,7 +353,7 @@ namespace Picky
                         if (msg.state == MachineMessage.MessageState.PendingPosition && isPositionGood(msg))
                         {
                             msg.state = MachineMessage.MessageState.Complete;
-                            rx_msgCount++;
+                            machine.RxMessageCount++;
                         }
                         //Get Steps Response from query ("M92") ok comes AFTER DATA
                         else if (serial_buffer[2] == (byte)'M' && serial_buffer[3] == (byte)'9' && serial_buffer[4] == (byte)'2')

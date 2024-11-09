@@ -46,12 +46,13 @@ namespace Picky
                     return Math.Pow(Math.Sqrt(dx * dx + dy * dy) - radius, 2);
                 });
 
-                return new Polar
-                {
-                    x = centerX,
-                    y = centerY,
-                    radius = radius,
-                    quality = fitQuality
+            return new Polar
+            {
+                x = centerX,
+                y = centerY,
+                z = points.Min(e => e.z),
+                radius = radius,
+                quality = fitQuality
                 };
             }
         

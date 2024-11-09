@@ -199,6 +199,26 @@ namespace Picky
             set { zCalPadZ = value; OnPropertyChanged(nameof(ZCalPadZ)); }
         }
 
+        private double zCalDeckPadX = Constants.ZPROBE_CAL_DECK_PAD_X;
+        public double ZCalDeckPadX
+        {
+            get { return zCalDeckPadX; }
+            set { zCalDeckPadX = value; OnPropertyChanged(nameof(ZCalDeckPadX)); }
+        }
+
+        private double zCalDeckPadY = Constants.ZPROBE_CAL_DECK_PAD_Y;
+        public double ZCalDeckPadY
+        {
+            get { return zCalDeckPadY; }
+            set { zCalDeckPadY = value; OnPropertyChanged(nameof(ZCalDeckPadY)); }
+        }
+
+        private double zCalDeckPadZ;
+        public double ZCalDeckPadZ
+        {
+            get { return zCalDeckPadZ; }
+            set { zCalDeckPadZ = value; OnPropertyChanged(nameof(ZCalDeckPadZ)); }
+        }
 
         public CalibrationModel()
         {

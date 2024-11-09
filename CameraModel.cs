@@ -141,10 +141,17 @@ namespace Picky
             bkgWorker.RunWorkerAsync();
         }
 
+        public void CancelAllRequests()
+        {
+            searchCircleRequest = false;
+            searchQRRequest = false;
+           
+        }
+
         public void SetManualCircleSearch()
         {
-            CircleDetector detector = new CircleDetector(HoughModes.GradientAlt, machine.SelectedPickTool.CircleDetectorP1, machine.SelectedPickTool.CircleDetectorP2, machine.SelectedPickTool.MatThreshold);
-            detector.ROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), 0, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 3);
+            CircleDetector detector = new CircleDetector(HoughModes.GradientAlt, machine.SelectedPickTool.CircleDetectorP1, machine.SelectedPickTool.CircleDetectorP2, machine.SelectedPickTool.MatUpperThreshold);
+            detector.ROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), 0, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 4);
             detector.zEstimate = 25.0;
             detector.CircleEstimate = new CircleSegment(new Point2f(0, 0), (float)(Constants.TOOL_28GA_TIP_DIA_MM / 2));
             RequestCircleLocation(detector);
@@ -430,8 +437,7 @@ namespace Picky
             bkgWorker.CancelAsync();
         }
 
-
-
+        
         private void Worker_DoWork(object sender, DoWorkEventArgs e)
         {
             /*----------------------------------------------------------------
@@ -440,7 +446,7 @@ namespace Picky
              * --------------------------------------------------------------*/
             
             var worker = (BackgroundWorker)sender;
-            while (!worker.CancellationPending)
+             while (!worker.CancellationPending)
             {
                 try
                 {
@@ -449,7 +455,7 @@ namespace Picky
                     Cv2.CopyTo(RawImage, ColorImage);
                     Cv2.CvtColor(RawImage, GrayImage, ColorConversionCodes.BGR2GRAY);
                     Cv2.GaussianBlur(GrayImage, GrayImage, new OpenCvSharp.Size(5, 5), 0);
-                    Cv2.Threshold(GrayImage, ThresImage, machine.SelectedPickTool?.MatThreshold ?? BinaryThreshold, 255, ThresholdTypes.Binary);  // Default is 80
+                    Cv2.Threshold(GrayImage, ThresImage, BinaryThreshold, 255, ThresholdTypes.Binary);  // Default is 80
                     Cv2.Canny(ThresImage, EdgeImage, 50, 150, 3);  //50 150 3
                     Cv2.Dilate(EdgeImage, DilatedImage, null, iterations: 2);
                     

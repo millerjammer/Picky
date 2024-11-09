@@ -158,7 +158,14 @@ namespace Picky
             set { isCameraCalibrated = value; OnPropertyChanged(nameof(IsCameraCalibrated)); }
         }
 
-        
+        private int rxMessageCount = 0;
+        public int RxMessageCount
+        {
+            get { return rxMessageCount; }
+            set { rxMessageCount = value; OnPropertyChanged(nameof(RxMessageCount)); }
+        }
+
+
         public event NotifyCollectionChangedEventHandler CollectionChanged;
         private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {

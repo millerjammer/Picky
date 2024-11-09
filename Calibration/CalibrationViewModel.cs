@@ -176,7 +176,7 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.Feeder0X, machine.Cal.Feeder0Y - 40, 0, 0, 0));
             machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.Feeder0X, machine.Cal.Feeder0Y, 0, 0, 0));
         }
-
+        
         /* This is called when machine z changes */
         private void OnMachinePropertyChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -207,10 +207,33 @@ namespace Picky
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
             machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.SetZProbeCalibration());
+            machine.Messages.Add(GCommand.SetZProbeCalibration(new Point2d(machine.Cal.ZCalPadX, machine.Cal.ZCalPadY )));
             machine.Messages.Add(GCommand.G_SetZPosition(0));
         }
-              
+
+        public ICommand CalZProbeDeckCommand { get { return new RelayCommand(CalZProbeDeck); } }
+        private void CalZProbeDeck()
+        {
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalDeckPadX, machine.Cal.ZCalDeckPadY, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            machine.Messages.Add(GCommand.SetZProbeCalibration(new Point2d(machine.Cal.ZCalDeckPadX, machine.Cal.ZCalDeckPadY)));
+            machine.Messages.Add(GCommand.G_SetZPosition(0));
+        }
+
+        public ICommand GoToDeckPadCommand { get { return new RelayCommand(GoToDeckPad); } }
+        private void GoToDeckPad()
+        {
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalDeckPadX, machine.Cal.ZCalDeckPadY, 0, 0, 0));
+        }
+
+        public ICommand GoToCalibrationPadCommand { get { return new RelayCommand(GoToCalibrationPad); } }
+        private void GoToCalibrationPad()
+        {
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalPadX, machine.Cal.ZCalPadY, 0, 0, 0));
+        }
+
         private void GetScaleResolution(CalResolutionTargetModel target)
         /*---------------------------------------------------------------------
          * Uses step alignment to determine mm/pix at a specific target. This
