@@ -38,20 +38,54 @@
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
-            <ToggleButton Grid.Row="1" x:Name="mftb" Content="Manual Focus" IsChecked="{Binding camera.IsManualFocus}"  Margin="10 10 10 0" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
-            <Slider Grid.Row="2" IsEnabled="{Binding IsChecked, ElementName=mftb}" Value="{Binding camera.Focus}"  Minimum="0" Maximum="600" HorizontalAlignment="Stretch" Margin="20 10 15 10" />
-            <TextBlock Grid.Row="3" Text="Detection Threshold" Margin="20 0 0 0"/>
-            <Slider Grid.Row="4" Value="{Binding DetectionThreshold, Mode=TwoWay}" IsEnabled="{Binding IsCassetteFeederSelected, Mode=OneWay}" Minimum="-255" Maximum="0" HorizontalAlignment="Stretch" Margin="20 10 15 10"/>
-            <TextBlock Grid.Row="5" Text="Binary Threshold" Margin="20 0 0 0"/>
-            <Slider Grid.Row="6" Value="{Binding camera.BinaryThreshold, Mode=TwoWay}" Minimum="0" Maximum="255" HorizontalAlignment="Stretch" Margin="20 10 15 10"/>
-            <ComboBox Grid.Row="7" Name="ImageType" ItemsSource="{Binding VisualizationView}" DisplayMemberPath="viewName" SelectedItem="{Binding SelectedVisualizationViewItem}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 0 15 0" />
-            <StackPanel Grid.Row="8" Orientation="Horizontal" Margin="20 15 0 0">
+            <ToggleButton Grid.Row="1" x:Name="mftb" Content="Manual Focus" IsChecked="{Binding camera.IsManualFocus}"  Margin="10 10 10 10" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+            
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="20 5 0 10">
+                <Slider Value="{Binding camera.Focus}" IsEnabled="{Binding IsChecked, ElementName=mftb}" Minimum="0" Maximum="600" SmallChange="1" HorizontalAlignment="Stretch" Margin="0 0 0 0"/>
+                <TextBlock Text="{Binding camera.Focus, Mode=TwoWay, StringFormat={}{0:0}}" Margin="10 0 10 0"/>
+            </StackPanel>
+            
+            <TextBlock Grid.Row="3" Text="Part Det. Threshold" Margin="10 5 0 0"/>
+            <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="20 5 0 10">
+                <Slider Value="{Binding DetectionThreshold, Mode=TwoWay}" IsEnabled="{Binding IsCassetteFeederSelected, Mode=OneWay}" Minimum="-255" Maximum="0" SmallChange="1" HorizontalAlignment="Stretch" Margin="0 0 0 0"/>
+                <TextBlock Text="{Binding DetectionThreshold, Mode=TwoWay, StringFormat={}{0:0}}" Margin="10 0 10 0"/>
+            </StackPanel>
+
+            <TextBlock Grid.Row="5" Text="Binary Threshold" Margin="10 5 0 0"/>
+            <StackPanel Grid.Row="6" Orientation="Horizontal" Margin="20 5 0 10">
+                <Slider Value="{Binding camera.BinaryThreshold, Mode=TwoWay}" Minimum="0" Maximum="255" SmallChange="1" HorizontalAlignment="Stretch" Margin="0 0 0 0"/>
+                <TextBlock Text="{Binding camera.BinaryThreshold, Mode=TwoWay, StringFormat={}{0:0}}" Margin="10 0 10 0"/>
+            </StackPanel>
+
+            <TextBlock Grid.Row="7" Text="Detector Param 1" Margin="10 5 0 0"/>
+            <StackPanel Grid.Row="8" Orientation="Horizontal" Margin="20 5 0 10">
+                <Slider Value="{Binding camera.CircleDetectorP1, Mode=TwoWay}" Minimum="1" Maximum="200" SmallChange="1" TickFrequency="1" HorizontalAlignment="Left" Margin="0 0 0 0"/>
+                <TextBlock Text="{Binding camera.CircleDetectorP1, Mode=TwoWay, StringFormat={}{0:0}}" Margin="10 0 10 0"/>
+            </StackPanel>
+
+            <TextBlock Grid.Row="9" Text="Detector Param 2" Margin="10 5 0 0"/>
+            <StackPanel Grid.Row="10" Orientation="Horizontal" Margin="20 5 0 10">
+                <Slider Value="{Binding camera.CircleDetectorP2, Mode=TwoWay}" Minimum=".01" Maximum="0.99" SmallChange="0.01" TickFrequency="0.01" HorizontalAlignment="Left" Margin="0 0 0 0"/>
+                <TextBlock Text="{Binding camera.CircleDetectorP2, Mode=TwoWay, StringFormat={}{0:0.00}}" Margin="10 0 10 0"/>
+            </StackPanel>
+
+            <TextBlock Grid.Row="11" Text="Image View:" Margin="10 5 0 10"/>
+            <ComboBox Grid.Row="12" Name="ImageType" ItemsSource="{Binding VisualizationView}" DisplayMemberPath="viewName" SelectedItem="{Binding SelectedVisualizationViewItem}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 0 15 10" />
+            
+            <TextBlock Grid.Row="14" Text="Detection View:" Margin="10 5 0 10"/>
+            <ComboBox Grid.Row="15" Name="DetectionType" ItemsSource="{Binding ImageProcessingView}" DisplayMemberPath="processingName" SelectedItem="{Binding SelectedImageProcessingItem}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 0 15 10" />
+            
+            <StackPanel Grid.Row="16" Orientation="Horizontal" Margin="20 15 0 10">
                 <TextBlock Text="Part In View"/>
                 <Ellipse Fill="{Binding PartInViewIconColor}" Height="15" Width="15" Margin="30 0 0 5" StrokeThickness="0" Stroke="Black"/>
             </StackPanel>
 
-            
+
         </Grid>
     </Grid>
 

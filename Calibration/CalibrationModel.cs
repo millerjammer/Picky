@@ -212,14 +212,8 @@ namespace Picky
             get { return zCalDeckPadY; }
             set { zCalDeckPadY = value; OnPropertyChanged(nameof(ZCalDeckPadY)); }
         }
-
-        private double zCalDeckPadZ;
-        public double ZCalDeckPadZ
-        {
-            get { return zCalDeckPadZ; }
-            set { zCalDeckPadZ = value; OnPropertyChanged(nameof(ZCalDeckPadZ)); }
-        }
-
+        
+        
         public CalibrationModel()
         {
             CircleSegment targetCircle = new CircleSegment();

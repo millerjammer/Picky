@@ -15,24 +15,17 @@ namespace Picky.Tools
     *-------------------------------------------------------------------------------*/
     {
         public MachineMessage msg;
+        public double targetZ;
         public Part part;
-        public double rotation; //Used for correction only
-        
-        public OffsetCameraToPickCommand(double head_rotation)
-        {
-            msg = new MachineMessage();
-            msg.messageCommand = this;
-            msg.cmd = Encoding.ASCII.GetBytes("J102 Offset Camera to Pick\n");
-            rotation = head_rotation;
-        }
 
-        public OffsetCameraToPickCommand(Part _part)
+        public OffsetCameraToPickCommand(Part _part, double _targetZ)
         {
             /* Part is based so that it's selected in the Pick List and Feeder */
             msg = new MachineMessage();
             msg.messageCommand = this;
             msg.cmd = Encoding.ASCII.GetBytes("J102 Offset Camera to Pick\n");
             part = _part;
+            targetZ = _targetZ;
         }
 
         public MachineMessage GetMessage()
@@ -57,20 +50,27 @@ namespace Picky.Tools
 
         public bool PostMessageCommand(MachineMessage msg)
         {
+            Console.WriteLine("start");
             /* Move head from Camera to Pick */
             MachineModel machine = MachineModel.Instance;
             MachineMessage message = machine.Messages.ElementAt(machine.Messages.IndexOf(msg) - 1);
-            //Get offset in mm and add to last target
-                       
-            double x = message.target.x + machine.Cal.OriginToDownCameraX;
-            double y = message.target.y + machine.Cal.OriginToDownCameraY;
+
+            //Get offset in pixels and add to last target
+            //Point2d offset = GetCalibratedOffset(targetZ, double.Parse(part.Rotation));
+            //Convert to mm
+            var scale = machine.Cal.GetScaleMMPerPixAtZ(targetZ);
+           // double x = message.target.x + (scale.xScale * offset.X); // machine.Cal.OriginToDownCameraX;
+            //double y = message.target.y + (scale.yScale * offset.Y); // machine.Cal.OriginToDownCameraY;
 
 
             //Update next command
-            message = machine.Messages.ElementAt(machine.Messages.IndexOf(msg) + 1);
-            message.target.x = x;
-            message.target.y = y;
-            message.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1}\n", message.target.x, message.target.y));
+           // Console.WriteLine("Part: x:" + message.target.x + "mm ," + message.target.y + "mm");
+            //Console.WriteLine("For Pick: x:" + x + "mm ," + y + "mm");
+            //message = machine.Messages.ElementAt(machine.Messages.IndexOf(msg) + 1);
+           // message.target.x = x;
+           // message.target.y = y;
+            //message.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1}\n", message.target.x, message.target.y));
+            Console.WriteLine("Done");
             return true;
         }
     }

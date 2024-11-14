@@ -13,34 +13,6 @@ using System.Windows.Markup;
 
 namespace Picky
 {
-    public class Polar
-    {
-        public double x { get; set; }
-        public double y { get; set; }
-        public double z { get; set; }
-        public double angle { get; set; }
-        public double radius { get; set; }
-        public double quality { get; set; }
-
-        public Polar(double x, double y, double z, double angle)
-        {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.angle = angle;
-        }
-
-        public Polar(double x, double y, double angle)
-        {
-            this.x = x;
-            this.y = y;
-            this.angle = angle;
-        }
-
-        
-        public Polar() { }
-    }
-     
     public class Circle3d : INotifyPropertyChanged
     {
         private double radius;
@@ -155,6 +127,9 @@ namespace Picky
         public static double ZPROBE_CAL_PAD_Y = 185;
         public static double ZPROBE_CAL_DECK_PAD_X = 0;
         public static double ZPROBE_CAL_DECK_PAD_Y = 195;
+
+        public static double ZOFFSET_CAL_PAD_TO_DECK = 2.78;
+        public static double ZOFFSET_CAL_PAD_TO_FEEDER_TAPE = 6.35 + 1 + ZOFFSET_CAL_PAD_TO_DECK;
 
         /* Serial Port */
         public static int MAX_BUFFER_SIZE = 4096;

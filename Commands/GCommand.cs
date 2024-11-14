@@ -43,21 +43,15 @@ namespace Picky
             return cmd.GetMessage();
         }
 
-        public static MachineMessage OffsetCameraToPick(double angle)
+        public static MachineMessage OffsetCameraToPick(Part part, double targetZ)
         {
-            OffsetCameraToPickCommand cmd = new OffsetCameraToPickCommand(angle);
+            OffsetCameraToPickCommand cmd = new OffsetCameraToPickCommand(part, targetZ);
             return cmd.GetMessage();
         }
 
-        public static MachineMessage OffsetCameraToPick(Part part)
+        public static MachineMessage OpticallyAlignToPart(Feeder feeder)
         {
-            OffsetCameraToPickCommand cmd = new OffsetCameraToPickCommand(part);
-            return cmd.GetMessage();
-        }
-
-        public static MachineMessage OpticallyAlignToPart(Part part)
-        {
-            OpticallyAlignToPartCommand cmd = new OpticallyAlignToPartCommand(part);
+            OpticallyAlignToPartCommand cmd = new OpticallyAlignToPartCommand(feeder);
             return cmd.GetMessage();
         }
 
@@ -85,9 +79,9 @@ namespace Picky
             return cmd.GetMessage();
         }
         
-        public static MachineMessage SetZProbeCalibration( Point2d location)            
+        public static MachineMessage SetZProbeCalibration()            
         {
-            SetZProbeCalibrationCommand cmd = new SetZProbeCalibrationCommand(location);
+            SetZProbeCalibrationCommand cmd = new SetZProbeCalibrationCommand();
             return cmd.GetMessage();
         }
 

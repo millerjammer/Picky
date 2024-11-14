@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.IO;
 using System.Security.RightsManagement;
+using System.Xml.Linq;
+using System.Windows;
 
 namespace Picky
 {
@@ -34,44 +36,35 @@ namespace Picky
         public double thickness { get; set; }
         public double interval { get; set; }
 
-        private double _x_next_part;
-        public double x_next_part
+        private Position3D nextPartOpticalLocation = new Position3D(0, 0, 0);
+        public Position3D NextPartOpticalLocation
         {
-            get { return _x_next_part; }
-            set { 
-                if( _x_next_part != value)
-                {
-                    _x_next_part = value;
-                    OnPropertyChanged(nameof(x_next_part)); 
-                }
-            }
-        }
-        private double _y_next_part;
-        public double y_next_part
-        {
-            get { return _y_next_part; }
-            set {
-                if (_y_next_part != value)
-                {
-                    _y_next_part = value;
-                    OnPropertyChanged(nameof(y_next_part));
-                }
-            }
-        }
-        private double _z_next_part;
-        public double z_next_part
-        {
-            get { return _z_next_part; }
+            get { return nextPartOpticalLocation; }
             set
             {
-                if (_z_next_part != value)
+                if (nextPartOpticalLocation != value)
                 {
-                    _z_next_part = value;
-                    OnPropertyChanged(nameof(z_next_part));
+                    nextPartOpticalLocation = value;
+                    OnPropertyChanged(nameof(NextPartOpticalLocation));
                 }
             }
         }
 
+        private Position3D nextPartPickLocation = new Position3D(0, 0, 0);
+        public Position3D NextPartPickLocation
+        {
+            get { return nextPartPickLocation; }
+            set
+            {
+                if (nextPartPickLocation != value)
+                {
+                    nextPartPickLocation = value;
+                    OnPropertyChanged(nameof(NextPartPickLocation));
+                }
+            }
+        }
+
+        
 
         private double _x_origin; 
         public double x_origin
@@ -108,7 +101,7 @@ namespace Picky
         public string PickToolName
         {
             get { return pickToolName; }
-            set { pickToolName = value; OnPropertyChanged(nameof(pickToolName)); }
+            set { pickToolName = value; OnPropertyChanged(nameof(PickToolName)); }
         }
 
 
@@ -118,10 +111,50 @@ namespace Picky
             _part.PropertyChanged += OnPartPropertyChanged;
         }
 
-        public void SetCandidateNextPartLocation(double x, double y)
+        public void SetCandidateNextPartLocation(double x_next, double y_next, double targetZ)
         {
-            y_next_part = y;
-            x_next_part = x;
+            /*----------------------------------------------------------------------
+             * When part is in view, call here to update the part's position, optically
+             * and pick tool. x and y are in terms of pixels in the current frame.
+             * This routine will convert the pixels to the center of the frame, add
+             * the machine current position and calculate the offset too the selected 
+             * tool head if available. targetZ is in mm and is location of part z
+             * ---------------------------------------------------------------------*/
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                // Get pixel offset relative to center of frame.
+                double x_offset_pix = (x_next - (Constants.CAMERA_FRAME_WIDTH / 2));
+                double y_offset_pix = (y_next - (Constants.CAMERA_FRAME_HEIGHT / 2));
+                // Convert pixels to mm
+                //var scale = machine.Cal.GetScaleMMPerPixAtZ(machine.Cal.TargetResAtPCB.MMHeightZ);
+                var scale = machine.Cal.GetScaleMMPerPixAtZ(targetZ); //TODO fix this
+                NextPartOpticalLocation.X = machine.CurrentX - (x_offset_pix * scale.xScale);
+                NextPartOpticalLocation.Y = machine.CurrentY + (y_offset_pix * scale.yScale);
+
+                //Now, if there's a tool, calculate offset to tool
+                // Linearly interpolate X and Y offsets between the two circles based on Z
+                if (machine.SelectedPickTool == null)
+                {
+                    NextPartPickLocation.X = 0;
+                    NextPartPickLocation.Y = 0;
+                    return;
+                }
+                PickToolModel tool = machine.SelectedPickTool;
+
+                double t = (targetZ - tool.TipOffsetLower.Z) / (tool.TipOffsetUpper.Z - tool.TipOffsetLower.Z);
+                Console.WriteLine("here: " + targetZ + " " + tool.TipOffsetLower.Z);
+                // Interpolated x and y offsets
+                double interpolatedX = (scale.xScale * tool.TipOffsetLower.X) + t * (scale.xScale * (tool.TipOffsetUpper.X - tool.TipOffsetLower.X));
+                double interpolatedY = (scale.yScale * tool.TipOffsetLower.Y) + t * (scale.yScale * (tool.TipOffsetUpper.Y - tool.TipOffsetLower.Y));
+
+                // Convert rotation from degrees to radians
+                double rotationRadians = double.Parse(part.Rotation) * (Math.PI / 180);
+
+                // Apply rotation
+                NextPartPickLocation.X = interpolatedX * Math.Cos(rotationRadians) - interpolatedY * Math.Sin(rotationRadians);
+                NextPartPickLocation.Y = interpolatedX * Math.Sin(rotationRadians) + interpolatedY * Math.Cos(rotationRadians);
+            });
+            return;
         }
 
         private void OnPartPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -173,7 +206,7 @@ namespace Picky
         private void GoToNextComponent()
         {
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
-            machine.Messages.Add(GCommand.OpticallyAlignToPart(part));
+            machine.Messages.Add(GCommand.OpticallyAlignToPart(this));
             machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
         }
 
@@ -190,7 +223,7 @@ namespace Picky
             Console.WriteLine("Set Part Template");
             Mat mat = new Mat();
             Cv2.CopyTo(machine.downCamera.ColorImage, mat);
-            using (Window window = new Window("Select ROI"))
+            using (OpenCvSharp.Window window = new OpenCvSharp.Window("Select ROI"))
             {
                 window.Image = mat;
 

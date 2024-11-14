@@ -120,36 +120,6 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetXYPosition(machine.Cal.OriginToDownCameraX, machine.Cal.OriginToDownCameraY));
         }
 
-        public ICommand GoToPickHeadZ1Command { get { return new RelayCommand(GoToPickHeadZ1); } }
-        private void GoToPickHeadZ1()
-        {
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.OriginToPickHeadX1, machine.Cal.OriginToPickHeadY1, machine.Cal.OriginToPickHeadZ1, 0, 0));
-        }
-
-        public ICommand SetPickHeadZ1Command { get { return new RelayCommand(SetPickHeadZ1); } }
-        private void SetPickHeadZ1()
-        {
-            machine.Cal.OriginToPickHeadX1 = machine.CurrentX;
-            machine.Cal.OriginToPickHeadY1 = machine.CurrentY;
-            machine.Cal.OriginToPickHeadZ1 = machine.CurrentZ;
-            machine.Cal.GetPickHeadOffsetToCameraAtZ(Machine.CurrentZ);
-        }
-
-        public ICommand GoToPickHeadZ2Command { get { return new RelayCommand(GoToPickHeadZ2); } }
-        private void GoToPickHeadZ2()
-        {
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.OriginToPickHeadX2, machine.Cal.OriginToPickHeadY2, machine.Cal.OriginToPickHeadZ2, 0, 0));
-        }
-
-        public ICommand SetPickHeadZ2Command { get { return new RelayCommand(SetPickHeadZ2); } }
-        private void SetPickHeadZ2()
-        {
-            machine.Cal.OriginToPickHeadX2 = machine.CurrentX;
-            machine.Cal.OriginToPickHeadY2 = machine.CurrentY;
-            machine.Cal.OriginToPickHeadZ2 = machine.CurrentZ;
-            machine.Cal.GetPickHeadOffsetToCameraAtZ(Machine.CurrentZ);
-        }
-
         public ICommand GetFeeder0Command { get { return new RelayCommand(GetFeeder0); } }
         private void GetFeeder0()
         {
@@ -207,18 +177,7 @@ namespace Picky
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
             machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.SetZProbeCalibration(new Point2d(machine.Cal.ZCalPadX, machine.Cal.ZCalPadY )));
-            machine.Messages.Add(GCommand.G_SetZPosition(0));
-        }
-
-        public ICommand CalZProbeDeckCommand { get { return new RelayCommand(CalZProbeDeck); } }
-        private void CalZProbeDeck()
-        {
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalDeckPadX, machine.Cal.ZCalDeckPadY, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
-            machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.SetZProbeCalibration(new Point2d(machine.Cal.ZCalDeckPadX, machine.Cal.ZCalDeckPadY)));
+            machine.Messages.Add(GCommand.SetZProbeCalibration());
             machine.Messages.Add(GCommand.G_SetZPosition(0));
         }
 

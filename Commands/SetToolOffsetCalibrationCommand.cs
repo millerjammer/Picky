@@ -46,10 +46,16 @@ namespace Picky
             machine = MachineModel.Instance;
             tool = _tool;
             if (isUpper)
-                threshold = machine.SelectedPickTool.MatUpperThreshold;
+            {
+                threshold = machine.SelectedPickTool.UpperCircleDetector.Threshold;
+                detector = new CircleDetector(HoughModes.GradientAlt, machine.SelectedPickTool.UpperCircleDetector.Param1, machine.SelectedPickTool.UpperCircleDetector.Param2, threshold);
+            }
             else
-                threshold = machine.SelectedPickTool.MatLowerThreshold;
-            detector = new CircleDetector(HoughModes.GradientAlt, machine.SelectedPickTool.CircleDetectorP1, machine.SelectedPickTool.CircleDetectorP2, threshold);
+            {
+                threshold = machine.SelectedPickTool.LowerCircleDetector.Threshold;
+                detector = new CircleDetector(HoughModes.GradientAlt, machine.SelectedPickTool.LowerCircleDetector.Param1, machine.SelectedPickTool.LowerCircleDetector.Param2, threshold);
+            }
+            
             detector.ROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), 0, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 4);
             detector.zEstimate = tool.Length;
             detector.CircleEstimate = new CircleSegment(new Point2f(0, 0), (float)(tool.SelectedTip.TipDia / 2));
@@ -83,7 +89,7 @@ namespace Picky
                 {
                     if (--circleCount == 0)
                     {
-                        tool.SetPickOffsetCalibrationData(new Polar() { x = circleSegment.Center.X, y = circleSegment.Center.Y, z = machine.CurrentZ });
+                        tool.SetPickOffsetCalibrationData(new Position3D() { X = circleSegment.Center.X, Y = circleSegment.Center.Y, Z = machine.CurrentZ });
                         return true;
                     }
                 }

@@ -258,6 +258,7 @@ namespace Picky
             foreach (var item in PickToolList)
             {
                 item.TipState = PickToolModel.TipStates.Unknown;
+                item.LoadCalibrationCircleFromFile();
                 
             }
         }
@@ -290,19 +291,20 @@ namespace Picky
         }
         public bool AddFeederPickToQueue(Feeder feeder)
         {
+            MachineModel machine = MachineModel.Instance;
             //Go to feeder Origin
             Messages.Add(GCommand.SetCameraManualFocus(downCamera, true, Constants.FOCUS_FEEDER_QR_CODE));
             Messages.Add(GCommand.G_SetPosition(feeder.x_origin, feeder.y_origin, 0, 0, 0));
             Messages.Add(GCommand.G_FinishMoves());
             Messages.Add(GCommand.SetCameraManualFocus(downCamera, true, Constants.FOCUS_FEEDER_PART));
-            Messages.Add(GCommand.OpticallyAlignToPart(feeder.part));
+            Messages.Add(GCommand.OpticallyAlignToPart(feeder));
             Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
-            Messages.Add(GCommand.OffsetCameraToPick(feeder.part));
+            Messages.Add(GCommand.OffsetCameraToPick(feeder.part, machine.selectedPickTool.TipOffsetLower.Z + 2.0));
             Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             Messages.Add(GCommand.G_ProbeZ(Constants.PART_NOMINAL_Z_DRIVE_MM));
             Messages.Add(GCommand.G_FinishMoves());
-            Messages.Add(GCommand.G_EnablePump(true));
-            Messages.Add(GCommand.G_EnableValve(false));
+            //Messages.Add(GCommand.G_EnablePump(true));
+            //Messages.Add(GCommand.G_EnableValve(false));
             Messages.Add(GCommand.Delay(100));
             Messages.Add(GCommand.G_SetZPosition(0));
             Messages.Add(GCommand.G_FinishMoves());
@@ -310,11 +312,13 @@ namespace Picky
         }
 
         public bool AddPartPlacementToQueue(Part part)
-        { /* Sets PICK location */
+        {
+            MachineModel machine = MachineModel.Instance;
+            /* Sets PLACE location */
             double part_x = Board.PcbOriginX + (Convert.ToDouble(part.CenterX) * Constants.MIL_TO_MM);
             double part_y = Board.PcbOriginY + (Convert.ToDouble(part.CenterY) * Constants.MIL_TO_MM);
             Messages.Add(GCommand.G_SetXYPosition(part_x, part_y));
-            Messages.Add(GCommand.OffsetCameraToPick(part));
+            Messages.Add(GCommand.OffsetCameraToPick(part, machine.selectedPickTool.TipOffsetLower.Z - 2.0));
             Messages.Add(GCommand.G_SetXYPosition(0, 0));
             Messages.Add(GCommand.G_SetRotation(Convert.ToDouble(part.Rotation)));
             Messages.Add(GCommand.G_FinishMoves());
@@ -327,8 +331,8 @@ namespace Picky
             return true;
         }
 
-        public bool AddPartLocationToQueue(Part part)
-        { /* Sets OPTICAL LOCATION */
+        /*public bool AddPartLocationToQueue(Part part)
+        { /* Sets OPTICAL LOCATION 
             double part_x = Board.PcbOriginX + (Convert.ToDouble(part.CenterX) * Constants.MIL_TO_MM);
             double part_y = Board.PcbOriginY + (Convert.ToDouble(part.CenterY) * Constants.MIL_TO_MM);
             Messages.Add(GCommand.G_SetXYPosition(part_x, part_y));
@@ -341,6 +345,6 @@ namespace Picky
             Messages.Add(GCommand.Delay(10));
             Messages.Add(GCommand.G_SetZPosition(0));
             return true;
-        }
+        }*/
     }
 }

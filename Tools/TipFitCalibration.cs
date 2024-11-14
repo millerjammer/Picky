@@ -9,7 +9,7 @@ namespace Picky
     public class TipFitCalibration
     {
         
-            public Polar CalculateBestFitCircle(List<Polar> points)
+            public Position3D CalculateBestFitCircle(List<Position3D> points)
             {
                 int n = points.Count();
 
@@ -18,15 +18,15 @@ namespace Picky
                     throw new ArgumentException("At least 3 points are required to calculate a best-fit circle.");
                 }
 
-                double sumX = points.Sum(p => p.x);
-                double sumY = points.Sum(p => p.y);
-                double sumX2 = points.Sum(p => p.x * p.x);
-                double sumY2 = points.Sum(p => p.y * p.y);
-                double sumXY = points.Sum(p => p.x * p.y);
-                double sumX3 = points.Sum(p => p.x * p.x * p.x);
-                double sumY3 = points.Sum(p => p.y * p.y * p.y);
-                double sumXY2 = points.Sum(p => p.x * p.y * p.y);
-                double sumX2Y = points.Sum(p => p.x* p.x * p.y);
+                double sumX = points.Sum(p => p.X);
+                double sumY = points.Sum(p => p.Y);
+                double sumX2 = points.Sum(p => p.X * p.X);
+                double sumY2 = points.Sum(p => p.Y * p.Y);
+                double sumXY = points.Sum(p => p.X * p.Y);
+                double sumX3 = points.Sum(p => p.X * p.X * p.X);
+                double sumY3 = points.Sum(p => p.Y * p.Y * p.Y);
+                double sumXY2 = points.Sum(p => p.X * p.Y * p.Y);
+                double sumX2Y = points.Sum(p => p.X* p.X * p.Y);
 
                 double C = n * sumX2 - sumX * sumX;
                 double D = n * sumXY - sumX * sumY;
@@ -41,19 +41,19 @@ namespace Picky
                 // Calculate the fit quality (mean square error)
                 double fitQuality = points.Average(p =>
                 {
-                    double dx = p.x - centerX;
-                    double dy = p.y - centerY;
+                    double dx = p.X - centerX;
+                    double dy = p.Y - centerY;
                     return Math.Pow(Math.Sqrt(dx * dx + dy * dy) - radius, 2);
                 });
 
-            return new Polar
-            {
-                x = centerX,
-                y = centerY,
-                z = points.Min(e => e.z),
-                radius = radius,
-                quality = fitQuality
-                };
+                Position3D pos = new Position3D();
+                pos.X = centerX;
+                pos.Y = centerY;
+                pos.Z = points.Min(e => e.Z);
+                pos.Radius = radius;
+                pos.Quality = fitQuality;
+            
+            return pos;
             }
         
     }

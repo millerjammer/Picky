@@ -79,7 +79,7 @@ namespace Picky
         {
             Machine.SaveTools();
         }
-
+        
         public ICommand SetAsStorageLocationCommand { get { return new RelayCommand(SetAsStorageLocation); } }
         private void SetAsStorageLocation()
         {
@@ -94,6 +94,30 @@ namespace Picky
         {
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
+        }
+        
+        public ICommand GoToUpperCalPadCommand { get { return new RelayCommand(GoToUpperCalPad); } }
+        private void GoToUpperCalPad()
+        {
+            machine.Messages.Add(GCommand.G_EnableIlluminator(true));
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalPadX, machine.Cal.ZCalPadY, 0, 0, 0));
+        }
+
+        public ICommand GoToLowerCalPadCommand { get { return new RelayCommand(GoToLowerCalPad); } }
+        private void GoToLowerCalPad()
+        {
+            machine.Messages.Add(GCommand.G_EnableIlluminator(true));
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalDeckPadX, machine.Cal.ZCalDeckPadY, 0, 0, 0));
+        }
+
+        public ICommand ProbePadCommand { get { return new RelayCommand(ProbePad); } }
+        private void ProbePad()
+        {
+            machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
+            machine.Messages.Add(GCommand.G_SetZPosition(-2.0));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+
         }
 
         public ICommand AssignToSelectedFeederCommand { get { return new RelayCommand(assignToSelectedFeeder); } }
@@ -135,15 +159,18 @@ namespace Picky
             
         }
 
-        public ICommand MeasureToolLengthCommand { get { return new RelayCommand(MeasureToolLength); } }
-        private void MeasureToolLength()
+        public ICommand CalibrateToolLengthCommand { get { return new RelayCommand(CalibrateToolLength); } }
+        private void CalibrateToolLength()
         {
             machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalPadX, machine.Cal.ZCalPadY, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.SetToolLength(machine.SelectedPickTool));
-            machine.Messages.Add(GCommand.G_SetZPosition(0));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
+            machine.Messages.Add(GCommand.G_SetZPosition(-2.0));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalPadX, machine.Cal.ZCalPadY, 0, 0, 0));
         }
 
         public ICommand CalibrateToolCommand { get { return new RelayCommand(CalibrateTool); } }
@@ -156,6 +183,8 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalPadX, machine.Cal.ZCalPadY, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            machine.Messages.Add(GCommand.SetToolLength(machine.SelectedPickTool));
             machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
             machine.Messages.Add(GCommand.G_SetZPosition(-2.0));
             machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));

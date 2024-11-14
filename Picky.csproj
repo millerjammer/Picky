@@ -180,6 +180,7 @@
     <Compile Include="Feeder.cs" />
     <Compile Include="Commands\GCommand.cs" />
     <Compile Include="Commands\StepAlignToCalCircleCommand.cs" />
+    <Compile Include="ImageProcessingStyle.cs" />
     <Compile Include="Machine\MachineModel.cs" />
     <Compile Include="Machine\MachineMessage.cs" />
     <Compile Include="Machine\MachineView.xaml.cs">
@@ -196,6 +197,7 @@
     <Compile Include="PickListViewModel.cs" />
     <Compile Include="Commands\OpticallyAlignToPartCommand.cs" />
     <Compile Include="Commands\SetScaleResolutionCalibrationCommand.cs" />
+    <Compile Include="Position3D.cs" />
     <Compile Include="SettingsModel.cs" />
     <Compile Include="SettingsViewModel.cs" />
     <Compile Include="SettingsWindow.xaml.cs">
@@ -211,6 +213,7 @@
     <Compile Include="Tools\PickToolWindow.xaml.cs">
       <DependentUpon>PickToolWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="VisualizationStyle.cs" />
     <Page Include="BoardView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

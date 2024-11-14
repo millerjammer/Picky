@@ -122,10 +122,10 @@ namespace Picky
             Machine.Messages.Add(GCommand.SetCameraManualFocus(Machine.downCamera, true, Constants.FOCUS_PCB_062));
             Machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             Machine.Messages.Add(GCommand.G_SetZPosition(0));
-            for (int i = 0; i < Machine.PickList.Count; i++)
-            {
-                Machine.AddPartLocationToQueue(Machine.PickList.ElementAt(i));
-            }
+            //for (int i = 0; i < Machine.PickList.Count; i++)
+            //{
+            //    Machine.AddPartLocationToQueue(Machine.PickList.ElementAt(i));
+            //}
         }
 
         public ICommand OpenPickListCommand { get { return new RelayCommand(OpenPickList); } }

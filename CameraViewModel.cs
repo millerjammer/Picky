@@ -9,23 +9,14 @@ using System.Windows.Media;
 
 namespace Picky
 {
-    public class VisualizationStyle
-    {
-        public string viewName { get; set; }
-        public Mat viewMat { get; set; }
-        public VisualizationStyle(string name, Mat mati)
-        {
-            viewName = name;
-            viewMat = mati;
-        }
-    }
-
+    
     public class CameraViewModel : INotifyPropertyChanged
     {
         public MachineModel machine { get; set; }
         public CameraModel camera { get; set; }
 
         public List<VisualizationStyle> VisualizationView { get; set; }
+        public List<ImageProcessingStyle> ImageProcessingView { get; set; }
 
         private VisualizationStyle selectedVisualizationViewItem;
         public VisualizationStyle SelectedVisualizationViewItem
@@ -33,6 +24,14 @@ namespace Picky
             get { return selectedVisualizationViewItem; }
             set { selectedVisualizationViewItem = value; camera.selectedViewMat = selectedVisualizationViewItem.viewMat; OnPropertyChanged(nameof(SelectedVisualizationViewItem)); } //Notify listeners
         }
+
+        private ImageProcessingStyle selectedImageProcessingItem;
+        public ImageProcessingStyle SelectedImageProcessingItem
+        {
+            get { return selectedImageProcessingItem; }
+            set { selectedImageProcessingItem = value; OnPropertyChanged(nameof(SelectedImageProcessingItem)); } //Notify listeners
+        }
+
 
         public SolidColorBrush PartInViewIconColor
         {
@@ -77,6 +76,14 @@ namespace Picky
                 new VisualizationStyle("Dilated Image", camera.DilatedImage),
             };
             SelectedVisualizationViewItem = VisualizationView.FirstOrDefault();
+
+            ImageProcessingView = new List<ImageProcessingStyle>
+            {
+                new ImageProcessingStyle("Normal"),
+                new ImageProcessingStyle("ToolTip"),
+                new ImageProcessingStyle("QR Code"),
+            };
+            SelectedImageProcessingItem = ImageProcessingView.FirstOrDefault();
         }
 
         /* Default Send Notification boilerplate - properties that notify use OnPropertyChanged */

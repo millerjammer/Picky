@@ -40,8 +40,15 @@ namespace Picky
             if(delay-- > 0)
                 return false;
             MachineModel machine = MachineModel.Instance;
-            Tool.Length = machine.Cal.ZCalPadZ - machine.CurrentZ;
-            Console.WriteLine("Tool Length: " + Tool.Length + "mm");
+            if (machine.CurrentX == machine.Cal.ZCalPadX && machine.CurrentY == machine.Cal.ZCalPadY)
+            {
+                Tool.Length = machine.Cal.ZCalPadZ - machine.CurrentZ;
+                Console.WriteLine("Tool Length: Success, length: " + Tool.Length + "mm");
+            }
+            else
+            {
+                Console.WriteLine("Tool Length: Fail, bad location");
+            }
             return true;
         }
     }

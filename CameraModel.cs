@@ -17,7 +17,7 @@ namespace Picky
 {
     public class CameraModel : INotifyPropertyChanged
     {
-        private MachineModel machine;
+        public MachineModel machine { get; set; }
         public  VideoCapture capture { get; set; }
         private Mat RawImage { get; set; }
 
@@ -34,6 +34,9 @@ namespace Picky
 
         /* What we are currently viewing */
         public VisualizationStyle SelectedVisualizationViewItem { get; set; }
+
+        /* What we are currently viewing */
+        public ImageProcessingStyle SelectedImagrProcessingStyle { get; set; }
 
         /* Mats for Part Identification */
         private Mat grayTemplateImage;
@@ -87,6 +90,20 @@ namespace Picky
             set { binaryThreshold = value; OnPropertyChanged(nameof(BinaryThreshold)); }
         }
 
+        private int circleDetectorP1;
+        public int CircleDetectorP1
+        {
+            get { return circleDetectorP1; }
+            set { circleDetectorP1 = value; OnPropertyChanged(nameof(CircleDetectorP1)); }
+        }
+
+        private double circleDetectorP2;
+        public double CircleDetectorP2
+        {
+            get { return circleDetectorP2; }
+            set { circleDetectorP2 = value; OnPropertyChanged(nameof(CircleDetectorP2)); }
+        }
+
         private bool isManualToolTipSearch;
         public bool IsManualToolTipSearch
         {
@@ -109,7 +126,6 @@ namespace Picky
         public CameraModel(int cameraIndex, MachineModel mm)
         {
             machine = mm;
-            
             RawImage = new Mat();
             ColorImage = new Mat();
             GrayImage = new Mat();
@@ -150,11 +166,11 @@ namespace Picky
 
         public void SetManualCircleSearch()
         {
-            CircleDetector detector = new CircleDetector(HoughModes.GradientAlt, machine.SelectedPickTool.CircleDetectorP1, machine.SelectedPickTool.CircleDetectorP2, machine.SelectedPickTool.MatUpperThreshold);
-            detector.ROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), 0, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 4);
-            detector.zEstimate = 25.0;
-            detector.CircleEstimate = new CircleSegment(new Point2f(0, 0), (float)(Constants.TOOL_28GA_TIP_DIA_MM / 2));
-            RequestCircleLocation(detector);
+            //CircleDetector detector = new CircleDetector(HoughModes.GradientAlt, machine.SelectedPickTool.CircleDetectorP1, machine.SelectedPickTool.CircleDetectorP2, machine.SelectedPickTool.MatUpperThreshold);
+            //detector.ROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), 0, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 4);
+            //detector.zEstimate = 25.0;
+            //detector.CircleEstimate = new CircleSegment(new Point2f(0, 0), (float)(Constants.TOOL_28GA_TIP_DIA_MM / 2));
+            //RequestCircleLocation(detector);
         }
            
 
@@ -304,12 +320,12 @@ namespace Picky
 
             //Convert the estimated circle (in MM) to search criteria (in Pix) based on z.  
             var scale = machine.Cal.GetScaleMMPerPixAtZ(circleDetector.zEstimate);
-            int minR = (int)((circleDetector.CircleEstimate.Radius * .02) / scale.xScale);
-            int maxR = (int)((circleDetector.CircleEstimate.Radius ) / scale.yScale);
-            Console.WriteLine("minR/maxR: " + minR + "," + maxR + "@" + scale.xScale);
+            int minR = (int)((circleDetector.CircleEstimate.Radius / 4) / scale.xScale);
+            int maxR = (int)((circleDetector.CircleEstimate.Radius * 2) / scale.xScale);
+            Console.WriteLine("minR/maxR (pix): " + minR + "," + maxR + "@" + scale.xScale);
 
-            double param1 = machine.SelectedPickTool.CircleDetectorP1;
-            double param2 = machine.SelectedPickTool.CircleDetectorP2;
+            double param1 = machine.SelectedPickTool.UpperCircleDetector.Param1;
+            double param2 = machine.SelectedPickTool.UpperCircleDetector.Param2;
             if (!IsManualToolTipSearch)
             {
                 param1 = circleDetector.Param1;
@@ -414,13 +430,7 @@ namespace Picky
                     // Tell Part where to pick the next part
                     x_next += partROI.X;
                     y_next += partROI.Y;
-                    nextPartOffset.X = (x_next - (Constants.CAMERA_FRAME_WIDTH / 2));
-                    nextPartOffset.Y = (y_next - (Constants.CAMERA_FRAME_HEIGHT / 2));
-                    //var scale = machine.Cal.GetScaleMMPerPixAtZ(machine.Cal.TargetResAtPCB.MMHeightZ);
-                    var scale = machine.Cal.GetScaleMMPerPixAtZ( 22 + 11.5);
-                    x_next_part = machine.CurrentX - (nextPartOffset.X * scale.xScale);
-                    y_next_part = machine.CurrentY + (nextPartOffset.Y * scale.yScale);
-                    machine.selectedCassette.selectedFeeder.SetCandidateNextPartLocation(x_next_part, y_next_part);
+                    machine.selectedCassette.selectedFeeder.SetCandidateNextPartLocation(x_next, y_next, Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE + machine.Cal.ZCalPadZ);
                     break;
                 }
                 else
