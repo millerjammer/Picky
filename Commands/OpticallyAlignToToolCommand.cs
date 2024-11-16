@@ -26,6 +26,7 @@ namespace Picky.Tools
         public MachineMessage msg;
         public PickToolModel tool;
         public CircleDetector detector;
+        public Rect searchROI;
         public CameraModel cameraToUse;
 
         public OpticallyAlignToToolCommand(PickToolModel pickTool)
@@ -33,9 +34,9 @@ namespace Picky.Tools
             machine = MachineModel.Instance;
             tool = pickTool;
             detector = new CircleDetector(HoughModes.Gradient, 140, 50, 80);
-            detector.ROI = new OpenCvSharp.Rect((2 * Constants.CAMERA_FRAME_WIDTH) / 5, (2 * Constants.CAMERA_FRAME_HEIGHT) / 5, Constants.CAMERA_FRAME_WIDTH / 5, Constants.CAMERA_FRAME_HEIGHT / 5);
             detector.zEstimate = 35.5;
             detector.CircleEstimate = new CircleSegment(new Point2f(0, 0), ((float)(Constants.TOOL_CENTER_RADIUS_MILS * Constants.MIL_TO_MM)));
+            detector.ROI = new OpenCvSharp.Rect((2 * Constants.CAMERA_FRAME_WIDTH) / 5, (2 * Constants.CAMERA_FRAME_HEIGHT) / 5, Constants.CAMERA_FRAME_WIDTH / 5, Constants.CAMERA_FRAME_HEIGHT / 5);
             msg = new MachineMessage();
             msg.messageCommand = this;
             msg.cmd = Encoding.ASCII.GetBytes("J102 Optically Align to Tool Head\n");

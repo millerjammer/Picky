@@ -164,6 +164,7 @@
                                             <MenuItem Header="Go to Feeder Drive Location" Command="{Binding selectedFeeder.GoToFeederDriveCommand}" />
                                             <Separator Margin="2"></Separator>
                                             <MenuItem Header="Go to Next Component" Command="{Binding selectedFeeder.GoToNextComponentCommand}" />
+                                            <MenuItem Header="Go to Pick Position" Command="{Binding selectedFeeder.GoToNextPickComponentCommand}" />
                                             <MenuItem Header="Pick Next Component" Command="{Binding selectedFeeder.PickNextComponentCommand}"  />
                                             <Separator Margin="2"></Separator>
                                             <MenuItem Header="Set Part Template" Command="{Binding selectedFeeder.SetPartTemplateCommand}" />

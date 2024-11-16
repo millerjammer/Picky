@@ -104,14 +104,6 @@ namespace Picky
             set { circleDetectorP2 = value; OnPropertyChanged(nameof(CircleDetectorP2)); }
         }
 
-        private bool isManualToolTipSearch;
-        public bool IsManualToolTipSearch
-        {
-            get { return isManualToolTipSearch; }
-            set { isManualToolTipSearch = value; SetManualCircleSearch(); OnPropertyChanged(nameof(IsManualToolTipSearch)); }
-        }
-     
-
         private int focus;
         public int Focus
         {
@@ -163,18 +155,9 @@ namespace Picky
             searchQRRequest = false;
            
         }
+                    
 
-        public void SetManualCircleSearch()
-        {
-            //CircleDetector detector = new CircleDetector(HoughModes.GradientAlt, machine.SelectedPickTool.CircleDetectorP1, machine.SelectedPickTool.CircleDetectorP2, machine.SelectedPickTool.MatUpperThreshold);
-            //detector.ROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), 0, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 4);
-            //detector.zEstimate = 25.0;
-            //detector.CircleEstimate = new CircleSegment(new Point2f(0, 0), (float)(Constants.TOOL_28GA_TIP_DIA_MM / 2));
-            //RequestCircleLocation(detector);
-        }
-           
-
-        public void SetCameraFocus()
+        private void SetCameraFocus()
         {
             if (IsManualFocus == true)
             {
@@ -204,6 +187,7 @@ namespace Picky
 
         public CircleSegment GetBestCircle()
         {
+            //Best circle, referenced to ROI
             Console.WriteLine("Best Circle (in pixels): " + bestCircle.ToString());
             return bestCircle;
         }
@@ -305,7 +289,7 @@ namespace Picky
         {
             /****************************************************************************
              * Private function for finding circles.
-             * Returns false if no circle found, sets bestCircle to 0,0 r0
+             * Returns false if no circle found, sets BestCircle to 0,0 r0
              * Returns true if circle found, call GetBestCircle() to get CircleSegement
              * where center contains the offset from the center of the image.
              * ROI in pixels.
@@ -326,13 +310,7 @@ namespace Picky
 
             double param1 = machine.SelectedPickTool.UpperCircleDetector.Param1;
             double param2 = machine.SelectedPickTool.UpperCircleDetector.Param2;
-            if (!IsManualToolTipSearch)
-            {
-                param1 = circleDetector.Param1;
-                param2 = circleDetector.Param2;
-            }
-
-
+           
             //Set Min distance between matches
             int minDist = maxR;
 
@@ -355,11 +333,11 @@ namespace Picky
             else
             {
                 // Calculate the center of the image, in pixels
-                Point2f imageCenter = new Point2f(CircleROI.Width / 2.0f, CircleROI.Height / 2.0f);
+                Point2f roiCenter = new Point2f(CircleROI.Width / 2.0f, CircleROI.Height / 2.0f);
                 // Find the closest circle to the center
-                CircleSegment closestCircle = Circles.OrderBy(circle => Math.Pow(circle.Center.X - imageCenter.X, 2) + Math.Pow(circle.Center.Y - imageCenter.Y, 2)).First();
-                // Calculate the offset of the closest circle from the center of the image, in pixels
-                Point2f CircleToFind = new Point2f(closestCircle.Center.X - imageCenter.X, closestCircle.Center.Y - imageCenter.Y);
+                CircleSegment closestCircle = Circles.OrderBy(circle => Math.Pow(circle.Center.X - roiCenter.X, 2) + Math.Pow(circle.Center.Y - roiCenter.Y, 2)).First();
+                // Calculate the offset of the closest circle from the center of the ROI image, in pixels
+                Point2f CircleToFind = new Point2f(closestCircle.Center.X - roiCenter.X, closestCircle.Center.Y - roiCenter.Y);
                 bestCircle = closestCircle;
                 bestCircle.Center = CircleToFind;
             }
@@ -505,11 +483,8 @@ namespace Picky
                             Cv2.Circle(ColorImage, x, y, (int)circle.Radius, Scalar.Green, 2);
                             // Draw the circle center
                             Cv2.Circle(ColorImage, x, y, 3, Scalar.Red, 3);
-                            if (!IsManualToolTipSearch)
-                            {
-                                searchCircleRequest = false;        //Don't cancel request till you get a circle
-                            }
                         }
+                        searchCircleRequest = false;
                     }
                 }
                 else if (PartToFind != null)

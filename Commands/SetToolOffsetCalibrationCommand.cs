@@ -10,6 +10,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
+using Xamarin.Forms;
 
 namespace Picky
 {
@@ -36,6 +37,7 @@ namespace Picky
 
         private double last_x, last_y;
         private int threshold;
+        private int focus;
         private int circleCount = 2;
         private int tolerance = 2;
         private OpenCvSharp.CircleSegment lastCircle;
@@ -47,16 +49,18 @@ namespace Picky
             tool = _tool;
             if (isUpper)
             {
+                focus = machine.SelectedPickTool.UpperCircleDetector.Focus;
                 threshold = machine.SelectedPickTool.UpperCircleDetector.Threshold;
                 detector = new CircleDetector(HoughModes.GradientAlt, machine.SelectedPickTool.UpperCircleDetector.Param1, machine.SelectedPickTool.UpperCircleDetector.Param2, threshold);
             }
             else
             {
+                focus = machine.SelectedPickTool.LowerCircleDetector.Focus;
                 threshold = machine.SelectedPickTool.LowerCircleDetector.Threshold;
                 detector = new CircleDetector(HoughModes.GradientAlt, machine.SelectedPickTool.LowerCircleDetector.Param1, machine.SelectedPickTool.LowerCircleDetector.Param2, threshold);
             }
             
-            detector.ROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), 0, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 4);
+            detector.ROI = tool.SearchToolROI;
             detector.zEstimate = tool.Length;
             detector.CircleEstimate = new CircleSegment(new Point2f(0, 0), (float)(tool.SelectedTip.TipDia / 2));
 
@@ -74,6 +78,10 @@ namespace Picky
         public bool PreMessageCommand(MachineMessage msg)
         {
             tool.TipState = PickToolModel.TipStates.Calibrating;
+            cameraToUse.Focus = focus;
+            cameraToUse.IsManualFocus = true;
+            cameraToUse.CircleDetectorP1 = detector.Param1;
+            cameraToUse.CircleDetectorP2 = detector.Param2;
             cameraToUse.BinaryThreshold = threshold;
             cameraToUse.RequestCircleLocation(detector);
             return true;
@@ -89,7 +97,14 @@ namespace Picky
                 {
                     if (--circleCount == 0)
                     {
-                        tool.SetPickOffsetCalibrationData(new Position3D() { X = circleSegment.Center.X, Y = circleSegment.Center.Y, Z = machine.CurrentZ });
+                        Position3D pos = new Position3D()
+                        {
+                            X = circleSegment.Center.X,
+                            Y = circleSegment.Center.Y,
+                            Z = (machine.CurrentZ + tool.Length),
+                            Angle = machine.CurrentA
+                        };
+                        tool.SetPickOffsetCalibrationData( pos );
                         return true;
                     }
                 }

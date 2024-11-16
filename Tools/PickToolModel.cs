@@ -35,6 +35,9 @@ namespace Picky
         public string Description { get; set; }
         public string UniqueID { get; set; }
 
+        /* Default search are for tool calbration */
+        public OpenCvSharp.Rect SearchToolROI { get; set; } 
+
         public Point2d ToolReturnLocation { get; set; }
 
         public List<TipStyle> TipList { get; set; }
@@ -107,15 +110,15 @@ namespace Picky
         /* Create the data point used for tip calibration */
         public List<Position3D> CalDataPoints = new List<Position3D>();
         
-        private Position3D tipOffsetUpper;
-        public Position3D TipOffsetUpper
+        private TipFitCalibration tipOffsetUpper;
+        public TipFitCalibration TipOffsetUpper
         {
             get { return tipOffsetUpper; }
             set { tipOffsetUpper = value; OnPropertyChanged(nameof(TipOffsetUpper)); }
         }
 
-        private Position3D tipOffsetLower;
-        public Position3D TipOffsetLower
+        private TipFitCalibration tipOffsetLower;
+        public TipFitCalibration TipOffsetLower
         {
             get { return tipOffsetLower; }
             set { tipOffsetLower = value; OnPropertyChanged(nameof(TipOffsetLower)); }
@@ -131,8 +134,6 @@ namespace Picky
                changes TODO - fix */
             if (name != null)
                 UniqueID = DateTime.Now.ToString("HHmmss-dd-MM-yy");
-            TipOffsetUpper = new Position3D(0, 0, 0);
-            TipOffsetLower = new Position3D(0, 0, 0);
             TipState = TipStates.Unknown;
                         
             TipList = new List<TipStyle>
@@ -143,6 +144,7 @@ namespace Picky
                 new TipStyle("18GA <Large>", 3.5),
             };
             SelectedTip = TipList.FirstOrDefault();
+            SearchToolROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), 0, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 4);
         }
 
         /* Default Send Notification boilerplate - properties that notify use OnPropertyChanged */
@@ -208,9 +210,10 @@ namespace Picky
                 List<Position3D> lower = CalDataPoints.Where(e => e.Z == maxZ).ToList();
                 List<Position3D> upper = CalDataPoints.Where(e => e.Z == minZ).ToList();
 
-                TipFitCalibration fitter = new TipFitCalibration();
-                TipOffsetLower = fitter.CalculateBestFitCircle(lower);
-                TipOffsetUpper = fitter.CalculateBestFitCircle(upper);
+                TipOffsetLower = new TipFitCalibration();
+                TipOffsetLower.CalculateBestFitCircle(lower);
+                TipOffsetUpper = new TipFitCalibration();
+                TipOffsetUpper.CalculateBestFitCircle(upper);
                 TipState = TipStates.Ready;
                 SaveCalibrationCircleToFile();
             }
@@ -241,8 +244,7 @@ namespace Picky
             int x, y, r;
             Console.WriteLine("Saving Calibration Circle to File.");
             MachineModel machine = MachineModel.Instance;
-            OpenCvSharp.Rect roi = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), 0, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 4);
-            Mat roiImage = new Mat(machine.downCamera.ColorImage, roi);
+            Mat roiImage = new Mat(machine.downCamera.ColorImage, SearchToolROI);
             Mat CalMat = roiImage.Clone();
             for (int i = 0; i < 12; i++)
             {
@@ -257,16 +259,18 @@ namespace Picky
                 else
                     Cv2.Circle(CalMat, x, y, 3, Scalar.Green, 3);
             }
+            var scaleUpper = machine.Cal.GetScaleMMPerPixAtZ(TipOffsetUpper.BestCircle.Z);
+            var scaleLower = machine.Cal.GetScaleMMPerPixAtZ(TipOffsetLower.BestCircle.Z);
             // Draw Result Calibration Upper and Lower
-            x = (int)((CalMat.Width / 2) + (TipOffsetUpper.X));
-            y = (int)((CalMat.Height / 2) + (TipOffsetUpper.Y));
-            r = (int)(TipOffsetUpper.Radius);
+            x = (int)((CalMat.Width / 2) + (TipOffsetUpper.BestCircle.X / scaleUpper.xScale));
+            y = (int)((CalMat.Height / 2) + (TipOffsetUpper.BestCircle.Y / scaleUpper.yScale));
+            r = (int)(TipOffsetUpper.BestCircle.Radius / scaleUpper.xScale);
             Cv2.Circle(CalMat, x, y, r, Scalar.Black, 1);
             // Draw the circle center - Upper
             Cv2.Circle(CalMat, x, y, 3, Scalar.Black, 3);
-            x = (int)((CalMat.Width / 2) + (TipOffsetLower.X));
-            y = (int)((CalMat.Height / 2) + (TipOffsetLower.Y));
-            r = (int)(TipOffsetLower.Radius);
+            x = (int)((CalMat.Width / 2) + (TipOffsetLower.BestCircle.X / scaleLower.xScale));
+            y = (int)((CalMat.Height / 2) + (TipOffsetLower.BestCircle.Y / scaleLower.yScale));
+            r = (int)(TipOffsetLower.BestCircle.Radius / scaleLower.xScale);
             Cv2.Circle(CalMat, x, y, r, Scalar.Black, 1);
             // Draw the circle center - Lower
             Cv2.Circle(CalMat, x, y, 3, Scalar.Black, 3);
