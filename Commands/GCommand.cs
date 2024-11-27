@@ -61,9 +61,9 @@ namespace Picky
            return cmd.GetMessage();
         }
 
-        public static MachineMessage StepAlignToCalCircle(CircleSegment target, Circle3d dest)
+        public static MachineMessage StepAlignToCalCircle(Position3D target_to_update)
         {
-            StepAlignToCalCircleCommand cmd = new StepAlignToCalCircleCommand(target, dest);
+            StepAlignToCalCircleCommand cmd = new StepAlignToCalCircleCommand(target_to_update);
             return cmd.GetMessage();
         }
         
@@ -73,12 +73,19 @@ namespace Picky
             return cmd.GetMessage();
         }
 
-        public static MachineMessage SetScaleResolutionCalibration(MachineModel machine, CalResolutionTargetModel crtm)            
+        public static MachineMessage SetScaleResolutionCalibration(CalTargetModel ctm)            
         {
-            SetScaleResolutionCalibrationCommand cmd = new SetScaleResolutionCalibrationCommand(machine, crtm);
+            SetScaleResolutionCalibrationCommand cmd = new SetScaleResolutionCalibrationCommand(ctm);
             return cmd.GetMessage();
         }
-        
+
+        public static MachineMessage CalculateMachineStepsPerMM()
+        {
+            CalculateMachineStepsPerMMCommand cmd = new CalculateMachineStepsPerMMCommand();
+            return cmd.GetMessage();
+        }
+
+
         public static MachineMessage SetZProbeCalibration()            
         {
             SetZProbeCalibrationCommand cmd = new SetZProbeCalibrationCommand();

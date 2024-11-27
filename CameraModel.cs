@@ -1,16 +1,12 @@
 ﻿using OpenCvSharp;
-using OpenCvSharp.Internal.Vectors;
 using OpenCvSharp.WpfExtensions;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Forms.VisualStyles;
-using System.Windows.Media.Media3D;
+using System.Windows;
 using Xamarin.Forms;
+using Application = System.Windows.Application;
 using Image = System.Windows.Controls.Image;
 
 namespace Picky
@@ -50,6 +46,7 @@ namespace Picky
         private bool searchCircleRequest = false;
         private CircleDetector circleDetector;
         private CircleSegment bestCircle;
+        private List<CircleSegment> bestCircles = new List<CircleSegment>();
         private CircleSegment[] Circles;
 
         /* QR Request */
@@ -192,6 +189,11 @@ namespace Picky
             return bestCircle;
         }
 
+        public List<CircleSegment> GetBestCircles()
+        {
+            return bestCircles;
+        }
+
         public bool IsCircleSearchActive()
         {
             return searchCircleRequest;
@@ -208,7 +210,14 @@ namespace Picky
          * ------------------------------------------------------------------------*/
         {
             //sc is in MM
+            IsManualFocus = detector.IsManualFocus;
+            Focus = detector.Focus;
+            CircleDetectorP1 = detector.Param1;
+            CircleDetectorP2 = detector.Param2;
+            BinaryThreshold = detector.Threshold;
+
             circleDetector = detector;
+            bestCircles.Clear();
             searchCircleRequest = true;
             
         }
@@ -304,10 +313,8 @@ namespace Picky
 
             //Convert the estimated circle (in MM) to search criteria (in Pix) based on z.  
             var scale = machine.Cal.GetScaleMMPerPixAtZ(circleDetector.zEstimate);
-            int minR = (int)((circleDetector.CircleEstimate.Radius / 4) / scale.xScale);
-            int maxR = (int)((circleDetector.CircleEstimate.Radius * 2) / scale.xScale);
-            Console.WriteLine("minR/maxR (pix): " + minR + "," + maxR + "@" + scale.xScale);
-
+            int minR = (int)((circleDetector.Radius / 4) / scale.xScale);
+            int maxR = (int)((circleDetector.Radius * 2) / scale.xScale);
             double param1 = machine.SelectedPickTool.UpperCircleDetector.Param1;
             double param2 = machine.SelectedPickTool.UpperCircleDetector.Param2;
            
@@ -327,7 +334,8 @@ namespace Picky
             
             if (Circles.Length == 0)
             {
-                Console.WriteLine("No circles found.");
+                Console.WriteLine("No circles found. minR/maxR (pix): " + minR + "/" + maxR + "@" + scale.xScale);
+                OpenCvSharp.Cv2.Rectangle(ColorImage, circleDetector.ROI, new OpenCvSharp.Scalar(0, 255, 0), 4);
                 return false;
             }
             else
@@ -340,6 +348,10 @@ namespace Picky
                 Point2f CircleToFind = new Point2f(closestCircle.Center.X - roiCenter.X, closestCircle.Center.Y - roiCenter.Y);
                 bestCircle = closestCircle;
                 bestCircle.Center = CircleToFind;
+                if(bestCircles.Count < 100)
+                    bestCircles.Add(bestCircle);
+                double avg = bestCircles.Average(c =>  c.Radius);
+                Console.WriteLine("Found: Best Circle minR/avg/maxR (pix): " + minR + "/" + avg + "/" + maxR + "@" + scale.xScale);
             }
             OpenCvSharp.Cv2.Rectangle(ColorImage, circleDetector.ROI, new OpenCvSharp.Scalar(0, 255, 0), 4);
             return true;
@@ -385,8 +397,12 @@ namespace Picky
             while (true)
             {
                 double minval, maxval;
+                Feeder feeder = machine.selectedCassette.selectedFeeder;
+                double partZLocation = Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE + machine.Cal.ZCalPadZ;
+                Console.WriteLine("j: " + (Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE + machine.Cal.ZCalPadZ));
                 OpenCvSharp.Point minloc, maxloc;
                 Cv2.MinMaxLoc(thresImage, out minval, out maxval, out minloc, out maxloc);
+                
                 if (maxloc.Y > 0 && maxloc.X > 0 && maxloc.Y < y_last)
                 {
                     y_last = maxloc.Y;
@@ -399,16 +415,21 @@ namespace Picky
                 {
                     OpenCvSharp.Rect rect = new OpenCvSharp.Rect(maxloc.X + partROI.X, maxloc.Y + partROI.Y, template.Cols, template.Rows);
                     Cv2.Rectangle(ColorImage, rect, new OpenCvSharp.Scalar(0, 255, 0), 2);
+                    Cv2.DrawMarker(ColorImage, new OpenCvSharp.Point(rect.X + (rect.Width / 2), rect.Y + (rect.Height / 2)), Scalar.DarkOrange, OpenCvSharp.MarkerTypes.Cross, 50, 1);
                     Cv2.FloodFill(thresImage, maxloc, 0); //mark drawn blob so we don't find it again
                     match_count++;
                 }
-                else if (match_count > 0)
+                else if (match_count > 0 && feeder != null)
                 {
                     part.IsInView = true;
                     // Tell Part where to pick the next part
                     x_next += partROI.X;
                     y_next += partROI.Y;
-                    machine.selectedCassette.selectedFeeder.SetCandidateNextPartLocation(x_next, y_next, Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE + machine.Cal.ZCalPadZ);
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        // Update next part location & calculate pick location
+                        feeder.SetCandidateNextPartPickLocation(x_next, y_next, partZLocation, 0);
+                    });
                     break;
                 }
                 else
@@ -483,8 +504,11 @@ namespace Picky
                             Cv2.Circle(ColorImage, x, y, (int)circle.Radius, Scalar.Green, 2);
                             // Draw the circle center
                             Cv2.Circle(ColorImage, x, y, 3, Scalar.Red, 3);
+                            // Just show the first circle in the list
+                            break;
                         }
-                        searchCircleRequest = false;
+                        if(bestCircles.Count >= circleDetector.Count)
+                            searchCircleRequest = false;
                     }
                 }
                 else if (PartToFind != null)

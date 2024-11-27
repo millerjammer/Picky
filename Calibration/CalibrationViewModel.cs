@@ -8,18 +8,25 @@ using System.Windows.Input;
 using Newtonsoft.Json.Linq;
 using OpenCvSharp;
 using OpenCvSharp.Dnn;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace Picky
 {
     internal class CalibrationViewModel : INotifyPropertyChanged
     {
         private MachineModel machine;
-        public CalTargetModel Target { get; set; } 
+        //public CalTargetModel Target { get; set; } 
         
         /* Listen for changes on the machine properties and propagate to UI */
         public MachineModel Machine
         {
             get { return machine; }
+        }
+
+        public CalTargetModel Target
+        {
+            get { return machine.Cal.CalTarget; }
+            set { machine.Cal.CalTarget = value; OnPropertyChanged(nameof(Target)); }
         }
 
         /* This is derived from above */
@@ -36,7 +43,6 @@ namespace Picky
         }
         
         public event PropertyChangedEventHandler PropertyChanged;
-
         protected void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -46,25 +52,40 @@ namespace Picky
         {
             machine = mm;
             machine.PropertyChanged += OnMachinePropertyChanged;
-            Target = new CalTargetModel();
+            //Target = new CalTargetModel();
         }
 
-        public ICommand PerformCalibrationCommand { get { return new RelayCommand(PerformCalibration); } }
-        private void PerformCalibration()
+        public ICommand CalibrateMMPerStepCommand { get { return new RelayCommand(CalibrateMMPerStep); } }
+        private void CalibrateMMPerStep()
         {
-            Target.PerformCalibration(machine);
+             Target.CalibrateMMPerStep();
+        }
+
+        
+        public ICommand SetMonument00Command { get { return new RelayCommand(SetMonument00); } }
+        private void SetMonument00()
+        {
+            Target.ActualLoc00.X = machine.CurrentX;
+            Target.ActualLoc00.Y = machine.CurrentY;
         }
 
         public ICommand GoMonument00Command { get { return new RelayCommand(GoMonument00); } }
         private void GoMonument00()
         {
-            machine.Messages.Add(GCommand.G_SetPosition(Target.Grid00Location.X, Target.Grid00Location.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(Target.ActualLoc00.X, Target.ActualLoc00.Y, 0, 0, 0));
+        }
+
+        public ICommand SetMonument11Command { get { return new RelayCommand(SetMonument11); } }
+        private void SetMonument11()
+        {
+            Target.ActualLoc11.X = machine.CurrentX;
+            Target.ActualLoc11.Y = machine.CurrentY;
         }
 
         public ICommand GoMonument11Command { get { return new RelayCommand(GoMonument11); } }
         private void GoMonument11()
         {
-            machine.Messages.Add(GCommand.G_SetPosition(Target.Grid11Location.X, Target.Grid11Location.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(Target.ActualLoc11.X, Target.ActualLoc11.Y, 0, 0, 0));
         }
             
         public ICommand WriteStepPerUnitCommand { get { return new RelayCommand(WriteStepPerUnit); } }
@@ -153,23 +174,7 @@ namespace Picky
             machine.Cal.GetPickHeadOffsetToCameraAtZ(Machine.CurrentZ);
             machine.Cal.GetScaleMMPerPixAtZ(Machine.CurrentZ + Constants.TOOL_LENGTH_MM);
         }
-
-        public ICommand GetResolutionAtPCBCommand { get { return new RelayCommand(GetResolutionAtPCB); } }
-        private void GetResolutionAtPCB()
-        {
-           machine.Messages.Add(GCommand.SetCameraManualFocus(machine.downCamera, true, Constants.FOCUS_PCB_062));
-           GetScaleResolution(machine.Cal.TargetResAtPCB);
-           machine.Messages.Add(GCommand.SetCameraManualFocus(machine.downCamera, false, Constants.FOCUS_PCB_062));
-        }
-
-        public ICommand GetResolutionAtToolCommand { get { return new RelayCommand(GetResolutionAtTool); } }
-        private void GetResolutionAtTool()
-        {
-            machine.Messages.Add(GCommand.SetCameraManualFocus(machine.downCamera, true, Constants.FOCUS_TOOL_RETRIVAL));
-            GetScaleResolution(machine.Cal.TargetResAtTool);
-            machine.Messages.Add(GCommand.SetCameraManualFocus(machine.downCamera, false, Constants.FOCUS_TOOL_RETRIVAL));
-        }
-        
+               
         public ICommand CalZProbeCommand { get { return new RelayCommand(CalZProbe); } }
         private void CalZProbe()
         {
@@ -193,27 +198,12 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalPadX, machine.Cal.ZCalPadY, 0, 0, 0));
         }
 
-        private void GetScaleResolution(CalResolutionTargetModel target)
-        /*---------------------------------------------------------------------
-         * Uses step alignment to determine mm/pix at a specific target. This
-         * is a calibration used to enable jump step connections based on cammea
-         * to target.  This function is performed at two different target z 
-         * elevations.  This should be the first calibration that's done.
-         * -------------------------------------------------------------------*/
+        public ICommand CalibrateMMPerPixCommand { get { return new RelayCommand(CalibrateMMPerPix); } }
+        private void CalibrateMMPerPix()
         {
-            machine.Messages.Add(GCommand.G_EnableIlluminator(true));
-            machine.Messages.Add(GCommand.G_SetPosition(target.targetCircle.Center.X, target.targetCircle.Center.Y, 0, 0, 0));
-            for(int i = 0; i < 5; i++)
-            {   
-                machine.Messages.Add(GCommand.G_FinishMoves());
-                machine.Messages.Add(GCommand.StepAlignToCalCircle(target.targetCircle, null));
-                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
-            }
-            machine.Messages.Add(GCommand.G_ProbeZ(24.0));
-            machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.SetScaleResolutionCalibration(machine, target));
-            machine.Messages.Add(GCommand.G_SetPosition(target.targetCircle.Center.X, target.targetCircle.Center.Y, 0, 0, 0));
+            Target.CalibrateMMPerPixelAtZ();
         }
+               
                 
         public ICommand MoveToPickLocation { get { return new RelayCommand(moveToPickLocation); } }
         private void moveToPickLocation()

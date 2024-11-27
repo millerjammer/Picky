@@ -8,8 +8,7 @@ namespace Picky
 {
     public class CalibrationModel : INotifyPropertyChanged
     {
-        public CalResolutionTargetModel TargetResAtPCB { get; set; }
-        public CalResolutionTargetModel TargetResAtTool { get; set; }
+        public CalTargetModel CalTarget { get; set; }
 
         /* Feeder */
         private double feeder0X;
@@ -216,18 +215,8 @@ namespace Picky
         
         public CalibrationModel()
         {
-            CircleSegment targetCircle = new CircleSegment();
-            targetCircle.Radius = (float)(CalTargetModel.TARGET_RESOLUTION_RADIUS_MILS * Constants.MIL_TO_MM);
-            targetCircle.Center.X = (float)(CalTargetModel.TARGET_PCB_POS_X_MM);
-            targetCircle.Center.Y = (float)(CalTargetModel.TARGET_PCB_POS_Y_MM);
-
-            TargetResAtPCB = new CalResolutionTargetModel(targetCircle);
-            
-            
-            targetCircle.Center.X = (float)(CalTargetModel.TARGET_TOOL_POS_X_MM);
-            targetCircle.Center.Y = (float)(CalTargetModel.TARGET_TOOL_POS_Y_MM);
-            TargetResAtTool =  new CalResolutionTargetModel(targetCircle);
-           
+            // Create Target
+            CalTarget = new CalTargetModel();
         }
 
         /* Calculate Values Based on Calibration */
@@ -235,16 +224,25 @@ namespace Picky
         public (double xScale, double yScale) GetScaleMMPerPixAtZ(double z) {
             /*----------------------------------------------------------------------------------
              - Returns the scale in mm/pix at the given Z (in mm) requires the calibration has 
-             - been performed. Uses linear interpolation.  z is typically the plane of the tool tip
+             - been performed. Uses linear interpolation.  z is physical distance camera-to-item
              -----------------------------------------------------------------------------------*/
-            double slope_x = (TargetResAtPCB.MMPerPixX - TargetResAtTool.MMPerPixX) / (TargetResAtPCB.MMHeightZ - TargetResAtTool.MMHeightZ);
-            double slope_y = (TargetResAtPCB.MMPerPixY - TargetResAtTool.MMPerPixY) / (TargetResAtPCB.MMHeightZ - TargetResAtTool.MMHeightZ);
 
-            ResolutionXAtZ = TargetResAtTool.MMPerPixX + (slope_x * (z - TargetResAtTool.MMHeightZ));
-            ResolutionYAtZ = TargetResAtTool.MMPerPixY + (slope_y * (z - TargetResAtTool.MMHeightZ));
+            double slope_x = (CalTarget.ActualLocLower.X - CalTarget.ActualLocUpper.X) / (CalTarget.ActualLocLower.Z - CalTarget.ActualLocUpper.Z); 
+            double slope_y = (CalTarget.ActualLocLower.Y - CalTarget.ActualLocUpper.Y) / (CalTarget.ActualLocLower.Z - CalTarget.ActualLocUpper.Z);
+
+            ResolutionXAtZ = CalTarget.ActualLocUpper.X + (slope_x * (z - CalTarget.ActualLocUpper.Z));
+            ResolutionYAtZ = CalTarget.ActualLocUpper.Y + (slope_y * (z - CalTarget.ActualLocUpper.Z));
+
+            if(ResolutionXAtZ > .1 || ResolutionXAtZ < .01 || ResolutionYAtZ > .1 || ResolutionYAtZ < .01)
+            {
+                ResolutionXAtZ = Constants.DEFAULT_MM_PER_PIXEL;
+                ResolutionYAtZ = Constants.DEFAULT_MM_PER_PIXEL;
+                //Console.WriteLine("WARNING: Resolution out-of-bounds (" +  ResolutionXAtZ + "," + ResolutionYAtZ + ")");
+            }
 
             return (ResolutionXAtZ, ResolutionYAtZ);
         }
+          
         
         public (double x_offset, double y_offset) GetPickHeadOffsetToCameraAtZ(double targetZ)
         /*----------------------------------------------------------------------------------

@@ -51,8 +51,8 @@ namespace Picky
         private int detectionThreshold;
         public int DetectionThreshold
         {
-            get { return detectionThreshold; }
-            set { detectionThreshold = value; machine.selectedCassette.selectedFeeder.part.PartDetectionThreshold = (double)detectionThreshold; OnPropertyChanged(nameof(DetectionThreshold)); }
+            get { return (int?)machine?.selectedCassette?.selectedFeeder?.part.PartDetectionThreshold ?? 0; }
+            set { machine.selectedCassette.selectedFeeder.part.PartDetectionThreshold = value;  OnPropertyChanged(nameof(DetectionThreshold)); }
         }
                
 

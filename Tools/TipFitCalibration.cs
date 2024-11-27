@@ -70,24 +70,18 @@ namespace Picky
             BestCircle.Radius = radius * scale.xScale;
             BestCircle.Quality = fitQuality;
             Position3D zeroPoint = points.OrderBy(p => p.Angle).First();
+            // When we started calculating the calibration circle we know the pick angle.  But, 
+            // We don't where on the calibration circle we are.  So, when we are done with the 
+            // calibration circle calculations we'd like to know what angle on the calibration
+            // circle corresponds to that initial zero angle pick location.
             BestCircle.Angle = GetAngleFromPoint(zeroPoint.X, zeroPoint.Y);
-            Console.WriteLine("Cal Circle Offset: " + BestCircle.Angle + " ");
+            Console.WriteLine("Cal Circle Offset: " + BestCircle.Angle + " @ " + zeroPoint.X + "," + zeroPoint.Y);
+            foreach (Position3D point in points)
+                Console.WriteLine("Calibration Circle: x, y: " + point.X + "," + point.Y + " @ " + point.Angle);
           
             return BestCircle;
         }
-
-        // Method to calculate a point on the circle at a given angle
-        public (double x, double y) GetPointOnCircle(double angleInDegrees)
-        {
-            // Convert angle to radians
-            double angleInRadians = angleInDegrees * (Math.PI / 180.0);
-
-            // Calculate the x, y position on the circle
-            double x = BestCircle.X + BestCircle.Radius * Math.Cos(angleInRadians);
-            double y = BestCircle.Y + BestCircle.Radius * Math.Sin(angleInRadians);
-
-            return (x, y);
-        }
+               
 
         // Method to calculate the angle of a point on the circle
         public double GetAngleFromPoint(double x, double y)

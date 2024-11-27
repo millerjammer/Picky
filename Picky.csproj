@@ -151,7 +151,6 @@
     <Compile Include="Calibration\CalibrationWindow.xaml.cs">
       <DependentUpon>CalibrationWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Calibration\CalResolutionTargetModel.cs" />
     <Compile Include="Calibration\CalTargetModel.cs" />
     <Compile Include="CameraModel.cs" />
     <Compile Include="CameraView.xaml.cs">
@@ -164,6 +163,7 @@
     </Compile>
     <Compile Include="CassetteViewModel.cs" />
     <Compile Include="CircleDetector.cs" />
+    <Compile Include="Commands\CalculateMachineStepsPerMMCommand.cs" />
     <Compile Include="Commands\DelayCommand.cs" />
     <Compile Include="Commands\GetFeederQRCodeCommand .cs" />
     <Compile Include="Commands\OffsetCameraToPickCommand.cs" />

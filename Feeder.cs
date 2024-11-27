@@ -1,16 +1,9 @@
 ﻿using OpenCvSharp;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using System.IO;
-using System.Security.RightsManagement;
-using System.Xml.Linq;
 using System.Windows;
-using System.Windows.Controls.Primitives;
 
 namespace Picky
 {
@@ -65,9 +58,7 @@ namespace Picky
             }
         }
 
-        
-
-        private double _x_origin; 
+        private double _x_origin;
         public double x_origin
         {
             get { return _x_origin; }
@@ -94,7 +85,7 @@ namespace Picky
         }
 
         public Point2d QRLocation { get; set; }
-        
+
         public double x_drive { get; set; }
         public double y_drive { get; set; }
 
@@ -112,7 +103,7 @@ namespace Picky
             _part.PropertyChanged += OnPartPropertyChanged;
         }
 
-        public void SetCandidateNextPartLocation(double x_next, double y_next, double targetZ)
+        public void SetCandidateNextPartPickLocation(double x_next, double y_next, double targetZ, double targetPickAngle)
         {
             /*----------------------------------------------------------------------
              * When part is in view, call here to update the part's position, optically
@@ -121,8 +112,7 @@ namespace Picky
              * the machine current position and calculate the offset too the selected 
              * tool head if available. targetZ is in mm and is location of part z
              * ---------------------------------------------------------------------*/
-            Application.Current.Dispatcher.Invoke(() =>
-            {
+
             // Get pixel offset relative to center of frame.
             double x_offset_pix = (x_next - (Constants.CAMERA_FRAME_WIDTH / 2));
             double y_offset_pix = (y_next - (Constants.CAMERA_FRAME_HEIGHT / 2));
@@ -134,84 +124,29 @@ namespace Picky
 
             //Now, if there's a tool, calculate offset to tool
             // Linearly interpolate X and Y offsets between the two circles based on Z
-            if (machine.SelectedPickTool == null)
+            PickToolModel tool = machine.SelectedPickTool;
+            if (tool == null)
             {
                 NextPartPickLocation.X = 0;
                 NextPartPickLocation.Y = 0;
                 return;
             }
-            PickToolModel tool = machine.SelectedPickTool;
 
-            // Use slope (rise over run) to get x, y at targetZ.  x, y is measured in mm from center of ROI
-            // Calculate offset to the pick from the center of the full frame
-            // Start by calculating the pick location (mm) of the tip at expected z in the ROI
-            double slopeX = (tool.TipOffsetLower.BestCircle.X - tool.TipOffsetUpper.BestCircle.X) / (tool.TipOffsetLower.BestCircle.Z - tool.TipOffsetUpper.BestCircle.Z);
-            double x = (tool.TipOffsetUpper.BestCircle.X + (slopeX * (targetZ - tool.TipOffsetUpper.BestCircle.Z)));
-            double slopeY = (tool.TipOffsetLower.BestCircle.Y - tool.TipOffsetUpper.BestCircle.Y) / (tool.TipOffsetLower.BestCircle.Z - tool.TipOffsetUpper.BestCircle.Z);
-            double y = (tool.TipOffsetUpper.BestCircle.Y + (slopeY * (targetZ - tool.TipOffsetUpper.BestCircle.Z)));
-            double slopeR = (tool.TipOffsetLower.BestCircle.Radius - tool.TipOffsetUpper.BestCircle.Radius) / (tool.TipOffsetLower.BestCircle.Z - tool.TipOffsetUpper.BestCircle.Z);
-            double radius = (tool.TipOffsetUpper.BestCircle.Radius + (slopeR * (targetZ - tool.TipOffsetUpper.BestCircle.Radius)));
+            // Get offset relative to Tip ROI
+            var offset = tool.GetTipOffsetForZ(targetZ, targetPickAngle);
 
-                
+            // Next, translate from ROI position to frame position in mm.
+            double y_offset_roi = scale.yScale * ((Constants.CAMERA_FRAME_HEIGHT / 2) - tool.SearchToolROI.Y - (tool.SearchToolROI.Height / 2));
+            double x_offset_roi = scale.xScale * ((Constants.CAMERA_FRAME_WIDTH / 2) - tool.SearchToolROI.X - (tool.SearchToolROI.Width / 2));
 
+            // Add Tip offset and roi offset (all in mm)
+            x_offset_roi += offset.x;
+            y_offset_roi -= offset.y;
 
-                // Next, translate from ROI position to frame position in mm.
-                y += scale.yScale * ((Constants.CAMERA_FRAME_HEIGHT / 2) - tool.SearchToolROI.Y - (tool.SearchToolROI.Height / 2));
-                x += scale.xScale * ((Constants.CAMERA_FRAME_WIDTH / 2) - tool.SearchToolROI.X - (tool.SearchToolROI.Width / 2));
+            // Finally, add the position of the part (we did above) relative to the center of the full frame.
+            NextPartPickLocation.X = x_offset_roi + NextPartOpticalLocation.X;
+            NextPartPickLocation.Y = y_offset_roi + NextPartOpticalLocation.Y;
 
-                // Convert angle to radians, add radius - not sure if signs are correct
-                double angle = machine.CurrentA;
-                double angleInRadians = angle * (Math.PI / 180.0);
-                x -= tool.TipOffsetUpper.BestCircle.Radius * Math.Cos(angleInRadians);
-                y += tool.TipOffsetUpper.BestCircle.Radius * Math.Sin(angleInRadians);
-
-                //Console.WriteLine("rx, ry:  " + tool.TipOffsetUpper.BestCircle.Radius * Math.Cos(angleInRadians) + " " + tool.TipOffsetUpper.BestCircle.Radius * Math.Sin(angleInRadians));
-
-                // Scale and offset for unaccounted items
-                y *= 1.0;  //At focus 381, calibrated circle at 475
-                y -= 1.3;
-                x *= 1.0;
-                x += 0.1;
-
-                // Next, add the position of the part (we did above) relative to the center of the full frame.
-                NextPartPickLocation.X = x + NextPartOpticalLocation.X;
-                NextPartPickLocation.Y = y + NextPartOpticalLocation.Y;
-                
-//Console.WriteLine("x, y:  " + x + " " + y + " " + tool.SearchToolROI.ToString());
-                //double t = (targetZ - tool.TipOffsetUpper.Z) / (tool.TipOffsetLower.Z - tool.TipOffsetUpper.Z);
-
-                // Interpolated x and y offsets
-                //double interpolatedX = (tool.TipOffsetUpper.X) + t * ((tool.TipOffsetLower.X - tool.TipOffsetUpper.X));
-                // double interpolatedY = (tool.TipOffsetUpper.Y) + t * ((tool.TipOffsetLower.Y - tool.TipOffsetUpper.Y));
-
-                // Convert rotation from degrees to radians
-                // double rotationRadians = double.Parse(part.Rotation) * (Math.PI / 180);
-
-                // Apply rotation
-                // NextPartPickLocation.X = x * Math.Cos(rotationRadians) - y * Math.Sin(rotationRadians);
-                //NextPartPickLocation.Y = x * Math.Sin(rotationRadians) + y * Math.Cos(rotationRadians);
-
-                //TODO - ROI should be set as a default of the tool model
-
-                //NextPartPickLocation.X = x + x_offset_pix;
-                //NextPartPickLocation.Y = y + y_offset_pix;
-
-
-//Console.WriteLine("offset from center of full frame [px]:  " + NextPartPickLocation.X + " " + NextPartPickLocation.Y);
-
-                // Location is relative to the center of the ROI.  Calculate offset relative to center of full frame
-                //NextPartPickLocation.Y += (Constants.CAMERA_FRAME_HEIGHT / 2) - tool.UpperCircleDetector.ROI.Y - (tool.UpperCircleDetector.ROI.Height/2);
-                //NextPartPickLocation.X ; 
-
-                // Apply scale
-                //NextPartPickLocation.X *= scale.xScale;
-                //NextPartPickLocation.Y *= scale.yScale;
-//Console.WriteLine("head offset, from center of Frame [mm]: " + NextPartPickLocation.X + " " + NextPartPickLocation.Y);
-
-                // Add current position
-                //NextPartPickLocation.X += machine.CurrentX;
-                //NextPartPickLocation.Y += machine.CurrentY;
-            });
             return;
         }
 
@@ -246,7 +181,7 @@ namespace Picky
         public ICommand PlacePartAtLocationCommand { get { return new RelayCommand(PlacePartAtLocation); } }
         public void PlacePartAtLocation()
         {
-            
+
         }
 
         public ICommand RemoveFeederFromCassetteCommand { get { return new RelayCommand(RemoveFeederFromCassette); } }
@@ -259,7 +194,7 @@ namespace Picky
             }
             machine.selectedCassette.Feeders.Remove(machine.selectedCassette.selectedFeeder);
         }
-        
+
         public ICommand GoToNextPickComponentCommand { get { return new RelayCommand(GoToNextPickComponent); } }
         private void GoToNextPickComponent()
         {
@@ -299,11 +234,11 @@ namespace Picky
                     // Capture the selected ROI
                     part.Template = new Mat(machine.downCamera.ColorImage, roi);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Console.WriteLine("Ouch - Memory Exception: " + ex.ToString());
                 }
-                
+
                 // Write part template to file
                 DateTime now = DateTime.Now;
                 String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);

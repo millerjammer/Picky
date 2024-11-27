@@ -11,6 +11,8 @@ using System.Xml.Linq;
 using System.Windows;
 using System.Windows.Media.Media3D;
 using System.Windows.Input;
+using System.Security.Permissions;
+using OpenCvSharp.Dnn;
 
 namespace Picky
 { 
@@ -123,7 +125,16 @@ namespace Picky
             get { return tipOffsetLower; }
             set { tipOffsetLower = value; OnPropertyChanged(nameof(TipOffsetLower)); }
         }
-        
+
+        private Position3D tipEstimate;
+        public Position3D TipEstimate
+        {
+            get { return tipEstimate; }
+            set { tipEstimate = value; OnPropertyChanged(nameof(TipEstimate)); }
+        }
+
+        private Mat CalMat;
+
         public PickToolModel(string name)
         {
             Description = name;
@@ -199,7 +210,7 @@ namespace Picky
             machine.downCamera.CircleDetectorP2 = LowerCircleDetector.Param2;
             machine.downCamera.Focus = LowerCircleDetector.Focus;
         }
-
+        
         public bool SetPickOffsetCalibrationData(Position3D point)
         {
             /* Calculate PickOffset from Calibration Data */
@@ -214,17 +225,77 @@ namespace Picky
                 TipOffsetLower.CalculateBestFitCircle(lower);
                 TipOffsetUpper = new TipFitCalibration();
                 TipOffsetUpper.CalculateBestFitCircle(upper);
+
                 TipState = TipStates.Ready;
                 SaveCalibrationCircleToFile();
             }
             return true;
         }
 
+        public (double x, double y) GetTipOffsetForZ(double z, double rot) {
+        /****************************************************************************
+         * Returns the x, y offset based on upper and lower calibrations circles for
+         * specific z and r.  All units in mm. Returns x and y in terms of tool ROI.  
+         * 
+         * **************************************************************************/
+        
+            if(TipEstimate == null)
+            {
+                TipEstimate = new Position3D();
+            }
+            // Use slope (rise over run) to get x, y and r at z.  x, y, r in mm from center of ROI
+            double deltaZ = (TipOffsetLower.BestCircle.Z - TipOffsetUpper.BestCircle.Z);
+            double slopeX = (TipOffsetLower.BestCircle.X - TipOffsetUpper.BestCircle.X) / deltaZ;               // X(mm)/Z(mm)
+            TipEstimate.X = (TipOffsetLower.BestCircle.X + (slopeX * (z - TipOffsetLower.BestCircle.Z)));
+            double slopeY = (TipOffsetLower.BestCircle.Y - TipOffsetUpper.BestCircle.Y) / deltaZ;
+            TipEstimate.Y = (TipOffsetLower.BestCircle.Y + (slopeY * (z - TipOffsetLower.BestCircle.Z)));
+            double slopeR = (TipOffsetLower.BestCircle.Radius - TipOffsetUpper.BestCircle.Radius) / deltaZ;
+            TipEstimate.Radius = (TipOffsetUpper.BestCircle.Radius + (slopeR * (z - TipOffsetUpper.BestCircle.Z)));
+            TipEstimate.Z = z;
+            
+            // To calculate the rotation of the third circle proportional to the second circle's rotation relative to the first
+            double delta_z = (TipOffsetLower.BestCircle.Z - tipOffsetUpper.BestCircle.Z);
+            double delta_angle = (TipOffsetLower.BestCircle.Angle - TipOffsetUpper.BestCircle.Angle);
+            if(delta_angle < 0)
+                delta_angle += 360;
+            double angle_per_mm = delta_angle/delta_z;  //degrees per mm
+            
+            // Add rotation of the cal circle to the request circle
+            TipEstimate.Angle = rot + (TipOffsetLower.BestCircle.Angle + (angle_per_mm * (z - TipOffsetLower.BestCircle.Z)));
+
+            // On a circle with radius R, get x,y offset.
+            // IMPORTANT - change the sign of the radius so when we add center and offset it will be correct for calling function.
+            // With this calling function doesn't have to do anything weird
+            double angleInRadians = TipEstimate.Angle * (Math.PI / 180.0);
+            double x_rotation_offset = -TipEstimate.Radius * Math.Cos(angleInRadians);
+            double y_rotation_offset = TipEstimate.Radius * Math.Sin(angleInRadians);
+
+            /* Drawing and Debug */
+            MachineModel machine = MachineModel.Instance;
+            var scale = machine.Cal.GetScaleMMPerPixAtZ(z);
+            double x_pix_rotation = x_rotation_offset / scale.xScale;
+            double y_pix_rotation = y_rotation_offset / scale.yScale;
+            double x_pix = TipEstimate.X / scale.xScale;
+            double y_pix = TipEstimate.Y / scale.yScale;
+
+            Mat CalMatDiag = CalMat.Clone();
+            Cv2.Circle(CalMatDiag, (int)((CalMatDiag.Width / 2) + x_pix), (int)((CalMatDiag.Height / 2) + y_pix), 3, Scalar.Black , 3);
+            Cv2.Circle(CalMatDiag, (int)((CalMatDiag.Width / 2) + x_pix), (int)((CalMatDiag.Height / 2) + y_pix), (int)(TipEstimate.Radius/scale.xScale), Scalar.Green, 3);
+            Cv2.Circle(CalMatDiag, (int)((CalMatDiag.Width / 2) + x_pix + x_pix_rotation), (int)((CalMatDiag.Height / 2) + y_pix + y_pix_rotation), 3, Scalar.Black, 3); 
+            Cv2.DrawMarker(CalMatDiag, new OpenCvSharp.Point(CalMatDiag.Cols / 2, CalMatDiag.Rows / 2), new OpenCvSharp.Scalar(0, 0, 255), OpenCvSharp.MarkerTypes.Cross, 100, 1);
+            TipCalImage = BitmapSource.Create(CalMatDiag.Width, CalMatDiag.Height, 96, 96, PixelFormats.Bgr24, null, CalMatDiag.Data, (int)(CalMatDiag.Step() * CalMatDiag.Height), (int)CalMatDiag.Step());
+            
+            //Return the sum of the circle position (z dependant) and tip offset (rotation dependant)
+            return (TipEstimate.X + x_rotation_offset, TipEstimate.Y + y_rotation_offset);
+        }
+
+       
+
         public void LoadCalibrationCircleFromFile()
         {
             Console.WriteLine("Loading Calibration Circle from File.");
             String path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), (UniqueID + "_tipCal.jpg"));
-            Mat CalMat = new Mat();
+            CalMat = new Mat();
             try
             {
                 CalMat = Cv2.ImRead(path);
@@ -274,7 +345,7 @@ namespace Picky
             Cv2.Circle(CalMat, x, y, r, Scalar.Black, 1);
             // Draw the circle center - Lower
             Cv2.Circle(CalMat, x, y, 3, Scalar.Black, 3);
-                        
+                                    
             String path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), (UniqueID + "_tipCal.jpg"));
             Cv2.ImWrite(path, CalMat);
             /* Update Bitmap in the UI thread */

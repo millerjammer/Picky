@@ -38,18 +38,18 @@ namespace Picky
             set { focus = value; OnPropertyChanged(nameof(Focus)); }
         }
 
-        private bool isAutoFocus = true;
-        public bool IsAutoFocus
+        private bool isManualFocus = true;
+        public bool IsManualFocus
         {
-            get { return isAutoFocus; }
-            set { isAutoFocus = value; OnPropertyChanged(nameof(IsAutoFocus)); }
+            get { return isManualFocus; }
+            set { isManualFocus = value; OnPropertyChanged(nameof(IsManualFocus)); }
         }
 
         public HoughModes DetectorType;
-
         public double zEstimate;                    //In mm to optical plane
-        public CircleSegment CircleEstimate;        //In mm
-        public OpenCvSharp.Rect ROI;                //In mm
+        public double Radius;                       //In mm
+        public Rect ROI;                            //In mm
+        public int Count;                           //Number of circles to find
 
         public CircleDetector(HoughModes mode, int param1, double param2, int threshold)
         {
@@ -57,7 +57,7 @@ namespace Picky
             Param1 = param1;
             Param2 = param2;
             Threshold = threshold;
-            IsAutoFocus = true;
+            IsManualFocus = true;
         }
 
         public CircleDetector(HoughModes mode, int param1, double param2, int threshold, int focus)
@@ -66,7 +66,7 @@ namespace Picky
             Param1 = param1;
             Param2 = param2;
             Threshold = threshold;
-            IsAutoFocus = false;
+            IsManualFocus = false;
             Focus = focus;
         }
 

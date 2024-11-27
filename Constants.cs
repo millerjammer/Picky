@@ -13,60 +13,7 @@ using System.Windows.Markup;
 
 namespace Picky
 {
-    public class Circle3d : INotifyPropertyChanged
-    {
-        private double radius;
-        public double Radius
-        {
-             get { return radius; }
-             set { radius = value; OnPropertyChanged(nameof(Radius)); }
-        }
-        private double x;
-        public double X
-        {
-            get { return x; }
-            set { x = value; OnPropertyChanged(nameof(X)); }
-        }
-        private double y;
-        public double Y
-        {
-            get { return y; }
-            set { y = value; OnPropertyChanged(nameof(Y)); }
-        }
-        private double z;
-        public double Z
-        {
-            get { return z; }
-            set { z = value; OnPropertyChanged(nameof(Z)); }
-        }
-        private bool isValid;
-        public bool IsValid
-        {
-            get { return isValid; }
-            set { isValid = value; OnPropertyChanged(nameof(IsValid)); }
-        }
-
-
-        public Circle3d() {
-            Radius = 0;
-            X = Y = Z = 0;
-        }
-        public Circle3d(double center_x, double center_y, double z, double radius) 
-        {
-            Radius = radius;
-            X = center_x; Y = center_y;
-            Z = z;
-            IsValid = false;
-     
-        }
-        
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-    }
+   
 
     internal class Constants
     {
@@ -86,9 +33,6 @@ namespace Picky
         public static int    TOOL_COUNT = 4;
         public static double TOOL_CENTER_RADIUS_MILS = 80;
         public static double TOOL_LENGTH_MM = 28.575;
-        public static double TOOL_28GA_TIP_DIA_MM = 1.0;
-        public static double TOOL_LOWER_Z_CAL = 0;
-        public static double TOOL_UPPER_Z_CAL = 10;
         public static int TOOL_LOWER_THRESHOLD = 149;
         public static int TOOL_UPPER_THRESHOLD = 230;
         public static int TOOL_DETECTOR_P1 = 100;
@@ -103,7 +47,6 @@ namespace Picky
         public static double CASSETTE_ORIGIN_Y = -115.24;
         
         /* Camera Messages */
-        public static int FOCUS_TIP_CAL = 600;
         public static int FOCUS_TOOL_RETRIVAL = 600;
         public static int FOCUS_FEEDER_QR_CODE = 461;
         public static int FOCUS_FEEDER_PART = 481;
@@ -120,16 +63,17 @@ namespace Picky
 
         /* Physical Constants */
         /* We use 4mm as distance from the top of the camera to the focal plane.  This is an estimate. */
-        public static double CAMERA_FOCAL_PLANE_TO_CAMERA_FOCAL_PLANE_MM = 72.0715;
-        public static double UP_CAMERA_FOCAL_PLANE_TO_PAD_MM = 28.5392368;
         public static double ZPROBE_LIMIT = 53.0;
         public static double ZPROBE_CAL_PAD_X = 0;
         public static double ZPROBE_CAL_PAD_Y = 185;
         public static double ZPROBE_CAL_DECK_PAD_X = 0;
         public static double ZPROBE_CAL_DECK_PAD_Y = 195;
 
+        public static double CAMERA_TO_DECK_MILS = 2.235598;  //Design distance deck to focal plane
+        public static double DEFAULT_MM_PER_PIXEL = .0206;    //Assumes a FOV
+
         public static double ZOFFSET_CAL_PAD_TO_DECK = 2.78;
-        public static double ZOFFSET_CAL_PAD_TO_FEEDER_TAPE = 6.35 + 1 + ZOFFSET_CAL_PAD_TO_DECK;
+        public static double ZOFFSET_CAL_PAD_TO_FEEDER_TAPE = 4.95 + ZOFFSET_CAL_PAD_TO_DECK;
 
         /* Serial Port */
         public static int MAX_BUFFER_SIZE = 4096;
@@ -146,7 +90,6 @@ namespace Picky
         public static string TOOL_FILE_NAME = "tool.json";
         public static string SETTINGS_FILE_NAME = "settings.json";
             
-
         public static int DOWN_CAMERA_INDEX = 0;
         public static int UP_CAMERA_INDEX = 1;
         

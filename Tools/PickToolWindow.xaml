@@ -6,7 +6,7 @@
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:local="clr-namespace:Picky.Tools"
         mc:Ignorable="d"
-        Height="725" Width="850">
+        Height="700" Width="1000">
     <Border Background="#151f2d" Margin="0 0 0 0">
         <Grid Margin="10 5 10 5" VerticalAlignment="Top">
             <Grid.RowDefinitions>
@@ -202,46 +202,59 @@
                                                     <RowDefinition Height="auto"/>
                                                     <RowDefinition Height="auto"/>
                                                     <RowDefinition Height="auto"/>
-
+                                                    <RowDefinition Height="auto"/>
                                                 </Grid.RowDefinitions>
                                                 <Border Grid.Row="0" BorderBrush="LightGray" BorderThickness=".1">
                                                     <StackPanel  Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                                        <TextBlock Text="Parameter" Width="150" VerticalAlignment="Center" Margin="5 0 5 0"/>
+                                                        <TextBlock Text="Parameter" Width="130" VerticalAlignment="Center" Margin="5 0 5 0"/>
                                                         <TextBlock Text="Upper" VerticalAlignment="Center" Width="100"/>
-                                                        <TextBlock Text="Lower" VerticalAlignment="Center" Margin="0 5 0 5" Width="100"/>
+                                                        <TextBlock Text="Lower" VerticalAlignment="Center" Width="100"/>
+                                                        <TextBlock Text="Projected" VerticalAlignment="Center" Margin="0 5 0 5" Width="100"/>
                                                     </StackPanel>
                                                 </Border>
                                                 <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness=".1">
                                                     <StackPanel  Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                                        <TextBlock Text="Tool Tip Z:" Width="150" VerticalAlignment="Center" Margin="5 0 5 0"/>
+                                                        <TextBlock Text="Tool Tip Z:" Width="130" VerticalAlignment="Center" Margin="5 0 5 0"/>
                                                         <TextBlock Text="{Binding selectedPickTool.TipOffsetUpper.BestCircle.Z,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Width="100"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetLower.BestCircle.Z,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Margin="5"/>
+                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetLower.BestCircle.Z,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Width="100"/>
+                                                        <TextBlock Text="{Binding selectedPickTool.TipEstimate.Z,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Margin="5"/>
                                                     </StackPanel>
                                                 </Border>
                                                 <Border Grid.Row="2" BorderBrush="LightGray" BorderThickness=".1">
                                                     <StackPanel  Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                                        <TextBlock Text="Offset X:" Width="150" VerticalAlignment="Center" Margin="5 0 5 0"/>
+                                                        <TextBlock Text="Offset X:" Width="130" VerticalAlignment="Center" Margin="5 0 5 0"/>
                                                         <TextBlock Text="{Binding selectedPickTool.TipOffsetUpper.BestCircle.X,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Width="100"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetLower.BestCircle.X,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Margin="5"/>
+                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetLower.BestCircle.X,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Width="100"/>
+                                                        <TextBlock Text="{Binding selectedPickTool.TipEstimate.X, StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Margin="5"/>
                                                     </StackPanel>
                                                 </Border>
                                                 <Border Grid.Row="3" BorderBrush="LightGray" BorderThickness=".1">
                                                     <StackPanel  Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                                        <TextBlock Text="Offset Y:" Width="150" VerticalAlignment="Center" Margin="5 0 5 0"/>
+                                                        <TextBlock Text="Offset Y:" Width="130" VerticalAlignment="Center" Margin="5 0 5 0"/>
                                                         <TextBlock Text="{Binding selectedPickTool.TipOffsetUpper.BestCircle.Y,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Width="100"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetLower.BestCircle.Y,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Margin="5"/>
+                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetLower.BestCircle.Y,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Width="100"/>
+                                                        <TextBlock Text="{Binding selectedPickTool.TipEstimate.Y, StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Margin="5"/>
                                                     </StackPanel>
                                                 </Border>
                                                 <Border Grid.Row="4" BorderBrush="LightGray" BorderThickness=".1">
                                                     <StackPanel  Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                                        <TextBlock Text="Radius:" Width="150" VerticalAlignment="Center" Margin="5 0 5 0"/>
+                                                        <TextBlock Text="Radius:" Width="130" VerticalAlignment="Center" Margin="5 0 5 0"/>
                                                         <TextBlock Text="{Binding selectedPickTool.TipOffsetUpper.BestCircle.Radius,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Width="100"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetLower.BestCircle.Radius,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Margin="5"/>
+                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetLower.BestCircle.Radius,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Width="100"/>
+                                                        <TextBlock Text="{Binding selectedPickTool.TipEstimate.Radius, StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Margin="5"/>
                                                     </StackPanel>
                                                 </Border>
                                                 <Border Grid.Row="5" BorderBrush="LightGray" BorderThickness=".1">
                                                     <StackPanel  Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                                        <TextBlock Text="Fit Quality:" Width="150" VerticalAlignment="Center" Margin="5 0 5 0"/>
+                                                        <TextBlock Text="Angle Offset:" Width="130" VerticalAlignment="Center" Margin="5 0 5 0"/>
+                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetUpper.BestCircle.Angle,StringFormat={}{0:0.0°}}" VerticalAlignment="Center" Width="100"/>
+                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetLower.BestCircle.Angle,StringFormat={}{0:0.0°}}" VerticalAlignment="Center" Width="100"/>
+                                                        <TextBlock Text="{Binding selectedPickTool.TipEstimate.Angle, StringFormat={}{0:0.0°}}" VerticalAlignment="Center" Margin="5"/>
+                                                    </StackPanel>
+                                                </Border>
+                                                <Border Grid.Row="6" BorderBrush="LightGray" BorderThickness=".1">
+                                                    <StackPanel  Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                                        <TextBlock Text="Fit Quality:" Width="130" VerticalAlignment="Center" Margin="5 0 5 0"/>
                                                         <TextBlock Text="{Binding selectedPickTool.TipOffsetUpper.BestCircle.Quality,StringFormat={}{0:0.000}}" VerticalAlignment="Center" Width="100"/>
                                                         <TextBlock Text="{Binding selectedPickTool.TipOffsetLower.BestCircle.Quality,StringFormat={}{0:0.000}}" VerticalAlignment="Center" Margin="5"/>
                                                     </StackPanel>

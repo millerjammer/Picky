@@ -62,7 +62,7 @@ namespace Picky
             
             detector.ROI = tool.SearchToolROI;
             detector.zEstimate = tool.Length;
-            detector.CircleEstimate = new CircleSegment(new Point2f(0, 0), (float)(tool.SelectedTip.TipDia / 2));
+            detector.Radius = (tool.SelectedTip.TipDia / 2);
 
             msg = new MachineMessage();
             msg.messageCommand = this;

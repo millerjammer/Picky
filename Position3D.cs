@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Shell.Interop;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -51,6 +52,20 @@ namespace Picky
             set { if (quality != value) { quality = value; OnPropertyChanged(nameof(Quality)); } }
         }
 
+        private double rotation = 0;
+        public double Rotation
+        {
+            get { return rotation; }
+            set { if (rotation != value) { rotation = value; OnPropertyChanged(nameof(Rotation)); } }
+        }
+
+        private bool isValid = false;
+        public bool IsValid
+        {
+            get { return isValid; }
+            set { if (isValid != value) { isValid = value; OnPropertyChanged(nameof(IsValid)); } }
+        }
+
         public Position3D(double x, double y, double z, double angle)
         {
             this.X = x;
@@ -66,8 +81,12 @@ namespace Picky
             this.Angle = angle;
         }
 
-
         public Position3D() {
+        }
+
+        public override string  ToString()
+        {
+            return string.Format("X:{0} Y:{1} Z:{2} Angle: {3} Rotation: {4} Radius: {5}", X, Y, Z, Angle, Rotation, Radius);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

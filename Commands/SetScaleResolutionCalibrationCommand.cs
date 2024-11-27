@@ -16,17 +16,17 @@ namespace Picky
     {
         public MachineModel machine;
         public MachineMessage msg;
-        public OpenCvSharp.Rect roi;
-        public CalResolutionTargetModel calResTarget;
+        public CircleDetector detector;
+        public CalTargetModel calTarget;
         public CameraModel cameraToUse;
 
-        public SetScaleResolutionCalibrationCommand(MachineModel mm, CalResolutionTargetModel crt) 
+        public SetScaleResolutionCalibrationCommand(CalTargetModel ctm) 
         {
-            machine = mm;
+            machine = MachineModel.Instance;
             msg = new MachineMessage();
             msg.messageCommand = this;
             msg.cmd = Encoding.ASCII.GetBytes("J102 Set Scale Resolution Calibration\n");
-            calResTarget = crt;
+            calTarget = ctm;
             cameraToUse = machine.downCamera;
         }
 
@@ -41,13 +41,14 @@ namespace Picky
             // z position that we don't know.  Then, get the actual Z from the probe
             // and show if we're close.
 
-            OpenCvSharp.CircleSegment bestCircle = cameraToUse.GetBestCircle();
-            calResTarget.SetMMToPixel(bestCircle.Radius);
-            calResTarget.SetMMHeightZ(machine.CurrentZ);
-            Console.WriteLine("Scale Resolution Set: " + calResTarget.MMPerPixX + " mm/pix @ " + calResTarget.MMHeightZ + " mm");
-            var scale = machine.Cal.GetScaleMMPerPixAtZ(machine.CurrentZ + Constants.TOOL_LENGTH_MM);
-            double dia = (2 * bestCircle.Radius * scale.xScale) / Constants.MIL_TO_MM;
-            Console.WriteLine("Best Circle Check - Calibrated Diameter (1.000): " + dia);
+            //OpenCvSharp.CircleSegment bestCircle = cameraToUse.GetBestCircle();
+            //calTarget.SetMMToPixel(bestCircle.Radius);
+            //calTarget.SetMMHeightZ(machine.CurrentZ);
+            //Console.WriteLine("Scale Resolution Set: " + calTarget.MMPerPixX + " mm/pix @ " + calTarget.MMHeightZ + " mm");
+
+            //var scale = machine.Cal.GetScaleMMPerPixAtZ(machine.CurrentZ + Constants.TOOL_LENGTH_MM);
+            //double dia = (2 * bestCircle.Radius * scale.xScale) / Constants.MIL_TO_MM;
+           // Console.WriteLine("Best Circle Check - Calibrated Diameter (1.000): " + dia);
             return true;
         }
 
