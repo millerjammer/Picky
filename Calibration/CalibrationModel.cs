@@ -239,7 +239,6 @@ namespace Picky
                 ResolutionYAtZ = Constants.DEFAULT_MM_PER_PIXEL;
                 //Console.WriteLine("WARNING: Resolution out-of-bounds (" +  ResolutionXAtZ + "," + ResolutionYAtZ + ")");
             }
-
             return (ResolutionXAtZ, ResolutionYAtZ);
         }
           

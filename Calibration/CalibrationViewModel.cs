@@ -167,12 +167,39 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.Feeder0X, machine.Cal.Feeder0Y - 40, 0, 0, 0));
             machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.Feeder0X, machine.Cal.Feeder0Y, 0, 0, 0));
         }
-        
+        /*-----------------*/
+
+        public ICommand SetUpperTargetResCommand { get { return new RelayCommand(SetUpperTargetRes); } }
+        private void SetUpperTargetRes()
+        {
+            Target.ActualLocUpper.X = machine.CurrentX;
+            Target.ActualLocUpper.Y = machine.CurrentY;
+        }
+
+        public ICommand GoToUpperTargetResCommand { get { return new RelayCommand(GoToUpperTargetRes); } }
+        private void GoToUpperTargetRes()
+        {
+            machine.Messages.Add(GCommand.G_SetPosition(Target.ActualLocUpper.X, Target.ActualLocUpper.Y, 0, 0, 0));
+        }
+
+        public ICommand SetLowerTargetResCommand { get { return new RelayCommand(SetLowerTargetRes); } }
+        private void SetLowerTargetRes()
+        {
+            Target.ActualLocLower.X = machine.CurrentX;
+            Target.ActualLocLower.Y = machine.CurrentY;
+        }
+
+        public ICommand GoToLowerTargetResCommand { get { return new RelayCommand(GoToLowerTargetRes); } }
+        private void GoToLowerTargetRes()
+        {
+            machine.Messages.Add(GCommand.G_SetPosition(Target.ActualLocLower.X, Target.ActualLocLower.Y, 0, 0, 0));
+        }
+
         /* This is called when machine z changes */
         private void OnMachinePropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             machine.Cal.GetPickHeadOffsetToCameraAtZ(Machine.CurrentZ);
-            machine.Cal.GetScaleMMPerPixAtZ(Machine.CurrentZ + Constants.TOOL_LENGTH_MM);
+            //machine.Cal.GetScaleMMPerPixAtZ(Machine.CurrentZ + Constants.TOOL_LENGTH_MM);
         }
                
         public ICommand CalZProbeCommand { get { return new RelayCommand(CalZProbe); } }
@@ -180,9 +207,7 @@ namespace Picky
         {
             machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalPadX, machine.Cal.ZCalPadY, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
-            machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.SetZProbeCalibration());
+            machine.Messages.Add(GCommand.GetZProbe(Constants.ZPROBE_LIMIT));
             machine.Messages.Add(GCommand.G_SetZPosition(0));
         }
 
@@ -203,8 +228,7 @@ namespace Picky
         {
             Target.CalibrateMMPerPixelAtZ();
         }
-               
-                
+        
         public ICommand MoveToPickLocation { get { return new RelayCommand(moveToPickLocation); } }
         private void moveToPickLocation()
         {

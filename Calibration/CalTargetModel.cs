@@ -18,16 +18,16 @@ namespace Picky
         public static double GRID_ORIGIN_Y_MILS = 2900;
         public static double GRID_SPACING_X_MILS = 4000;
         public static double GRID_SPACING_Y_MILS = 4000;
-        public static double GRID_MONUMENT_RADIUS_MM = 3;
+        public static double GRID_MONUMENT_RADIUS_MM = 1.27;
         public static double GRID_MONUMENT_HEIGHT_MM = 1.778;
 
         public static double LOWER_GRID_X_MILS = 1200;
         public static double LOWER_GRID_Y_MILS = 4900;
-        public static double LOWER_GRID_HEIGHT_MILS = 40;
+        public static double LOWER_GRID_Z_OFFSET_FROM_DECK_MM = 1;
         
         public static double UPPER_GRID_X_MILS = 3600;
         public static double UPPER_GRID_Y_MILS = 4900;
-        public static double UPPER_GRID_HEIGHT_MILS = 433;
+        public static double UPPER_LOWER_GRID_Z_OFFSET_MM = 10;
 
         public static double OPTICAL_GRID_X_MM = 10;
         public static double OPTICAL_GRID_Y_MM = 10;
@@ -74,8 +74,6 @@ namespace Picky
             set { actualLocUpper = value; OnPropertyChanged(nameof(ActualLocUpper)); }
         }
 
-
-
         private Position3D calCircle;
         public Position3D CalCircle
         {
@@ -83,16 +81,12 @@ namespace Picky
             set { calCircle = value; OnPropertyChanged(nameof(CalCircle)); }
         }
 
+        private List<CircleSegment> upperGridCircles;
+        private List<CircleSegment> lowerGridCircles;
+
         public CalTargetModel()
         {
-            SetMMPerPixelTargetDefaults();
-            SetStepsPerMMTargetDefaults();
-        }
-
-        public void SetMMPerPixelTargetDefaults()
-        {
-            ActualLocLower = new Position3D((LOWER_GRID_X_MILS * Constants.MIL_TO_MM), (LOWER_GRID_Y_MILS * Constants.MIL_TO_MM), LOWER_GRID_HEIGHT_MILS * Constants.MIL_TO_MM, OPTICAL_GRID_RADIUS_MM);
-            ActualLocUpper = new Position3D((UPPER_GRID_X_MILS * Constants.MIL_TO_MM), (UPPER_GRID_Y_MILS * Constants.MIL_TO_MM), UPPER_GRID_HEIGHT_MILS * Constants.MIL_TO_MM, OPTICAL_GRID_RADIUS_MM);
+         
         }
 
         public void CalibrateMMPerPixelAtZ()
@@ -101,29 +95,19 @@ namespace Picky
          * is a calibration used to enable jump step connections based on cammea
          * to target.  This function is performed at two different target z 
          * elevations.  This should be done after calibrating mm per steps.
+         * Requires that Z is calibrated at the calibration pad
          * -------------------------------------------------------------------*/
         {
-            SetMMPerPixelTargetDefaults();
             MachineModel machine = MachineModel.Instance;
+            double dist_to_deck_mm = machine.Cal.ZCalPadZ + Constants.ZOFFSET_CAL_PAD_TO_DECK;
 
-            // TODO Replace with calibrated Z
-            ActualLocLower.Z = (Constants.CAMERA_TO_DECK_MILS * Constants.MIL_TO_MM) - (LOWER_GRID_HEIGHT_MILS * Constants.MIL_TO_MM);
-            ActualLocUpper.Z = (Constants.CAMERA_TO_DECK_MILS * Constants.MIL_TO_MM) - (UPPER_GRID_HEIGHT_MILS * Constants.MIL_TO_MM);
-            
-            /* Get Lower */
-            machine.Messages.Add(GCommand.G_EnableIlluminator(true));
-            machine.Messages.Add(GCommand.G_SetPosition(ActualLocLower.X, ActualLocLower.Y, 0, 0, 0));
-            for (int i = 0; i < 5; i++)
-            {
-                machine.Messages.Add(GCommand.G_FinishMoves());
-                machine.Messages.Add(GCommand.StepAlignToCalCircle(ActualLocLower));
-                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
-            }
-            machine.Messages.Add(GCommand.G_ProbeZ(24.0));
-            machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.SetScaleResolutionCalibration(this));
-            
+            ActualLocUpper.Radius = GRID_MONUMENT_RADIUS_MM;
+            ActualLocLower.Radius = GRID_MONUMENT_RADIUS_MM;
+            ActualLocLower.Z = dist_to_deck_mm - LOWER_GRID_Z_OFFSET_FROM_DECK_MM;
+            ActualLocUpper.Z = dist_to_deck_mm - UPPER_LOWER_GRID_Z_OFFSET_MM;
+
             /* Get Upper */
+            machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             machine.Messages.Add(GCommand.G_SetPosition(ActualLocUpper.X, ActualLocUpper.Y, 0, 0, 0));
             for (int i = 0; i < 5; i++)
             {
@@ -131,9 +115,20 @@ namespace Picky
                 machine.Messages.Add(GCommand.StepAlignToCalCircle(ActualLocUpper));
                 machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             }
-            machine.Messages.Add(GCommand.G_ProbeZ(24.0));
+            machine.Messages.Add(GCommand.GetGridCalibration(upperGridCircles, ActualLocUpper));
+
+            /* Get Lower */
+            machine.Messages.Add(GCommand.G_SetPosition(ActualLocLower.X, ActualLocLower.Y, 0, 0, 0));
+            for (int i = 0; i < 5; i++)
+            {
+                machine.Messages.Add(GCommand.G_FinishMoves());
+                machine.Messages.Add(GCommand.StepAlignToCalCircle(ActualLocLower));
+                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
+            }
             machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.SetScaleResolutionCalibration(this));
+            machine.Messages.Add(GCommand.GetGridCalibration(lowerGridCircles, ActualLocLower));
+
+            machine.Messages.Add(GCommand.CalculateMMPerPixel());
         }
 
         private void SetStepsPerMMTargetDefaults()
@@ -143,7 +138,7 @@ namespace Picky
             ActualLoc01 = new Position3D((GRID_ORIGIN_X_MILS * Constants.MIL_TO_MM), (GRID_ORIGIN_Y_MILS * Constants.MIL_TO_MM) + (GRID_SPACING_Y_MILS * Constants.MIL_TO_MM), GRID_MONUMENT_HEIGHT_MM, GRID_MONUMENT_RADIUS_MM);
             ActualLoc11 = new Position3D((GRID_ORIGIN_X_MILS * Constants.MIL_TO_MM) + (GRID_SPACING_X_MILS* Constants.MIL_TO_MM), (GRID_ORIGIN_Y_MILS* Constants.MIL_TO_MM) + (GRID_SPACING_Y_MILS* Constants.MIL_TO_MM), GRID_MONUMENT_HEIGHT_MM, GRID_MONUMENT_RADIUS_MM);
         }
-        
+
         public void CalibrateMMPerStep()
         /*---------------------------------------------------------------------
          * Uses step alignment to determine mm/step. This
@@ -153,7 +148,10 @@ namespace Picky
          * -------------------------------------------------------------------*/
         {
             MachineModel machine = MachineModel.Instance;
-           
+            upperGridCircles = new List<CircleSegment>();
+            lowerGridCircles = new List<CircleSegment>();
+
+
             // TODO Replace with calibrated Z
             ActualLoc00.Z = (Constants.CAMERA_TO_DECK_MILS * Constants.MIL_TO_MM) - GRID_MONUMENT_HEIGHT_MM;
             ActualLoc00.Radius = GRID_MONUMENT_RADIUS_MM;
@@ -173,6 +171,7 @@ namespace Picky
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             machine.Messages.Add(GCommand.G_GetStepsPerUnit());
             machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+            // For the x = 0, y = 0 position
             machine.Messages.Add(GCommand.G_SetPosition(ActualLoc00.X, ActualLoc00.Y, 0, 0, 0));
             for (int i = 0; i < 4; i++)
             {
@@ -180,25 +179,6 @@ namespace Picky
                 machine.Messages.Add(GCommand.StepAlignToCalCircle(ActualLoc00));
                 machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             }
-
-            //For the x = 1, y = 0 position
-           // machine.Messages.Add(GCommand.G_SetPosition(ActualLoc10.X, ActualLoc10.Y, 0, 0, 0));
-           // for (int i = 0; i < 4; i++)
-          //  {
-           //     machine.Messages.Add(GCommand.G_FinishMoves());
-           //     machine.Messages.Add(GCommand.StepAlignToCalCircle(ActualLoc10));
-           //     machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
-           // }
-
-            //For the x = 0, y = 1 position
-           // machine.Messages.Add(GCommand.G_SetPosition(ActualLoc01.X, ActualLoc01.Y, 0, 0, 0));
-           // for (int i = 0; i < 4; i++)
-           // {
-            //    machine.Messages.Add(GCommand.G_FinishMoves());
-           //     machine.Messages.Add(GCommand.StepAlignToCalCircle(ActualLoc01));
-           //     machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
-           // }
-
             //For the x = 1, y = 1 position
             machine.Messages.Add(GCommand.G_SetPosition(ActualLoc11.X, ActualLoc11.Y, 0, 0, 0));
             for (int i = 0; i < 4; i++)
@@ -214,6 +194,11 @@ namespace Picky
         private void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public void CalculateMachineMMPerPixel()
+        {
+
         }
 
         public void CalculateMachineStepsPerMM(){
@@ -244,11 +229,7 @@ namespace Picky
             Console.WriteLine("Delta -----> " + x_delta_mm + "," + y_delta_mm);
             Console.WriteLine("Fraction --> " + xf + " " + machine.Cal.CalculatedStepsPerUnitX + " " + yf + " " + machine.Cal.CalculatedStepsPerUnitY);
             Console.WriteLine("00 " + ActualLoc00.ToString());
-            //Console.WriteLine("01 " + ActualLoc01.ToString());
-            //Console.WriteLine("10 " + ActualLoc10.ToString());
             Console.WriteLine("11 " + ActualLoc11.ToString());
-
-
         }
     }
 }

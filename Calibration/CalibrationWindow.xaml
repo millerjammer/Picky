@@ -7,11 +7,14 @@
         d:DataContext="{d:DesignInstance Type=local:CalibrationViewModel}"
         xmlns:local="clr-namespace:Picky" 
         mc:Ignorable="d" FontSize="15" 
-        Height="1000" Width="800" ResizeMode="NoResize"
+        Height="1050" Width="800" ResizeMode="NoResize"
         WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterScreen" Background="Transparent">
     <Border CornerRadius="10" Background="#151f2d" Margin="0 0 0 0">
         <Grid>
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -91,7 +94,7 @@
             <Button Grid.Row="7" Grid.Column="4" Grid.ColumnSpan="1" Content="Use Current" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding SetOriginToUpCameraCommand}"/>
             <Button Grid.Row="7" Grid.Column="5" Grid.ColumnSpan="1" Content="Go To" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GoToUpCameraCommand}"/>
 
-            <Label Grid.Row="8" Grid.Column="0" Content="Z Probe:" Margin="10 5 10 5" VerticalContentAlignment="Center" FontWeight="UltraBold"/>
+            <Label Grid.Row="8" Grid.Column="0" Content="Z Probe (2nd):" Margin="10 5 10 5" VerticalContentAlignment="Center" FontWeight="UltraBold"/>
             <Label Grid.Row="8" Grid.Column="1" Content="X [mm]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>
             <Label Grid.Row="8" Grid.Column="2" Content="Y [mm]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>
 
@@ -125,55 +128,63 @@
             <Button Grid.Row="13" Grid.Column="4" Grid.ColumnSpan="1" Content="Use Current" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GetFeederNCommand}"/>
             <Button Grid.Row="13" Grid.Column="5" Grid.ColumnSpan="1" Content="Go To" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GoToFeederNCommand}"/>
 
-            <Label Grid.Row="14" Grid.Column="0" Content="Image Scale" Margin="10 5 10 5" VerticalContentAlignment="Center" FontWeight="UltraBold"/>
-            <Label Grid.Row="14" Grid.Column="1" Content="X [mm/pix]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>
-            <Label Grid.Row="14" Grid.Column="2" Content="Y [mm/pix]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>
-            <Label Grid.Row="14" Grid.Column="3" Content="@Z [mm]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>
+            <Label Grid.Row="14" Grid.Column="0" Content="Image Calibration (3rd):" Margin="10 5 10 5" VerticalContentAlignment="Center" FontWeight="UltraBold"/>
+            <Label Grid.Row="14" Grid.Column="1" Content="X [mm]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>
+            <Label Grid.Row="14" Grid.Column="2" Content="Y [mm]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>
+            <Label Grid.Row="14" Grid.Column="3" Content="Z [mm]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>
                         
-            <Label Grid.Row="15" Grid.Column="0" Content="@Tool Surface (1st)" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
-            <TextBox Grid.Row="15" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.TargetResAtTool.MMPerPixX, StringFormat={}{0:0.0000}, UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBox Grid.Row="15" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.TargetResAtTool.MMPerPixY , StringFormat={}{0:0.0000},UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBox Grid.Row="15" Grid.Column="3" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.TargetResAtTool.MMHeightZ, StringFormat={}{0:0.000},UpdateSourceTrigger=PropertyChanged}"/>
-            <Button Grid.Row="15" Grid.Column="4" Grid.ColumnSpan="1" Grid.RowSpan="2" Content="Calibrate" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding CalibrateMMPerPixCommand}"/>
-            
-            <Label Grid.Row="16" Grid.Column="0" Content="@PCB Surface (2nd)" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
-            <TextBox Grid.Row="16" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.TargetResAtPCB.MMPerPixX, StringFormat={}{0:0.0000}, UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBox Grid.Row="16" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.TargetResAtPCB.MMPerPixY , StringFormat={}{0:0.0000},UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBox Grid.Row="16" Grid.Column="3" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Machine.Cal.TargetResAtPCB.MMHeightZ, StringFormat={}{0:0.000},UpdateSourceTrigger=PropertyChanged}"/>
-                     
-            <Label Grid.Row="17" Grid.Column="0" Content="Scale @ Tool Tip:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
-            <TextBlock Grid.Row="17" Grid.Column="1" Margin="10 5 10 5" Foreground="White" HorizontalAlignment="Center" Text="{Binding Machine.Cal.ResolutionXAtZ, StringFormat={}{0:0.0000}, UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBlock Grid.Row="17" Grid.Column="2" Margin="10 5 10 5" Foreground="White" HorizontalAlignment="Center" Text="{Binding Machine.Cal.ResolutionYAtZ , StringFormat={}{0:0.0000},UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBlock Grid.Row="17" Grid.Column="3" Margin="10 5 10 5" Foreground="White" HorizontalAlignment="Center" Text="{Binding Machine.CurrentZ, StringFormat={}@{0:0.000},UpdateSourceTrigger=PropertyChanged}"/>
+            <Label Grid.Row="15" Grid.Column="0" Content="Upper Surface Target:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
+            <TextBox Grid.Row="15" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.ActualLocUpper.X, StringFormat={}{0:0.0000}, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBox Grid.Row="15" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.ActualLocUpper.Y, StringFormat={}{0:0.0000},UpdateSourceTrigger=PropertyChanged}"/>
+            <Button Grid.Row="15" Grid.Column="4" Grid.ColumnSpan="1" Content="Use Current" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding SetUpperTargetResCommand}"/>
+            <Button Grid.Row="15" Grid.Column="5" Grid.ColumnSpan="1" Content="Go To" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GoToUpperTargetResCommand}"/>
 
-            <Label Grid.Row="18" Grid.Column="0" Content="Position Calibration (3rd)" Margin="10 5 10 5" VerticalContentAlignment="Center" FontWeight="UltraBold"/>
-            <Label Grid.Row="18" Grid.Column="1" Content="X [mm]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>
-            <Label Grid.Row="18" Grid.Column="2" Content="Y [mm]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>
+            <Label Grid.Row="16" Grid.Column="0" Content="Scale [mm/pix]:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
+            <TextBlock Grid.Row="16" Grid.Column="1" Margin="10 5 10 5" Foreground="White" HorizontalAlignment="Center" Text="{Binding Machine.Cal.ResolutionXAtZ, StringFormat={}{0:0.0000}, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock Grid.Row="16" Grid.Column="2" Margin="10 5 10 5" Foreground="White" HorizontalAlignment="Center" Text="{Binding Machine.Cal.ResolutionYAtZ , StringFormat={}{0:0.0000},UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock Grid.Row="16" Grid.Column="3" Margin="10 5 10 5" Foreground="White" HorizontalAlignment="Center" Text="{Binding Machine.CurrentZ, StringFormat={}{0:0.000},UpdateSourceTrigger=PropertyChanged}"/>
+            
+            <Label Grid.Row="17" Grid.Column="0" Content="Lower Surface Target:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
+            <TextBox Grid.Row="17" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.ActualLocLower.X, StringFormat={}{0:0.0000}, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBox Grid.Row="17" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.ActualLocLower.Y , StringFormat={}{0:0.0000},UpdateSourceTrigger=PropertyChanged}"/>
+            <Button Grid.Row="17" Grid.Column="4" Grid.ColumnSpan="1" Content="Use Current" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding SetLowerTargetResCommand}"/>
+            <Button Grid.Row="17" Grid.Column="5" Grid.ColumnSpan="1" Content="Go To" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GoToLowerTargetResCommand}"/>
+
+            <Label Grid.Row="18" Grid.Column="0" Content="Scale [mm/pix]:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
+            <TextBlock Grid.Row="18" Grid.Column="1" Margin="10 5 10 5" Foreground="White" HorizontalAlignment="Center" Text="{Binding Machine.Cal.ResolutionXAtZ, StringFormat={}{0:0.0000}, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock Grid.Row="18" Grid.Column="2" Margin="10 5 10 5" Foreground="White" HorizontalAlignment="Center" Text="{Binding Machine.Cal.ResolutionYAtZ , StringFormat={}{0:0.0000},UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock Grid.Row="18" Grid.Column="3" Margin="10 5 10 5" Foreground="White" HorizontalAlignment="Center" Text="{Binding Machine.CurrentZ, StringFormat={}{0:0.000},UpdateSourceTrigger=PropertyChanged}"/>
+            <Button Grid.Row="18" Grid.Column="4" Content="Calibrate" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding CalibrateMMPerPixCommand}"/>
+
+
+            <Label Grid.Row="19" Grid.Column="0" Content="Position Calibration (1st):" Margin="10 5 10 5" VerticalContentAlignment="Center" FontWeight="UltraBold"/>
+            <Label Grid.Row="19" Grid.Column="1" Content="X [mm]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>
+            <Label Grid.Row="19" Grid.Column="2" Content="Y [mm]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>
                        
-            <Label Grid.Row="19" Grid.Column="0" Content="Monument [0,0]:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
-            <TextBox Grid.Row="19" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.ActualLoc00.X, StringFormat={}{0:0.000}}"/>
-            <TextBox Grid.Row="19" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.ActualLoc00.Y, StringFormat={}{0:0.000}}"/>
-            <Button Grid.Row="19" Grid.Column="4" Grid.ColumnSpan="1" Content="Use Current" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding SetMonument00Command}"/>
-            <Button Grid.Row="19" Grid.Column="5" Grid.ColumnSpan="1" Content="Go To" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GoMonument00Command}"/>
+            <Label Grid.Row="20" Grid.Column="0" Content="Monument [0,0]:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
+            <TextBox Grid.Row="20" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.ActualLoc00.X, StringFormat={}{0:0.000}}"/>
+            <TextBox Grid.Row="20" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.ActualLoc00.Y, StringFormat={}{0:0.000}}"/>
+            <Button Grid.Row="20" Grid.Column="4" Grid.ColumnSpan="1" Content="Use Current" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding SetMonument00Command}"/>
+            <Button Grid.Row="20" Grid.Column="5" Grid.ColumnSpan="1" Content="Go To" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GoMonument00Command}"/>
            
-            <Label Grid.Row="20" Grid.Column="0" Content="Monument [1,1]:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
-            <TextBox Grid.Row="20" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.ActualLoc11.X, StringFormat={}{0:0.000}}"/>
-            <TextBox Grid.Row="20" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.ActualLoc11.Y, StringFormat={}{0:0.000}}"/>
-            <Button Grid.Row="20" Grid.Column="4" Grid.ColumnSpan="1" Content="Use Current" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding SetMonument11Command}"/>
-            <Button Grid.Row="20" Grid.Column="5" Grid.ColumnSpan="1" Content="Go To" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GoMonument11Command}"/>
+            <Label Grid.Row="21" Grid.Column="0" Content="Monument [1,1]:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
+            <TextBox Grid.Row="21" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.ActualLoc11.X, StringFormat={}{0:0.000}}"/>
+            <TextBox Grid.Row="21" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.ActualLoc11.Y, StringFormat={}{0:0.000}}"/>
+            <Button Grid.Row="21" Grid.Column="4" Grid.ColumnSpan="1" Content="Use Current" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding SetMonument11Command}"/>
+            <Button Grid.Row="21" Grid.Column="5" Grid.ColumnSpan="1" Content="Go To" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GoMonument11Command}"/>
             
-            <Label Grid.Row="21" Grid.Column="0" Content="Calculated [stps/mm]: " Margin="10 5 10 5" VerticalContentAlignment="Center"/>
-            <TextBox Grid.Row="21" Grid.Column="1" Margin="10 5 10 5" Foreground="White" FontSize="14" HorizontalAlignment="Center" Text="{Binding Machine.Cal.CalculatedStepsPerUnitX, StringFormat={}{0:0.000}}"/>
-            <TextBox Grid.Row="21" Grid.Column="2" Margin="10 5 10 5" Foreground="White" FontSize="14" HorizontalAlignment="Center" Text="{Binding Machine.Cal.CalculatedStepsPerUnitY, StringFormat={}{0:0.000}}"/>
-            <Button Grid.Row="21" Grid.Column="4" Grid.ColumnSpan="1" Content="Calibrate" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding CalibrateMMPerStepCommand}"/>
+            <Label Grid.Row="22" Grid.Column="0" Content="Calculated [stps/mm]: " Margin="10 5 10 5" VerticalContentAlignment="Center"/>
+            <TextBox Grid.Row="22" Grid.Column="1" Margin="10 5 10 5" Foreground="White" HorizontalAlignment="Stretch" Text="{Binding Machine.Cal.CalculatedStepsPerUnitX, StringFormat={}{0:0.000}}"/>
+            <TextBox Grid.Row="22" Grid.Column="2" Margin="10 5 10 5" Foreground="White" HorizontalAlignment="Stretch" Text="{Binding Machine.Cal.CalculatedStepsPerUnitY, StringFormat={}{0:0.000}}"/>
+            <Button Grid.Row="22" Grid.Column="4" Grid.ColumnSpan="1" Content="Calibrate" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding CalibrateMMPerStepCommand}"/>
 
-            <Label Grid.Row="22" Grid.Column="0" Content="Current: [stps/mm]:" Margin="10" VerticalContentAlignment="Center"/>
-            <TextBlock Grid.Row="22" Grid.Column="1" Margin="10 5 10 5" Foreground="White" FontSize="14" HorizontalAlignment="Center" Text="{Binding Machine.Cal.StepsPerUnitX, StringFormat={}{0:0.000}}"/>
-            <TextBlock Grid.Row="22" Grid.Column="2" Margin="10 5 10 5" Foreground="White" FontSize="14" HorizontalAlignment="Center" Text="{Binding Machine.Cal.StepsPerUnitY, StringFormat={}{0:0.000}}"/>
-            <Button Grid.Row="22" Grid.Column="4" Grid.ColumnSpan="1" Content="Update EEPROM" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding WriteStepPerUnitCommand}"/>
-            <Button Grid.Row="22" Grid.Column="5" Grid.ColumnSpan="1" Content="Read EEPROM" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding ReadStepPerUnitCommand}"/>
+            <Label Grid.Row="23" Grid.Column="0" Content="Current: [stps/mm]:" Margin="10" VerticalContentAlignment="Center"/>
+            <TextBlock Grid.Row="23" Grid.Column="1" Margin="10 5 10 5" Foreground="White" FontSize="14" HorizontalAlignment="Center" Text="{Binding Machine.Cal.StepsPerUnitX, StringFormat={}{0:0.000}}"/>
+            <TextBlock Grid.Row="23" Grid.Column="2" Margin="10 5 10 5" Foreground="White" FontSize="14" HorizontalAlignment="Center" Text="{Binding Machine.Cal.StepsPerUnitY, StringFormat={}{0:0.000}}"/>
+            <Button Grid.Row="23" Grid.Column="4" Grid.ColumnSpan="1" Content="Update EEPROM" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding WriteStepPerUnitCommand}"/>
+            <Button Grid.Row="23" Grid.Column="5" Grid.ColumnSpan="1" Content="Read EEPROM" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding ReadStepPerUnitCommand}"/>
 
-            <Button Grid.Row="23" Grid.Column="4" Grid.ColumnSpan="2" Content="OK" Margin="10" Width="100" HorizontalAlignment="Center" Command="{Binding OkCommand}"/>
+            <Button Grid.Row="24" Grid.Column="4" Grid.ColumnSpan="2" Content="OK" Margin="10" Width="100" HorizontalAlignment="Center" Command="{Binding OkCommand}"/>
         </Grid>
     </Border>
 </Window>

@@ -8,8 +8,10 @@
 
 using Microsoft.VisualStudio.Shell.Interop;
 using OpenCvSharp;
+using Picky.Commands;
 using Picky.Tools;
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms.VisualStyles;
 using System.Windows.Interop;
@@ -72,10 +74,16 @@ namespace Picky
             OpticallyAlignToToolCommand cmd = new OpticallyAlignToToolCommand(tool);
             return cmd.GetMessage();
         }
-
-        public static MachineMessage SetScaleResolutionCalibration(CalTargetModel ctm)            
+        
+        public static MachineMessage GetGridCalibration(List<CircleSegment> bestCircles, Position3D centerCircle)            
         {
-            SetScaleResolutionCalibrationCommand cmd = new SetScaleResolutionCalibrationCommand(ctm);
+            GetGridCalibrationCommand cmd = new GetGridCalibrationCommand(bestCircles, centerCircle);
+            return cmd.GetMessage();
+        }
+
+        public static MachineMessage CalculateMMPerPixel()            
+        {
+            CalculateMMPerPixelCommand cmd = new CalculateMMPerPixelCommand();
             return cmd.GetMessage();
         }
 
@@ -86,9 +94,9 @@ namespace Picky
         }
 
 
-        public static MachineMessage SetZProbeCalibration()            
+        public static MachineMessage GetZProbe(double distance_mm)            
         {
-            SetZProbeCalibrationCommand cmd = new SetZProbeCalibrationCommand();
+            GetZProbeCommand cmd = new GetZProbeCommand(distance_mm);
             return cmd.GetMessage();
         }
 

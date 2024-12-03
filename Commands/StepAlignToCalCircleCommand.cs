@@ -61,7 +61,8 @@ namespace Picky
             detector.zEstimate = target.Z;
             detector.IsManualFocus = true;
             detector.Focus = 0;
-            detector.Count = 50;                    // Number of Circles to find
+            detector.CountPerScene = 1;
+            detector.ScenesToAquire = 50;                    // Number of Circles to find
 
             cameraToUse.RequestCircleLocation(detector);
             return true;
@@ -72,11 +73,11 @@ namespace Picky
             if (cameraToUse.IsCircleSearchActive() == false)
             {
                 //Take a guess of the offset, we're ultimately intersted in the machine position
-                double scale = Constants.DEFAULT_MM_PER_PIXEL;
+                var scale = machine.Cal.GetScaleMMPerPixAtZ(target.Z);
                 List<CircleSegment> cir = cameraToUse.GetBestCircles(); //In pixels
-                double x_offset = scale * cir.Average(c => c.Center.X);
-                double y_offset = scale * cir.Average(c => c.Center.Y);
-                double radius = scale * cir.Average(c => c.Radius);
+                double x_offset = scale.xScale * cir.Average(c => c.Center.X);
+                double y_offset = scale.xScale * cir.Average(c => c.Center.Y);
+                double radius = scale.xScale * cir.Average(c => c.Radius);
 
                 Console.WriteLine("Cal Circle Offset (mm): " + x_offset + " " + y_offset + " radius: " + radius);
                 MachineMessage nxt = machine.Messages.ElementAt(machine.Messages.IndexOf(msg) + 1);

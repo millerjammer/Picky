@@ -50,6 +50,9 @@ namespace Picky
         /* Tools */
         public ObservableCollection<PickToolModel> PickToolList { get; set; }
 
+        /* Last Actions */
+        public double LastZProbeResult { get; set; }
+
         private PickToolModel selectedPickTool;
         public PickToolModel SelectedPickTool
         {

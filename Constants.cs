@@ -30,13 +30,13 @@ namespace Picky
         //public static int CAMERA_FPS = 45;
 
         /* The tools */
-        public static int    TOOL_COUNT = 4;
-        public static double TOOL_CENTER_RADIUS_MILS = 80;
-        public static double TOOL_LENGTH_MM = 28.575;
-        public static int TOOL_LOWER_THRESHOLD = 149;
-        public static int TOOL_UPPER_THRESHOLD = 230;
-        public static int TOOL_DETECTOR_P1 = 100;
-        public static double TOOL_DETECTOR_P2 = 0.65;
+        public static int       TOOL_COUNT = 4;
+        public static double    TOOL_CENTER_RADIUS_MILS = 80;
+        public static double    TOOL_LENGTH_MM = 28.575;
+        public static int       TOOL_LOWER_THRESHOLD = 149;
+        public static int       TOOL_UPPER_THRESHOLD = 230;
+        public static int       TOOL_DETECTOR_P1 = 100;
+        public static double    TOOL_DETECTOR_P2 = 0.65;
 
         /* GUI */
         public static string PAUSE_ICON = "\uE769";

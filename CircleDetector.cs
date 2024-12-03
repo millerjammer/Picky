@@ -24,7 +24,7 @@ namespace Picky
             set { param2 = value; OnPropertyChanged(nameof(Param2)); }
         }
 
-        private int threshold = 200;
+        private int threshold = 100;
         public int Threshold
         {
             get { return threshold; }
@@ -48,26 +48,32 @@ namespace Picky
         public HoughModes DetectorType;
         public double zEstimate;                    //In mm to optical plane
         public double Radius;                       //In mm
-        public Rect ROI;                            //In mm
-        public int Count;                           //Number of circles to find
+        public Rect ROI;                            //In pixels!!
+        public int ScenesToAquire;                      //Number of circles to find
+        public int CountPerScene;
+
 
         public CircleDetector(HoughModes mode, int param1, double param2, int threshold)
+        {
+            set_default(mode);
+        }
+
+        public CircleDetector(HoughModes mode, int param1, double param2, int threshold, int focus)
+        {
+            set_default(mode);
+            IsManualFocus = false;
+            Focus = focus;
+        }
+
+        private void set_default(HoughModes mode)
         {
             DetectorType = mode;
             Param1 = param1;
             Param2 = param2;
             Threshold = threshold;
             IsManualFocus = true;
-        }
-
-        public CircleDetector(HoughModes mode, int param1, double param2, int threshold, int focus)
-        {
-            DetectorType = mode;
-            Param1 = param1;
-            Param2 = param2;
-            Threshold = threshold;
-            IsManualFocus = false;
-            Focus = focus;
+            CountPerScene = 1;
+            ScenesToAquire = 1;
         }
 
         public CircleDetector()

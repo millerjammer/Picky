@@ -164,15 +164,17 @@
     <Compile Include="CassetteViewModel.cs" />
     <Compile Include="CircleDetector.cs" />
     <Compile Include="Commands\CalculateMachineStepsPerMMCommand.cs" />
+    <Compile Include="Commands\CalculateMMPerPixelCommand.cs" />
     <Compile Include="Commands\DelayCommand.cs" />
     <Compile Include="Commands\GetFeederQRCodeCommand .cs" />
+    <Compile Include="Commands\GetGridCalibrationCommand.cs" />
+    <Compile Include="Commands\GetZProbeCommand.cs" />
     <Compile Include="Commands\OffsetCameraToPickCommand.cs" />
     <Compile Include="Commands\OpticallyAlignToToolCommand.cs" />
     <Compile Include="Commands\SendCustomGCodeCommand.cs" />
     <Compile Include="Commands\SetCameraManualFocusCommand.cs" />
     <Compile Include="Commands\SetToolLengthCommand.cs" />
     <Compile Include="Commands\SetToolOffsetCalibrationCommand.cs" />
-    <Compile Include="Commands\SetZProbeCalibrationCommand.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="ControlWindow.xaml.cs">
       <DependentUpon>ControlWindow.xaml</DependentUpon>
@@ -196,7 +198,6 @@
     </Compile>
     <Compile Include="PickListViewModel.cs" />
     <Compile Include="Commands\OpticallyAlignToPartCommand.cs" />
-    <Compile Include="Commands\SetScaleResolutionCalibrationCommand.cs" />
     <Compile Include="Position3D.cs" />
     <Compile Include="SettingsModel.cs" />
     <Compile Include="SettingsViewModel.cs" />

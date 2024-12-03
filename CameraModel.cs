@@ -165,7 +165,6 @@ namespace Picky
             else
             {
                 capture.Set(VideoCaptureProperties.AutoFocus, 1);
-                Console.WriteLine("Auto Focus Mode");
             }
         }
 
@@ -313,7 +312,7 @@ namespace Picky
 
             //Convert the estimated circle (in MM) to search criteria (in Pix) based on z.  
             var scale = machine.Cal.GetScaleMMPerPixAtZ(circleDetector.zEstimate);
-            int minR = (int)((circleDetector.Radius / 4) / scale.xScale);
+            int minR = (int)((circleDetector.Radius / 2) / scale.xScale);
             int maxR = (int)((circleDetector.Radius * 2) / scale.xScale);
             double param1 = machine.SelectedPickTool.UpperCircleDetector.Param1;
             double param2 = machine.SelectedPickTool.UpperCircleDetector.Param2;
@@ -332,9 +331,9 @@ namespace Picky
                 minRadius: minR,            
                 maxRadius: maxR);
             
-            if (Circles.Length == 0)
+            if (Circles.Length < circleDetector.CountPerScene)
             {
-                Console.WriteLine("No circles found. minR/maxR (pix): " + minR + "/" + maxR + "@" + scale.xScale);
+                Console.WriteLine("<CountPerScene (" + Circles.Length + "/" + circleDetector.CountPerScene + "). minR/maxR (pix): " + minR + "/" + maxR + "@" + scale.xScale);
                 OpenCvSharp.Cv2.Rectangle(ColorImage, circleDetector.ROI, new OpenCvSharp.Scalar(0, 255, 0), 4);
                 return false;
             }
@@ -342,16 +341,17 @@ namespace Picky
             {
                 // Calculate the center of the image, in pixels
                 Point2f roiCenter = new Point2f(CircleROI.Width / 2.0f, CircleROI.Height / 2.0f);
-                // Find the closest circle to the center
-                CircleSegment closestCircle = Circles.OrderBy(circle => Math.Pow(circle.Center.X - roiCenter.X, 2) + Math.Pow(circle.Center.Y - roiCenter.Y, 2)).First();
-                // Calculate the offset of the closest circle from the center of the ROI image, in pixels
-                Point2f CircleToFind = new Point2f(closestCircle.Center.X - roiCenter.X, closestCircle.Center.Y - roiCenter.Y);
-                bestCircle = closestCircle;
-                bestCircle.Center = CircleToFind;
-                if(bestCircles.Count < 100)
-                    bestCircles.Add(bestCircle);
-                double avg = bestCircles.Average(c =>  c.Radius);
-                Console.WriteLine("Found: Best Circle minR/avg/maxR (pix): " + minR + "/" + avg + "/" + maxR + "@" + scale.xScale);
+                // Sort by center or image
+                bestCircle = Circles.OrderBy(circle => Math.Pow(circle.Center.X - roiCenter.X, 2) + Math.Pow(circle.Center.Y - roiCenter.Y, 2)).First();
+                bestCircle.Center = new Point2f(bestCircle.Center.X - roiCenter.X, bestCircle.Center.Y - roiCenter.Y);
+                Console.WriteLine("Found: Best Circle minR/avg/maxR (pix): " + minR + "/" + bestCircle.Radius + "/" + maxR + "@" + scale.xScale);
+                for (int i = 0; i < circleDetector.CountPerScene; i++)
+                {
+                    CircleSegment cir = Circles.ElementAt(i);
+                    cir.Center = new Point2f(cir.Center.X - roiCenter.X, cir.Center.Y - roiCenter.Y);
+                    bestCircles.Add(cir);
+                }
+                
             }
             OpenCvSharp.Cv2.Rectangle(ColorImage, circleDetector.ROI, new OpenCvSharp.Scalar(0, 255, 0), 4);
             return true;
@@ -505,9 +505,9 @@ namespace Picky
                             // Draw the circle center
                             Cv2.Circle(ColorImage, x, y, 3, Scalar.Red, 3);
                             // Just show the first circle in the list
-                            break;
+                            //break;
                         }
-                        if(bestCircles.Count >= circleDetector.Count)
+                        if(bestCircles.Count >= circleDetector.ScenesToAquire)
                             searchCircleRequest = false;
                     }
                 }
