@@ -8,7 +8,7 @@ using System.Web.ModelBinding;
 
 namespace Picky
 {
-    public class TipFitCalibration : INotifyPropertyChanged
+    public class CircleEstimation : INotifyPropertyChanged
     {
 
         private Position3D bestCircle; 
@@ -18,13 +18,27 @@ namespace Picky
             set { bestCircle = value; }
         }
 
-        public TipFitCalibration()
+        private Position3D rawCircle;
+        public Position3D RawCircle
         {
-            BestCircle = new Position3D();
+            get { return rawCircle; }
+            set { rawCircle = value; }
         }
 
-        public Position3D CalculateBestFitCircle(List<Position3D> points)
+        public CircleEstimation()
         {
+            BestCircle = new Position3D();
+            RawCircle = new Position3D();
+        }
+
+        public Position3D CalculateRawBestFitCircle(List<Position3D> points)
+        {
+        /*----------------------------------------------------------------
+         * Returns best fit circle in units of the points referenced to
+         * the center usually of a full frame image
+         * 
+         *--------------------------------------------------------------*/
+
             int n = points.Count();
 
             if (n < 3)
@@ -60,24 +74,42 @@ namespace Picky
                 return Math.Pow(Math.Sqrt(dx * dx + dy * dy) - radius, 2);
             });
 
+            RawCircle.X = centerX;
+            RawCircle.Y = centerY;
+            RawCircle.Radius = radius;
+            RawCircle.Quality = fitQuality;
+
+            return RawCircle;
+        }
+
+        public Position3D CalculateBestFitCircle(List<Position3D> points)
+        {
+         /*----------------------------------------------------------------
+         * Returns best fit circle in mm.  points are expected in pixels.
+         * points must have consistent z.
+         * 
+         *--------------------------------------------------------------*/
+
+            CalculateRawBestFitCircle(points);
+
             // Convert from pixels to mm
             MachineModel machine = MachineModel.Instance;
             double z = points.Min(e => e.Z);
             var scale = machine.Cal.GetScaleMMPerPixAtZ(z);
-            BestCircle.X = centerX * scale.xScale;
-            BestCircle.Y = centerY * scale.yScale;
+            BestCircle.X = RawCircle.X * scale.xScale;
+            BestCircle.Y = RawCircle.Y * scale.yScale;
             BestCircle.Z = z;
-            BestCircle.Radius = radius * scale.xScale;
-            BestCircle.Quality = fitQuality;
+            BestCircle.Radius = RawCircle.Radius * scale.xScale;
+            BestCircle.Quality = RawCircle.Quality;
             Position3D zeroPoint = points.OrderBy(p => p.Angle).First();
             // When we started calculating the calibration circle we know the pick angle.  But, 
             // We don't where on the calibration circle we are.  So, when we are done with the 
             // calibration circle calculations we'd like to know what angle on the calibration
             // circle corresponds to that initial zero angle pick location.
             BestCircle.Angle = GetAngleFromPoint(zeroPoint.X, zeroPoint.Y);
-            Console.WriteLine("Cal Circle Offset: " + BestCircle.Angle + " @ " + zeroPoint.X + "," + zeroPoint.Y);
+            Console.WriteLine("Circle Offset: " + BestCircle.Angle + " @ " + zeroPoint.X + "," + zeroPoint.Y);
             foreach (Position3D point in points)
-                Console.WriteLine("Calibration Circle: x, y: " + point.X + "," + point.Y + " @ " + point.Angle);
+                Console.WriteLine("Circle: x, y: " + point.X + "," + point.Y + " @ " + point.Angle);
           
             return BestCircle;
         }

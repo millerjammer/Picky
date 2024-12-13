@@ -1,4 +1,5 @@
-﻿using OpenCvSharp;
+﻿using Newtonsoft.Json;
+using OpenCvSharp;
 using OpenCvSharp.Dnn;
 using System;
 using System.ComponentModel;
@@ -36,26 +37,20 @@ namespace Picky
             get { return feederNY; }
             set { feederNY = value; OnPropertyChanged(nameof(FeederNY)); }
         }
-       
-                
-        /* Calculated based on similar triangles above */
-        private double resolutionXAtZ;
-        public double ResolutionXAtZ
+                       
+        /* Used to calculate mm/pixel and different Z using similar triangles */
+        private Position3D mmPerPixUpper;
+        public Position3D MMPerPixUpper
         {
-            get { return resolutionXAtZ; }
-            set { resolutionXAtZ = value; OnPropertyChanged(nameof(ResolutionXAtZ)); }
+            get { return mmPerPixUpper; }
+            set { mmPerPixUpper = value; OnPropertyChanged(nameof(MMPerPixUpper)); }
         }
-        private double resolutionYAtZ;
-        public double ResolutionYAtZ
+
+        private Position3D mmPerPixLower;
+        public Position3D MMPerPixLower
         {
-            get { return resolutionYAtZ; }
-            set { resolutionYAtZ = value; OnPropertyChanged(nameof(ResolutionYAtZ)); }
-        }
-        private double resolutionAtZ;
-        public double ResolutionAtZ
-        {
-            get { return resolutionAtZ; }
-            set { resolutionAtZ = value; OnPropertyChanged(nameof(ResolutionAtZ)); }
+            get { return mmPerPixLower; }
+            set { mmPerPixLower = value; OnPropertyChanged(nameof(MMPerPixLower)); }
         }
 
         /* Camera/Pick Physics */
@@ -157,6 +152,36 @@ namespace Picky
             set { calculatedStepsPerUnitY = value; OnPropertyChanged(nameof(CalculatedStepsPerUnitY)); }
         }
 
+        [JsonIgnore]
+        private bool isPreviewUpperTargetActive = false;
+        [JsonIgnore]
+        public bool IsPreviewUpperTargetActive
+        {
+            get { return isPreviewUpperTargetActive; }
+            set { isPreviewUpperTargetActive = value;
+                if (value)
+                {
+                    IsPreviewLowerTargetActive = false;
+                    CalTarget.PreviewCalTarget(CalTarget.UpperTemplateFileName, CalTarget.ActualLocUpper, CalTarget.upperThreshold, CalTarget.upperFocus);
+                }
+                OnPropertyChanged(nameof(IsPreviewUpperTargetActive)); }
+        }
+
+        [JsonIgnore]
+        private bool isPreviewLowerTargetActive = false;
+        [JsonIgnore]
+        public bool IsPreviewLowerTargetActive
+        {
+            get { return isPreviewLowerTargetActive; }
+            set { isPreviewLowerTargetActive = value;
+                if (value)
+                {
+                    IsPreviewUpperTargetActive = false;
+                    CalTarget.PreviewCalTarget(CalTarget.UpperTemplateFileName, CalTarget.ActualLocLower, CalTarget.lowerThreshold, CalTarget.lowerFocus);
+                }
+                OnPropertyChanged(nameof(IsPreviewLowerTargetActive)); }
+        }
+
 
         /*Calculated */
         public double DownCameraToItemX { get; set; }
@@ -217,7 +242,10 @@ namespace Picky
         {
             // Create Target
             CalTarget = new CalTargetModel();
+            mmPerPixUpper = new Position3D();
+            mmPerPixLower = new Position3D();
         }
+               
 
         /* Calculate Values Based on Calibration */
 
@@ -227,19 +255,11 @@ namespace Picky
              - been performed. Uses linear interpolation.  z is physical distance camera-to-item
              -----------------------------------------------------------------------------------*/
 
-            double slope_x = (CalTarget.ActualLocLower.X - CalTarget.ActualLocUpper.X) / (CalTarget.ActualLocLower.Z - CalTarget.ActualLocUpper.Z); 
-            double slope_y = (CalTarget.ActualLocLower.Y - CalTarget.ActualLocUpper.Y) / (CalTarget.ActualLocLower.Z - CalTarget.ActualLocUpper.Z);
-
-            ResolutionXAtZ = CalTarget.ActualLocUpper.X + (slope_x * (z - CalTarget.ActualLocUpper.Z));
-            ResolutionYAtZ = CalTarget.ActualLocUpper.Y + (slope_y * (z - CalTarget.ActualLocUpper.Z));
-
-            if(ResolutionXAtZ > .1 || ResolutionXAtZ < .01 || ResolutionYAtZ > .1 || ResolutionYAtZ < .01)
-            {
-                ResolutionXAtZ = Constants.DEFAULT_MM_PER_PIXEL;
-                ResolutionYAtZ = Constants.DEFAULT_MM_PER_PIXEL;
-                //Console.WriteLine("WARNING: Resolution out-of-bounds (" +  ResolutionXAtZ + "," + ResolutionYAtZ + ")");
-            }
-            return (ResolutionXAtZ, ResolutionYAtZ);
+            double scaleFactor = (z - MMPerPixUpper.Z) / (MMPerPixLower.Z - MMPerPixUpper.Z);
+            double mmPerPixX = MMPerPixUpper.X + scaleFactor * (MMPerPixLower.X - MMPerPixUpper.X);
+            double mmPerPixY = MMPerPixUpper.Y + scaleFactor * (MMPerPixLower.Y - MMPerPixUpper.Y);
+         
+            return (mmPerPixX, mmPerPixY);
         }
           
         

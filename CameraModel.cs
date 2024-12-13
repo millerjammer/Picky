@@ -1,13 +1,18 @@
-﻿using OpenCvSharp;
+﻿using EnvDTE90;
+using OpenCvSharp;
 using OpenCvSharp.WpfExtensions;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Web.UI.WebControls.WebParts;
+using System.Web.UI;
 using System.Windows;
+using System.Xml.Linq;
 using Xamarin.Forms;
 using Application = System.Windows.Application;
 using Image = System.Windows.Controls.Image;
+using EnvDTE;
 
 namespace Picky
 {
@@ -27,6 +32,7 @@ namespace Picky
         public Mat CircleROI { get; set; }
         public Mat RectangleROI { get; set; }
         public Mat QRImageROI { get; set; }
+        public Mat TemplateROI { get; set; }
 
         /* What we are currently viewing */
         public VisualizationStyle SelectedVisualizationViewItem { get; set; }
@@ -34,19 +40,25 @@ namespace Picky
         /* What we are currently viewing */
         public ImageProcessingStyle SelectedImagrProcessingStyle { get; set; }
 
-        /* Mats for Part Identification */
+        /* Mats for Part/Template Identification */
         private Mat grayTemplateImage;
         private Mat matchResultImage;
 
         private Point2d nextPartOffset;
         public Part PartToFind { get; set; }
         private OpenCvSharp.Rect partROI;
+
+        /* Template Request */
+        private bool searchTemplateRequest = false;
+        private Mat searchTemplate;
+        private OpenCvSharp.Rect searchTemplateROI;
+        private List<Position3D> searchTemplateResults = new List<Position3D>();
         
         /* Circle Request */
         private bool searchCircleRequest = false;
         private CircleDetector circleDetector;
         private CircleSegment bestCircle;
-        private List<CircleSegment> bestCircles = new List<CircleSegment>();
+        private List<Position3D> bestCircles = new List<Position3D>();
         private CircleSegment[] Circles;
 
         /* QR Request */
@@ -85,6 +97,13 @@ namespace Picky
         {
             get { return binaryThreshold; }
             set { binaryThreshold = value; OnPropertyChanged(nameof(BinaryThreshold)); }
+        }
+
+        private int templateThreshold;
+        public int TemplateThreshold
+        {
+            get { return templateThreshold; }
+            set { templateThreshold = value; OnPropertyChanged(nameof(TemplateThreshold)); }
         }
 
         private int circleDetectorP1;
@@ -134,7 +153,6 @@ namespace Picky
             capture.Set(VideoCaptureProperties.FourCC, OpenCvSharp.VideoWriter.FourCC('m', 'j', 'p', 'g'));
             capture.Set(VideoCaptureProperties.FourCC, OpenCvSharp.VideoWriter.FourCC('M', 'J', 'P', 'G'));
 
-
             capture.Set(VideoCaptureProperties.FrameWidth, Constants.CAMERA_FRAME_WIDTH);
             capture.Set(VideoCaptureProperties.FrameHeight, Constants.CAMERA_FRAME_HEIGHT);
             capture.Set(VideoCaptureProperties.AutoExposure, 1);
@@ -150,7 +168,7 @@ namespace Picky
         {
             searchCircleRequest = false;
             searchQRRequest = false;
-           
+            searchTemplateRequest = false;
         }
                     
 
@@ -174,13 +192,7 @@ namespace Picky
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
-       
-        public void RequestPartLocation(OpenCvSharp.Rect roi)
-        {
-            partROI = roi;
-        }
-
+        
         public CircleSegment GetBestCircle()
         {
             //Best circle, referenced to ROI
@@ -188,7 +200,7 @@ namespace Picky
             return bestCircle;
         }
 
-        public List<CircleSegment> GetBestCircles()
+        public List<Position3D> GetBestCircles()
         {
             return bestCircles;
         }
@@ -293,6 +305,35 @@ namespace Picky
             }
         }
 
+        public List<Position3D> GetTemplateMatches()
+        {
+            return searchTemplateResults;
+        }
+
+        public bool IsTemplateSearchActive()
+        {
+            return searchTemplateRequest;
+        }
+
+        public void RequestTemplateSearch(Mat template, OpenCvSharp.Rect roi, int threshold, int focus)
+        {
+            /*-------------------------------------------------------------------------
+             * Entry point for performing a template-based search
+             * 
+             *------------------------------------------------------------------------*/
+
+            TemplateThreshold = threshold;
+            Focus = focus;
+            if (focus == Constants.CAMERA_AUTOFOCUS)
+                IsManualFocus = false;
+            else
+                IsManualFocus = true;
+            Cv2.CvtColor(template, grayTemplateImage, OpenCvSharp.ColorConversionCodes.BGR2GRAY);
+            searchTemplateROI = roi;
+            searchTemplateRequest = true;
+     
+        }
+
         private bool FindCircleInROI()
         {
             /****************************************************************************
@@ -326,8 +367,8 @@ namespace Picky
                 circleDetector.DetectorType,        // Usually HoughModes.Gradient or HoughModes.GradientAlt
                 dp: 1.5,
                 minDist: minDist,                   //Was 800, formally set to 2xmin raduis
-                param1: param1,      //smaller means more false circles
-                param2: param2,      //smaller means more false circles
+                param1: param1,                     //smaller means more false circles
+                param2: param2,                     //smaller means more false circles
                 minRadius: minR,            
                 maxRadius: maxR);
             
@@ -347,14 +388,70 @@ namespace Picky
                 Console.WriteLine("Found: Best Circle minR/avg/maxR (pix): " + minR + "/" + bestCircle.Radius + "/" + maxR + "@" + scale.xScale);
                 for (int i = 0; i < circleDetector.CountPerScene; i++)
                 {
-                    CircleSegment cir = Circles.ElementAt(i);
-                    cir.Center = new Point2f(cir.Center.X - roiCenter.X, cir.Center.Y - roiCenter.Y);
+                    Position3D cir = new Position3D(Circles.ElementAt(i));
+                    cir.X -= roiCenter.X; cir.Y -= roiCenter.Y; // Correct for ROI within the frame
+                    cir.Z = circleDetector.zEstimate;           // Store the Z of the target
                     bestCircles.Add(cir);
                 }
                 
             }
             OpenCvSharp.Cv2.Rectangle(ColorImage, circleDetector.ROI, new OpenCvSharp.Scalar(0, 255, 0), 4);
             return true;
+        }
+
+        private bool FindTemplateInImage()
+        {
+            /****************************************************************************
+             * Private function for things based on a Template
+             * Returns false if no matches found.
+             * Returns true if matches found.  List of Position3D is created.
+             * from the center of the image ROI in pixels.
+             * 
+             *****************************************************************************/
+            Mat image, res_32f, thresImage;
+            
+            // Get Matches
+            try
+            {
+                image = new Mat(GrayImage, searchTemplateROI);
+                res_32f = new Mat(image.Rows - grayTemplateImage.Rows + 1, image.Cols - grayTemplateImage.Cols + 1, MatType.CV_32FC1);
+                Cv2.MatchTemplate(image, grayTemplateImage, res_32f, TemplateMatchModes.CCoeffNormed);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error matching: {e.Message}");
+                return false;
+            }
+
+            /* Generate Result Image*/
+            res_32f.ConvertTo(matchResultImage, MatType.CV_8U, 255.0);
+            int size = ((grayTemplateImage.Cols + grayTemplateImage.Rows) / 4) * 2 + 1; //force size to be odd
+            thresImage = new Mat(ThresImage, searchTemplateROI);
+            Cv2.AdaptiveThreshold(matchResultImage, thresImage, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.Binary, size, TemplateThreshold);
+            searchTemplateResults.Clear();
+
+            /* Convert Image to List of Rectangle */
+            while (true)
+            {
+                double minval, maxval;
+                OpenCvSharp.Point minloc, maxloc;
+                Cv2.MinMaxLoc(thresImage, out minval, out maxval, out minloc, out maxloc);
+
+                if (maxval > 0)
+                {
+                    int x = maxloc.X + searchTemplateROI.X;
+                    int y = maxloc.Y + searchTemplateROI.Y;
+                    searchTemplateResults.Add(new Position3D { X = x, Y = y, Width = grayTemplateImage.Cols, Height = grayTemplateImage.Rows });
+                    Cv2.FloodFill(thresImage, maxloc, 0);   //mark drawn blob so we don't find it again
+                }
+                else
+                {
+                    break;
+                }
+            }
+            if (searchTemplateResults.Count > 0)
+                return true;
+            return false;
         }
 
         private bool FindPartInImage(Part part, Mat grayImage)
@@ -367,7 +464,6 @@ namespace Picky
 
             double x_next = 0, y_next = 0, y_last = 0;
             int match_count = 0;
-            double x_next_part, y_next_part;
             Mat res_32f;
             Mat image, thresImage;
             Mat template = part.Template;
@@ -399,7 +495,6 @@ namespace Picky
                 double minval, maxval;
                 Feeder feeder = machine.selectedCassette.selectedFeeder;
                 double partZLocation = Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE + machine.Cal.ZCalPadZ;
-                Console.WriteLine("j: " + (Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE + machine.Cal.ZCalPadZ));
                 OpenCvSharp.Point minloc, maxloc;
                 Cv2.MinMaxLoc(thresImage, out minval, out maxval, out minloc, out maxloc);
                 
@@ -504,11 +599,23 @@ namespace Picky
                             Cv2.Circle(ColorImage, x, y, (int)circle.Radius, Scalar.Green, 2);
                             // Draw the circle center
                             Cv2.Circle(ColorImage, x, y, 3, Scalar.Red, 3);
-                            // Just show the first circle in the list
-                            //break;
+                            // Add 'break' here to just show the first circle in the list
                         }
-                        if(bestCircles.Count >= circleDetector.ScenesToAquire)
+                        if(bestCircles.Count >= (circleDetector.ScenesToAquire * circleDetector.CountPerScene))
                             searchCircleRequest = false;
+                    }
+                }
+                else if (searchTemplateRequest)
+                {
+                    if (FindTemplateInImage())
+                    {
+                        if(!machine.Cal.IsPreviewLowerTargetActive && !machine.Cal.IsPreviewUpperTargetActive)
+                            searchTemplateRequest = false;
+                        foreach (Position3D pos in searchTemplateResults)
+                        {
+                            Cv2.Rectangle(ColorImage, pos.GetRect(), new OpenCvSharp.Scalar(0, 255, 0), 2);
+                            Cv2.DrawMarker(ColorImage, new OpenCvSharp.Point(pos.GetRect().X + (pos.GetRect().Width / 2), pos.GetRect().Y + (pos.GetRect().Height / 2)), Scalar.DarkOrange, OpenCvSharp.MarkerTypes.Cross, 50, 1);
+                        }
                     }
                 }
                 else if (PartToFind != null)

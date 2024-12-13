@@ -14,32 +14,21 @@ namespace Picky.Commands
 
         public MachineModel machine;
         public MachineMessage msg;
-        public CircleDetector detector;
+        private Position3D result;
+        private OpenCvSharp.Rect roi;
+        private int threshold, focus;
+        private Mat template;
         public CameraModel cameraToUse;
-        List<CircleSegment> bestCircles;
-
-        private int sceneCount = 6;
-       
-        public GetGridCalibrationCommand(List<CircleSegment> bestC, Position3D centerCircle)
+                                           
+        public GetGridCalibrationCommand(Mat _template, OpenCvSharp.Rect _roi, Position3D _result, int _threshold, int _focus)
         {
             machine = MachineModel.Instance;
-            bestCircles = bestC;
+            roi = _roi;
+            threshold = _threshold;
+            focus = _focus;
+            template = _template;
+            result = _result;
             
-            double grid_dist_mm = CalTargetModel.OPTICAL_GRID_X_MM;
-            var scale = machine.Cal.GetScaleMMPerPixAtZ(centerCircle.Z);
-            int x_pix = (int)((Constants.CAMERA_FRAME_WIDTH / 2) - ((1.5 * grid_dist_mm) / scale.xScale));
-            int y_pix = (int)((Constants.CAMERA_FRAME_HEIGHT / 2) - ((1.5 * grid_dist_mm) / scale.yScale));
-            int w_pix = (int)((3 * grid_dist_mm) / scale.xScale);
-            int h_pix = (int)((3 * grid_dist_mm) / scale.yScale);
-
-            detector = new CircleDetector(HoughModes.GradientAlt, 100, 0.65, 64);
-            detector.IsManualFocus = false;
-            detector.ROI = new Rect(x_pix, y_pix, w_pix, h_pix);
-            detector.zEstimate = centerCircle.Z;
-            detector.Radius = CalTargetModel.OPTICAL_GRID_RADIUS_MM;
-            detector.ScenesToAquire = 1;
-            detector.CountPerScene = 9;
-
             msg = new MachineMessage();
             msg.messageCommand = this;
             msg.cmd = Encoding.ASCII.GetBytes("J102 Get Grid Calibration\n");
@@ -53,24 +42,30 @@ namespace Picky.Commands
 
         public bool PreMessageCommand(MachineMessage msg)
         {
-            cameraToUse.RequestCircleLocation(detector);
+            cameraToUse.RequestTemplateSearch(template, roi, threshold, focus);
             return true;
         }
 
 
         public bool PostMessageCommand(MachineMessage msg)
         {
-            if (cameraToUse.IsCircleSearchActive() == false)
+            if (cameraToUse.IsTemplateSearchActive() == false)
             {
-                OpenCvSharp.CircleSegment circleSegment = cameraToUse.GetBestCircle();
-                if (--sceneCount <= 0) { 
-                    bestCircles = cameraToUse.GetBestCircles();
+                if (cameraToUse.GetTemplateMatches().Count == 9)
+                {
+                    double x_min = cameraToUse.GetTemplateMatches().OrderBy(p => p.X).Take(3).Average(p => p.X);
+                    double y_min = cameraToUse.GetTemplateMatches().OrderBy(p => p.Y).Take(3).Average(p => p.Y);
+                    double x_max = cameraToUse.GetTemplateMatches().OrderByDescending(p => p.X).Take(3).Average(p => p.X);
+                    double y_max = cameraToUse.GetTemplateMatches().OrderByDescending(p => p.Y).Take(3).Average(p => p.Y);
+                    result.X = (2 * CalTargetModel.OPTICAL_GRID_X_MM) / (x_max - x_min);
+                    result.Y = (2 * CalTargetModel.OPTICAL_GRID_Y_MM) / (y_max - y_min);
+                    Console.WriteLine("MMPerPixel Calibration Complete. X: " + result.X + " mm/pix, Y: " + result.Y + " mm/pix");
                     return true;
                 }
                 else
                 {
-                    cameraToUse.RequestCircleLocation(detector);
-                    return false;
+                    Console.WriteLine("Failed to find required matches (9).  Found: " + cameraToUse.GetTemplateMatches().Count);
+                    cameraToUse.RequestTemplateSearch(template, roi, threshold, focus);
                 }
             }
             return false;

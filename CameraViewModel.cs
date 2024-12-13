@@ -32,7 +32,6 @@ namespace Picky
             set { selectedImageProcessingItem = value; OnPropertyChanged(nameof(SelectedImageProcessingItem)); } //Notify listeners
         }
 
-
         public SolidColorBrush PartInViewIconColor
         {
             get
@@ -47,15 +46,7 @@ namespace Picky
                 return (new SolidColorBrush(Color.FromArgb(128, 255, 0, 0)));
             }
         }
-        
-        private int detectionThreshold;
-        public int DetectionThreshold
-        {
-            get { return (int?)machine?.selectedCassette?.selectedFeeder?.part.PartDetectionThreshold ?? 0; }
-            set { machine.selectedCassette.selectedFeeder.part.PartDetectionThreshold = value;  OnPropertyChanged(nameof(DetectionThreshold)); }
-        }
-               
-
+              
         public CameraViewModel(Image iFrame, CameraModel iCamera)
         {
             camera = iCamera;
@@ -101,8 +92,7 @@ namespace Picky
                 machine.downCamera.PartToFind = machine.selectedCassette.selectedFeeder.part;
             }
         }
-              
-
+          
         public ICommand FullScreenCommand { get { return new RelayCommand(FullScreen); } }
         private void FullScreen()
         {

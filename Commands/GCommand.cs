@@ -75,17 +75,18 @@ namespace Picky
             return cmd.GetMessage();
         }
         
-        public static MachineMessage GetGridCalibration(List<CircleSegment> bestCircles, Position3D centerCircle)            
+        public static MachineMessage GetGridCalibration(Mat _template, OpenCvSharp.Rect _roi, Position3D _result, int _threshold, int _focus)            
         {
-            GetGridCalibrationCommand cmd = new GetGridCalibrationCommand(bestCircles, centerCircle);
+            GetGridCalibrationCommand cmd = new GetGridCalibrationCommand(_template, _roi, _result, _threshold, _focus);
             return cmd.GetMessage();
         }
-
-        public static MachineMessage CalculateMMPerPixel()            
+        
+        public static MachineMessage SetFocus(int msDelay, int focus)
         {
-            CalculateMMPerPixelCommand cmd = new CalculateMMPerPixelCommand();
+            SetFocusCommand cmd = new SetFocusCommand(msDelay, focus);
             return cmd.GetMessage();
         }
+              
 
         public static MachineMessage CalculateMachineStepsPerMM()
         {

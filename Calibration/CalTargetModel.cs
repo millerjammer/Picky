@@ -1,11 +1,15 @@
-﻿using OpenCvSharp;
+﻿using Newtonsoft.Json;
+using OpenCvSharp;
 using OpenCvSharp.Dnn;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.UI.WebControls;
+using System.Web.UI.WebControls.WebParts;
 using System.Windows.Forms;
 using System.Windows.Markup;
 
@@ -60,6 +64,18 @@ namespace Picky
         }
 
         /* Upper and Lower Resolution Targets */
+        [JsonIgnore]
+        private Mat upperTemplate;
+        [JsonIgnore]
+        private Mat lowerTemplate;
+
+        private Position3D actualLocUpper;
+        public Position3D ActualLocUpper
+        {
+            get { return actualLocUpper;  }
+            set { actualLocUpper = value; OnPropertyChanged(nameof(ActualLocUpper)); }
+        }
+
         private Position3D actualLocLower;
         public Position3D ActualLocLower
         {
@@ -67,30 +83,96 @@ namespace Picky
             set { actualLocLower = value; OnPropertyChanged(nameof(ActualLocLower)); }
         }
 
-        private Position3D actualLocUpper;
-        public Position3D ActualLocUpper
+        private string upperTemplateFileName;
+        public string UpperTemplateFileName
         {
-            get { return actualLocUpper; }
-            set { actualLocUpper = value; OnPropertyChanged(nameof(ActualLocUpper)); }
+            get { return upperTemplateFileName; }
+            set { upperTemplateFileName = value; OnPropertyChanged(nameof(UpperTemplateFileName)); }
         }
 
-        private Position3D calCircle;
-        public Position3D CalCircle
+        private string lowerTemplateFileName;
+        public string LowerTemplateFileName
         {
-            get { return calCircle; }
-            set { calCircle = value; OnPropertyChanged(nameof(CalCircle)); }
+            get { return lowerTemplateFileName; }
+            set { lowerTemplateFileName = value; OnPropertyChanged(nameof(LowerTemplateFileName)); }
         }
 
-        private List<CircleSegment> upperGridCircles;
-        private List<CircleSegment> lowerGridCircles;
+        public int upperThreshold { get; set; } = 0;
+        public int lowerThreshold { get; set; } = 0;
+        public int upperFocus { get; set; }
+        public int lowerFocus { get; set; }
 
+              
         public CalTargetModel()
         {
          
         }
 
+        public void SetUpperCalTarget()
+        {
+            MachineModel machine = MachineModel.Instance;
+            ActualLocUpper.X = machine.CurrentX; ActualLocUpper.Y = machine.CurrentY;
+            upperThreshold = machine.downCamera.TemplateThreshold;
+            upperFocus = Constants.CAMERA_AUTOFOCUS;
+            if (machine.downCamera.IsManualFocus)
+                upperFocus = machine.downCamera.Focus;
+            UpperTemplateFileName = SetCalTarget(machine, upperTemplate);
+        }
+        
+        public void SetLowerCalTarget()
+        {
+            MachineModel machine = MachineModel.Instance;
+            ActualLocLower.X = machine.CurrentX; ActualLocLower.Y = machine.CurrentY;
+            lowerThreshold = machine.downCamera.TemplateThreshold;
+            lowerFocus = Constants.CAMERA_AUTOFOCUS;
+            if (machine.downCamera.IsManualFocus)
+                lowerFocus = machine.downCamera.Focus;
+            LowerTemplateFileName = SetCalTarget(machine, lowerTemplate);
+        }
+       
+        public void PreviewCalTarget(string templateFile, Position3D pos, int threshold, int focus)
+        {
+        /*--------------------------------------------------------------
+         * Called by GUI to kickoff a preview session.  The preview 
+         * will terminate automatically by the GUI
+         * ------------------------------------------------------------*/
+            MachineModel machine = MachineModel.Instance;
+            machine.Messages.Add(GCommand.G_SetPosition(pos.X, pos.Y, 0, 0, 0));
+            
+            OpenCvSharp.Rect roi = new OpenCvSharp.Rect(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
+            Mat template = Cv2.ImRead(templateFile, ImreadModes.Color);
+            machine.downCamera.RequestTemplateSearch(template, roi, threshold, focus);
+        }
+
+        private string SetCalTarget(MachineModel machine, Mat template) { 
+        /*---------------------------------------------------------------
+         * Private routine for saving calibration target template
+         * Don't call here directly.
+         * -------------------------------------------------------------*/
+                             
+            int width = (Constants.CAMERA_FRAME_WIDTH / 6);
+            int height = (Constants.CAMERA_FRAME_HEIGHT / 6);
+            int x = (Constants.CAMERA_FRAME_WIDTH / 2) - (width / 2);
+            int y = (Constants.CAMERA_FRAME_HEIGHT / 2) - (height / 2);
+
+            OpenCvSharp.Rect roi = new OpenCvSharp.Rect(x, y, width, height);
+            template = new Mat(machine.downCamera.ColorImage, roi);
+                 
+            // Write part template to file
+            DateTime now = DateTime.Now;
+            String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            String filename = path + "\\calTemplate-" + now.ToString("MMddHHmmss") + ".png";
+            Cv2.ImWrite(filename, template);
+            while (File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read) == null) { } 
+            
+            Console.WriteLine("Set Cal Target Template: " + filename);
+            return filename;
+        }
+
         public void CalibrateMMPerPixelAtZ()
         /*---------------------------------------------------------------------
+         * Called from GUI
+         * 
          * Uses step alignment to determine mm/pix at a specific target. This
          * is a calibration used to enable jump step connections based on cammea
          * to target.  This function is performed at two different target z 
@@ -99,48 +181,30 @@ namespace Picky
          * -------------------------------------------------------------------*/
         {
             MachineModel machine = MachineModel.Instance;
+            
             double dist_to_deck_mm = machine.Cal.ZCalPadZ + Constants.ZOFFSET_CAL_PAD_TO_DECK;
-
-            ActualLocUpper.Radius = GRID_MONUMENT_RADIUS_MM;
-            ActualLocLower.Radius = GRID_MONUMENT_RADIUS_MM;
-            ActualLocLower.Z = dist_to_deck_mm - LOWER_GRID_Z_OFFSET_FROM_DECK_MM;
-            ActualLocUpper.Z = dist_to_deck_mm - UPPER_LOWER_GRID_Z_OFFSET_MM;
+            machine.Cal.MMPerPixLower.Z = dist_to_deck_mm - LOWER_GRID_Z_OFFSET_FROM_DECK_MM;
+            machine.Cal.MMPerPixUpper.Z = dist_to_deck_mm - UPPER_LOWER_GRID_Z_OFFSET_MM;
+            
+            OpenCvSharp.Rect roi = new OpenCvSharp.Rect(0,0,Constants.CAMERA_FRAME_WIDTH,Constants.CAMERA_FRAME_HEIGHT);
 
             /* Get Upper */
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             machine.Messages.Add(GCommand.G_SetPosition(ActualLocUpper.X, ActualLocUpper.Y, 0, 0, 0));
-            for (int i = 0; i < 5; i++)
-            {
-                machine.Messages.Add(GCommand.G_FinishMoves());
-                machine.Messages.Add(GCommand.StepAlignToCalCircle(ActualLocUpper));
-                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
-            }
-            machine.Messages.Add(GCommand.GetGridCalibration(upperGridCircles, ActualLocUpper));
+            machine.Messages.Add(GCommand.SetFocus(3000, upperFocus));
+            machine.Messages.Add(GCommand.GetGridCalibration(Cv2.ImRead(upperTemplateFileName, ImreadModes.Color), roi, machine.Cal.MMPerPixUpper, upperThreshold, upperFocus));
 
             /* Get Lower */
             machine.Messages.Add(GCommand.G_SetPosition(ActualLocLower.X, ActualLocLower.Y, 0, 0, 0));
-            for (int i = 0; i < 5; i++)
-            {
-                machine.Messages.Add(GCommand.G_FinishMoves());
-                machine.Messages.Add(GCommand.StepAlignToCalCircle(ActualLocLower));
-                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
-            }
-            machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.GetGridCalibration(lowerGridCircles, ActualLocLower));
-
-            machine.Messages.Add(GCommand.CalculateMMPerPixel());
+            machine.Messages.Add(GCommand.SetFocus(3000, lowerFocus));
+            machine.Messages.Add(GCommand.GetGridCalibration(Cv2.ImRead(lowerTemplateFileName, ImreadModes.Color), roi, machine.Cal.MMPerPixLower, lowerThreshold, lowerFocus));
         }
-
-        private void SetStepsPerMMTargetDefaults()
-        {
-            ActualLoc00 = new Position3D((GRID_ORIGIN_X_MILS * Constants.MIL_TO_MM), (GRID_ORIGIN_Y_MILS * Constants.MIL_TO_MM), GRID_MONUMENT_HEIGHT_MM, GRID_MONUMENT_RADIUS_MM);
-            ActualLoc10 = new Position3D((GRID_ORIGIN_X_MILS * Constants.MIL_TO_MM) + (GRID_SPACING_X_MILS * Constants.MIL_TO_MM), (GRID_ORIGIN_Y_MILS * Constants.MIL_TO_MM), GRID_MONUMENT_HEIGHT_MM, GRID_MONUMENT_RADIUS_MM);
-            ActualLoc01 = new Position3D((GRID_ORIGIN_X_MILS * Constants.MIL_TO_MM), (GRID_ORIGIN_Y_MILS * Constants.MIL_TO_MM) + (GRID_SPACING_Y_MILS * Constants.MIL_TO_MM), GRID_MONUMENT_HEIGHT_MM, GRID_MONUMENT_RADIUS_MM);
-            ActualLoc11 = new Position3D((GRID_ORIGIN_X_MILS * Constants.MIL_TO_MM) + (GRID_SPACING_X_MILS* Constants.MIL_TO_MM), (GRID_ORIGIN_Y_MILS* Constants.MIL_TO_MM) + (GRID_SPACING_Y_MILS* Constants.MIL_TO_MM), GRID_MONUMENT_HEIGHT_MM, GRID_MONUMENT_RADIUS_MM);
-        }
+             
 
         public void CalibrateMMPerStep()
         /*---------------------------------------------------------------------
+         * Called by GUI
+         * 
          * Uses step alignment to determine mm/step. This
          * is a calibration used to verify or update settings in the stepper 
          * motor controller. This should be the first calibration that's done.
@@ -148,10 +212,7 @@ namespace Picky
          * -------------------------------------------------------------------*/
         {
             MachineModel machine = MachineModel.Instance;
-            upperGridCircles = new List<CircleSegment>();
-            lowerGridCircles = new List<CircleSegment>();
-
-
+            
             // TODO Replace with calibrated Z
             ActualLoc00.Z = (Constants.CAMERA_TO_DECK_MILS * Constants.MIL_TO_MM) - GRID_MONUMENT_HEIGHT_MM;
             ActualLoc00.Radius = GRID_MONUMENT_RADIUS_MM;
@@ -195,11 +256,7 @@ namespace Picky
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
-        public void CalculateMachineMMPerPixel()
-        {
-
-        }
+              
 
         public void CalculateMachineStepsPerMM(){
             /*-------------------------------------------------------------------------------------

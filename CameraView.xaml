@@ -50,10 +50,10 @@
                 <TextBlock Text="{Binding camera.Focus, Mode=TwoWay, StringFormat={}{0:0}}" Margin="10 0 10 0"/>
             </StackPanel>
             
-            <TextBlock Grid.Row="3" Text="Part Det. Threshold" Margin="10 5 0 0"/>
+            <TextBlock Grid.Row="3" Text="Template Threshold" Margin="10 5 0 0"/>
             <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="20 5 0 10">
-                <Slider Value="{Binding DetectionThreshold, Mode=TwoWay}" IsEnabled="{Binding IsCassetteFeederSelected, Mode=OneWay}" Minimum="-255" Maximum="0" SmallChange="1" HorizontalAlignment="Stretch" Margin="0 0 0 0"/>
-                <TextBlock Text="{Binding DetectionThreshold, Mode=TwoWay, StringFormat={}{0:0}}" Margin="10 0 10 0"/>
+                <Slider Value="{Binding camera.TemplateThreshold, Mode=TwoWay}" Minimum="-255" Maximum="0" SmallChange="1" HorizontalAlignment="Stretch" Margin="0 0 0 0"/>
+                <TextBlock Text="{Binding camera.TemplateThreshold, Mode=TwoWay, StringFormat={}{0:0}}" Margin="10 0 10 0"/>
             </StackPanel>
 
             <TextBlock Grid.Row="5" Text="Binary Threshold" Margin="10 5 0 0"/>

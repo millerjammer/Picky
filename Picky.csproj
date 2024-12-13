@@ -164,7 +164,6 @@
     <Compile Include="CassetteViewModel.cs" />
     <Compile Include="CircleDetector.cs" />
     <Compile Include="Commands\CalculateMachineStepsPerMMCommand.cs" />
-    <Compile Include="Commands\CalculateMMPerPixelCommand.cs" />
     <Compile Include="Commands\DelayCommand.cs" />
     <Compile Include="Commands\GetFeederQRCodeCommand .cs" />
     <Compile Include="Commands\GetGridCalibrationCommand.cs" />
@@ -173,6 +172,7 @@
     <Compile Include="Commands\OpticallyAlignToToolCommand.cs" />
     <Compile Include="Commands\SendCustomGCodeCommand.cs" />
     <Compile Include="Commands\SetCameraManualFocusCommand.cs" />
+    <Compile Include="Commands\SetFocusCommand.cs" />
     <Compile Include="Commands\SetToolLengthCommand.cs" />
     <Compile Include="Commands\SetToolOffsetCalibrationCommand.cs" />
     <Compile Include="Constants.cs" />
@@ -204,7 +204,7 @@
     <Compile Include="SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Tools\TipFitCalibration.cs" />
+    <Compile Include="Tools\CircleEstimation.cs" />
     <Compile Include="Tools\PickToolModel.cs" />
     <Compile Include="Tools\PickToolViewModel.cs" />
     <Compile Include="Part.cs" />

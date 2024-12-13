@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.Shell.Interop;
+using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -29,6 +30,20 @@ namespace Picky
         {
             get { return z; }
             set { if (z != value) { z = value; OnPropertyChanged(nameof(Z)); } }
+        }
+
+        private double width;
+        public double Width
+        {
+            get { return width; }
+            set { if (width != value) { width = value; OnPropertyChanged(nameof(Width)); } }
+        }
+
+        private double height;
+        public double Height
+        {
+            get { return height; }
+            set { if (height != value) { height = value; OnPropertyChanged(nameof(Height)); } }
         }
 
         private double angle;
@@ -81,7 +96,18 @@ namespace Picky
             this.Angle = angle;
         }
 
+        public Position3D(CircleSegment seg)
+        {
+            this.X = seg.Center.X; this.Y = seg.Center.Y;this.Radius = seg.Radius;
+        }
+
+
         public Position3D() {
+        }
+
+        public OpenCvSharp.Rect GetRect()
+        {
+            return new OpenCvSharp.Rect((int)X, (int)Y, (int)Width, (int)Height);
         }
 
         public override string  ToString()

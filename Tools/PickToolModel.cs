@@ -112,15 +112,15 @@ namespace Picky
         /* Create the data point used for tip calibration */
         public List<Position3D> CalDataPoints = new List<Position3D>();
         
-        private TipFitCalibration tipOffsetUpper;
-        public TipFitCalibration TipOffsetUpper
+        private CircleEstimation tipOffsetUpper;
+        public CircleEstimation TipOffsetUpper
         {
             get { return tipOffsetUpper; }
             set { tipOffsetUpper = value; OnPropertyChanged(nameof(TipOffsetUpper)); }
         }
 
-        private TipFitCalibration tipOffsetLower;
-        public TipFitCalibration TipOffsetLower
+        private CircleEstimation tipOffsetLower;
+        public CircleEstimation TipOffsetLower
         {
             get { return tipOffsetLower; }
             set { tipOffsetLower = value; OnPropertyChanged(nameof(TipOffsetLower)); }
@@ -221,9 +221,9 @@ namespace Picky
                 List<Position3D> lower = CalDataPoints.Where(e => e.Z == maxZ).ToList();
                 List<Position3D> upper = CalDataPoints.Where(e => e.Z == minZ).ToList();
 
-                TipOffsetLower = new TipFitCalibration();
+                TipOffsetLower = new CircleEstimation();
                 TipOffsetLower.CalculateBestFitCircle(lower);
-                TipOffsetUpper = new TipFitCalibration();
+                TipOffsetUpper = new CircleEstimation();
                 TipOffsetUpper.CalculateBestFitCircle(upper);
 
                 TipState = TipStates.Ready;

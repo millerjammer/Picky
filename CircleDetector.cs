@@ -56,22 +56,25 @@ namespace Picky
         public CircleDetector(HoughModes mode, int param1, double param2, int threshold)
         {
             set_default(mode);
+            Param1 = param1;
+            Param2 = param2;
+            Threshold = threshold;
+            IsManualFocus = false;
         }
 
         public CircleDetector(HoughModes mode, int param1, double param2, int threshold, int focus)
         {
             set_default(mode);
-            IsManualFocus = false;
+            Param1 = param1;
+            Param2 = param2;
+            Threshold = threshold;
+            IsManualFocus = true;
             Focus = focus;
         }
 
         private void set_default(HoughModes mode)
         {
             DetectorType = mode;
-            Param1 = param1;
-            Param2 = param2;
-            Threshold = threshold;
-            IsManualFocus = true;
             CountPerScene = 1;
             ScenesToAquire = 1;
         }

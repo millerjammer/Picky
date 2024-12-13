@@ -177,7 +177,6 @@ namespace Picky
         private void CalibrateTool()
         {
             machine.SelectedPickTool.ResetPickOffsetCalibrationData();
-            machine.Messages.Add(GCommand.SetCameraManualFocus(machine.upCamera, true, Constants.FOCUS_PCB_031));
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             machine.Messages.Add(GCommand.G_EnableUpIlluminator(false));
             machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalPadX, machine.Cal.ZCalPadY, 0, 0, 0));
@@ -188,6 +187,7 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
             machine.Messages.Add(GCommand.G_SetZPosition(-2.0));
             machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+            machine.Messages.Add(GCommand.SetFocus(1000, machine.SelectedPickTool.UpperCircleDetector.Focus));
             machine.Messages.Add(GCommand.G_FinishMoves());
             for (int i = 0; i < 360; i += 60)
             {
@@ -201,6 +201,7 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
             machine.Messages.Add(GCommand.G_SetZPosition(-2.0));
             machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+            machine.Messages.Add(GCommand.SetFocus(1000, machine.SelectedPickTool.LowerCircleDetector.Focus));
             machine.Messages.Add(GCommand.G_FinishMoves());
             for (int i = 0; i < 360; i += 60)
             {

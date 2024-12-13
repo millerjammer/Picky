@@ -22,6 +22,7 @@ namespace Picky
         public static int CAMERA_FRAME_WIDTH = 2592;
         public static int CAMERA_FRAME_HEIGHT = 1944;
         public static int CAMERA_FPS = 15;
+        public static int CAMERA_AUTOFOCUS = -1;
         //public static int CAMERA_FRAME_WIDTH = 1920;
         //public static int CAMERA_FRAME_HEIGHT = 1080;
         //public static int CAMERA_FPS = 30;

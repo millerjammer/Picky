@@ -173,7 +173,7 @@ namespace Picky
 
         public void ThresholdDragCompleted(object sender, DragCompletedEventArgs e)
         {
-            camera.DetectionThreshold = (int)((Slider)sender).Value;
+            camera.camera.TemplateThreshold = (int)((Slider)sender).Value;
         }
             
     }

@@ -22,7 +22,7 @@ namespace Picky
         {
             get { return machine; }
         }
-
+        
         public CalTargetModel Target
         {
             get { return machine.Cal.CalTarget; }
@@ -172,29 +172,19 @@ namespace Picky
         public ICommand SetUpperTargetResCommand { get { return new RelayCommand(SetUpperTargetRes); } }
         private void SetUpperTargetRes()
         {
-            Target.ActualLocUpper.X = machine.CurrentX;
-            Target.ActualLocUpper.Y = machine.CurrentY;
-        }
-
-        public ICommand GoToUpperTargetResCommand { get { return new RelayCommand(GoToUpperTargetRes); } }
-        private void GoToUpperTargetRes()
-        {
-            machine.Messages.Add(GCommand.G_SetPosition(Target.ActualLocUpper.X, Target.ActualLocUpper.Y, 0, 0, 0));
+            machine.Cal.IsPreviewLowerTargetActive = false;
+            machine.Cal.IsPreviewUpperTargetActive = false;
+            Target.SetUpperCalTarget();
         }
 
         public ICommand SetLowerTargetResCommand { get { return new RelayCommand(SetLowerTargetRes); } }
         private void SetLowerTargetRes()
         {
-            Target.ActualLocLower.X = machine.CurrentX;
-            Target.ActualLocLower.Y = machine.CurrentY;
+            machine.Cal.IsPreviewLowerTargetActive = false;
+            machine.Cal.IsPreviewUpperTargetActive = false;
+            Target.SetLowerCalTarget();
         }
-
-        public ICommand GoToLowerTargetResCommand { get { return new RelayCommand(GoToLowerTargetRes); } }
-        private void GoToLowerTargetRes()
-        {
-            machine.Messages.Add(GCommand.G_SetPosition(Target.ActualLocLower.X, Target.ActualLocLower.Y, 0, 0, 0));
-        }
-
+        
         /* This is called when machine z changes */
         private void OnMachinePropertyChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -226,6 +216,8 @@ namespace Picky
         public ICommand CalibrateMMPerPixCommand { get { return new RelayCommand(CalibrateMMPerPix); } }
         private void CalibrateMMPerPix()
         {
+            machine.Cal.IsPreviewLowerTargetActive = false;
+            machine.Cal.IsPreviewUpperTargetActive = false;
             Target.CalibrateMMPerPixelAtZ();
         }
         

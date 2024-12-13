@@ -36,8 +36,6 @@ namespace Picky
         public PickToolModel tool;
 
         private double last_x, last_y;
-        private int threshold;
-        private int focus;
         private int circleCount = 2;
         private int tolerance = 2;
         private OpenCvSharp.CircleSegment lastCircle;
@@ -49,20 +47,19 @@ namespace Picky
             tool = _tool;
             if (isUpper)
             {
-                focus = machine.SelectedPickTool.UpperCircleDetector.Focus;
-                threshold = machine.SelectedPickTool.UpperCircleDetector.Threshold;
-                detector = new CircleDetector(HoughModes.GradientAlt, machine.SelectedPickTool.UpperCircleDetector.Param1, machine.SelectedPickTool.UpperCircleDetector.Param2, threshold);
+                detector = new CircleDetector(HoughModes.GradientAlt, tool.UpperCircleDetector.Param1, tool.UpperCircleDetector.Param2, tool.UpperCircleDetector.Threshold);
+                detector.Focus = tool.UpperCircleDetector.Focus;
+                detector.zEstimate = machine.Cal.ZCalPadZ;
             }
             else
             {
-                focus = machine.SelectedPickTool.LowerCircleDetector.Focus;
-                threshold = machine.SelectedPickTool.LowerCircleDetector.Threshold;
-                detector = new CircleDetector(HoughModes.GradientAlt, machine.SelectedPickTool.LowerCircleDetector.Param1, machine.SelectedPickTool.LowerCircleDetector.Param2, threshold);
+                detector = new CircleDetector(HoughModes.GradientAlt, tool.LowerCircleDetector.Param1, tool.LowerCircleDetector.Param2, tool.LowerCircleDetector.Threshold);
+                detector.Focus = tool.LowerCircleDetector.Focus;
+                detector.zEstimate = machine.Cal.ZCalPadZ + Constants.ZOFFSET_CAL_PAD_TO_DECK;
             }
-            
-            detector.ROI = tool.SearchToolROI;
-            detector.zEstimate = tool.Length;
-            detector.Radius = (tool.SelectedTip.TipDia / 2);
+            detector.ROI = new OpenCvSharp.Rect(Constants.CAMERA_FRAME_WIDTH / 3, 0, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 4);
+            detector.IsManualFocus = true;
+            detector.Radius = (tool.SelectedTip.TipDia / 3);
 
             msg = new MachineMessage();
             msg.messageCommand = this;
@@ -78,11 +75,6 @@ namespace Picky
         public bool PreMessageCommand(MachineMessage msg)
         {
             tool.TipState = PickToolModel.TipStates.Calibrating;
-            cameraToUse.Focus = focus;
-            cameraToUse.IsManualFocus = true;
-            cameraToUse.CircleDetectorP1 = detector.Param1;
-            cameraToUse.CircleDetectorP2 = detector.Param2;
-            cameraToUse.BinaryThreshold = threshold;
             cameraToUse.RequestCircleLocation(detector);
             return true;
         }
