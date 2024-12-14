@@ -23,8 +23,8 @@ namespace Picky.Tools
             msg = new MachineMessage();
             msg.messageCommand = this;
             msg.cmd = Encoding.ASCII.GetBytes("J102 Set Camera Focus\n");
-            target_camera.IsManualFocus = enableMF;
-            target_camera.Focus = value;
+            target_camera.Settings.Focus = value;
+            target_camera.Settings.IsManualFocus = enableMF;
             delay = (400 / Constants.QUEUE_SERVICE_INTERVAL);    //delay (ms)
         }
 

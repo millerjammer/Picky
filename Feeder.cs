@@ -133,19 +133,19 @@ namespace Picky
             }
 
             // Get offset relative to Tip ROI
-            var offset = tool.GetTipOffsetForZ(targetZ, targetPickAngle);
+           // var offset = tool.GetTipOffsetForZ(targetZ, targetPickAngle);
 
             // Next, translate from ROI position to frame position in mm.
-            double y_offset_roi = scale.yScale * ((Constants.CAMERA_FRAME_HEIGHT / 2) - tool.SearchToolROI.Y - (tool.SearchToolROI.Height / 2));
-            double x_offset_roi = scale.xScale * ((Constants.CAMERA_FRAME_WIDTH / 2) - tool.SearchToolROI.X - (tool.SearchToolROI.Width / 2));
+            //double y_offset_roi = scale.yScale * ((Constants.CAMERA_FRAME_HEIGHT / 2) - tool.SearchToolROI.Y - (tool.SearchToolROI.Height / 2));
+            //double x_offset_roi = scale.xScale * ((Constants.CAMERA_FRAME_WIDTH / 2) - tool.SearchToolROI.X - (tool.SearchToolROI.Width / 2));
 
             // Add Tip offset and roi offset (all in mm)
-            x_offset_roi += offset.x;
-            y_offset_roi -= offset.y;
+           // x_offset_roi += offset.x;
+           //y_offset_roi -= offset.y;
 
             // Finally, add the position of the part (we did above) relative to the center of the full frame.
-            NextPartPickLocation.X = x_offset_roi + NextPartOpticalLocation.X;
-            NextPartPickLocation.Y = y_offset_roi + NextPartOpticalLocation.Y;
+            //NextPartPickLocation.X = x_offset_roi + NextPartOpticalLocation.X;
+           // NextPartPickLocation.Y = y_offset_roi + NextPartOpticalLocation.Y;
 
             return;
         }

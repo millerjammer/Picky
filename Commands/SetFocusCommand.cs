@@ -36,11 +36,11 @@ namespace Picky.Commands
         public bool PreMessageCommand(MachineMessage msg)
         {
             MachineModel machine = MachineModel.Instance;
-            machine.downCamera.Focus = valFocus;
+            machine.downCamera.Settings.Focus = valFocus;
             if (valFocus == Constants.CAMERA_AUTOFOCUS)
-                machine.downCamera.IsManualFocus = false;
+                machine.downCamera.Settings.IsManualFocus = false;
             else
-                machine.downCamera.IsManualFocus = true;
+                machine.downCamera.Settings.IsManualFocus = true;
             return true;
         }
 

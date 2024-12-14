@@ -39,9 +39,9 @@ namespace Picky
                 return false;
             MachineModel machine = MachineModel.Instance;
             machine.LastZProbeResult = machine.CurrentZ;
-            if (machine.CurrentX == machine.Cal.ZCalPadX && machine.CurrentY == machine.Cal.ZCalPadY)
+            if (machine.CurrentX == machine.Cal.CalPad.X && machine.CurrentY == machine.Cal.CalPad.Y)
             {
-                machine.Cal.ZCalPadZ = machine.CurrentZ;
+                machine.Cal.CalPad.Z = machine.CurrentZ;
                 Console.WriteLine("Calibrated Z Location: Success");
             }
             Console.WriteLine("Last Z Result: " + machine.LastZProbeResult + "mm");

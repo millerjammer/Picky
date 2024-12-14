@@ -59,12 +59,19 @@ namespace Picky
             get { return radius; }
             set { if (radius != value) { radius = value; OnPropertyChanged(nameof(Radius)); } }
         }
-
+        
         private double quality;
         public double Quality
         {
             get { return quality; }
             set { if (quality != value) { quality = value; OnPropertyChanged(nameof(Quality)); } }
+        }
+
+        private int state;
+        public int State
+        {
+            get { return state; }
+            set { if (state != value) { state = value; OnPropertyChanged(nameof(State)); } }
         }
 
         private double rotation = 0;

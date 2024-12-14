@@ -16,16 +16,15 @@ namespace Picky.Commands
         public MachineMessage msg;
         private Position3D result;
         private OpenCvSharp.Rect roi;
-        private int threshold, focus;
+        private CameraSettings settings;
         private Mat template;
         public CameraModel cameraToUse;
                                            
-        public GetGridCalibrationCommand(Mat _template, OpenCvSharp.Rect _roi, Position3D _result, int _threshold, int _focus)
+        public GetGridCalibrationCommand(Mat _template, OpenCvSharp.Rect _roi, Position3D _result, CameraSettings _settings)
         {
             machine = MachineModel.Instance;
             roi = _roi;
-            threshold = _threshold;
-            focus = _focus;
+            settings = _settings;
             template = _template;
             result = _result;
             
@@ -42,7 +41,7 @@ namespace Picky.Commands
 
         public bool PreMessageCommand(MachineMessage msg)
         {
-            cameraToUse.RequestTemplateSearch(template, roi, threshold, focus);
+            cameraToUse.RequestTemplateSearch(template, roi, settings);
             return true;
         }
 
@@ -65,7 +64,7 @@ namespace Picky.Commands
                 else
                 {
                     Console.WriteLine("Failed to find required matches (9).  Found: " + cameraToUse.GetTemplateMatches().Count);
-                    cameraToUse.RequestTemplateSearch(template, roi, threshold, focus);
+                    cameraToUse.RequestTemplateSearch(template, roi, settings);
                 }
             }
             return false;

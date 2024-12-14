@@ -43,35 +43,35 @@
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
-            <ToggleButton Grid.Row="1" x:Name="mftb" Content="Manual Focus" IsChecked="{Binding camera.IsManualFocus}"  Margin="10 10 10 10" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+            <ToggleButton Grid.Row="1" x:Name="mftb" Content="Manual Focus" IsChecked="{Binding camera.Settings.IsManualFocus}"  Margin="10 10 10 10" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
             
             <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="20 5 0 10">
-                <Slider Value="{Binding camera.Focus}" IsEnabled="{Binding IsChecked, ElementName=mftb}" Minimum="0" Maximum="600" SmallChange="1" HorizontalAlignment="Stretch" Margin="0 0 0 0"/>
-                <TextBlock Text="{Binding camera.Focus, Mode=TwoWay, StringFormat={}{0:0}}" Margin="10 0 10 0"/>
+                <Slider Value="{Binding camera.Settings.Focus}" IsEnabled="{Binding IsChecked, ElementName=mftb}" Minimum="0" Maximum="600" SmallChange="1" HorizontalAlignment="Stretch" Margin="0 0 0 0"/>
+                <TextBlock Text="{Binding camera.Settings.Focus, Mode=TwoWay, StringFormat={}{0:0}}" Margin="10 0 10 0"/>
             </StackPanel>
             
             <TextBlock Grid.Row="3" Text="Template Threshold" Margin="10 5 0 0"/>
             <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="20 5 0 10">
-                <Slider Value="{Binding camera.TemplateThreshold, Mode=TwoWay}" Minimum="-255" Maximum="0" SmallChange="1" HorizontalAlignment="Stretch" Margin="0 0 0 0"/>
-                <TextBlock Text="{Binding camera.TemplateThreshold, Mode=TwoWay, StringFormat={}{0:0}}" Margin="10 0 10 0"/>
+                <Slider Value="{Binding camera.Settings.TemplateThreshold, Mode=TwoWay}" Minimum="-255" Maximum="0" SmallChange="1" HorizontalAlignment="Stretch" Margin="0 0 0 0"/>
+                <TextBlock Text="{Binding camera.Settings.TemplateThreshold, Mode=TwoWay, StringFormat={}{0:0}}" Margin="10 0 10 0"/>
             </StackPanel>
 
             <TextBlock Grid.Row="5" Text="Binary Threshold" Margin="10 5 0 0"/>
             <StackPanel Grid.Row="6" Orientation="Horizontal" Margin="20 5 0 10">
-                <Slider Value="{Binding camera.BinaryThreshold, Mode=TwoWay}" Minimum="0" Maximum="255" SmallChange="1" HorizontalAlignment="Stretch" Margin="0 0 0 0"/>
-                <TextBlock Text="{Binding camera.BinaryThreshold, Mode=TwoWay, StringFormat={}{0:0}}" Margin="10 0 10 0"/>
+                <Slider Value="{Binding camera.Settings.BinaryThreshold, Mode=TwoWay}" Minimum="0" Maximum="255" SmallChange="1" HorizontalAlignment="Stretch" Margin="0 0 0 0"/>
+                <TextBlock Text="{Binding camera.Settings.BinaryThreshold, Mode=TwoWay, StringFormat={}{0:0}}" Margin="10 0 10 0"/>
             </StackPanel>
 
             <TextBlock Grid.Row="7" Text="Detector Param 1" Margin="10 5 0 0"/>
             <StackPanel Grid.Row="8" Orientation="Horizontal" Margin="20 5 0 10">
-                <Slider Value="{Binding camera.CircleDetectorP1, Mode=TwoWay}" Minimum="1" Maximum="200" SmallChange="1" TickFrequency="1" HorizontalAlignment="Left" Margin="0 0 0 0"/>
-                <TextBlock Text="{Binding camera.CircleDetectorP1, Mode=TwoWay, StringFormat={}{0:0}}" Margin="10 0 10 0"/>
+                <Slider Value="{Binding camera.Settings.CircleDetectorP1, Mode=TwoWay}" Minimum="1" Maximum="200" SmallChange="1" TickFrequency="1" HorizontalAlignment="Left" Margin="0 0 0 0"/>
+                <TextBlock Text="{Binding camera.Settings.CircleDetectorP1, Mode=TwoWay, StringFormat={}{0:0}}" Margin="10 0 10 0"/>
             </StackPanel>
 
             <TextBlock Grid.Row="9" Text="Detector Param 2" Margin="10 5 0 0"/>
             <StackPanel Grid.Row="10" Orientation="Horizontal" Margin="20 5 0 10">
-                <Slider Value="{Binding camera.CircleDetectorP2, Mode=TwoWay}" Minimum=".01" Maximum="0.99" SmallChange="0.01" TickFrequency="0.01" HorizontalAlignment="Left" Margin="0 0 0 0"/>
-                <TextBlock Text="{Binding camera.CircleDetectorP2, Mode=TwoWay, StringFormat={}{0:0.00}}" Margin="10 0 10 0"/>
+                <Slider Value="{Binding camera.Settings.CircleDetectorP2, Mode=TwoWay}" Minimum=".01" Maximum="0.99" SmallChange="0.01" TickFrequency="0.01" HorizontalAlignment="Left" Margin="0 0 0 0"/>
+                <TextBlock Text="{Binding camera.Settings.CircleDetectorP2, Mode=TwoWay, StringFormat={}{0:0.00}}" Margin="10 0 10 0"/>
             </StackPanel>
 
             <TextBlock Grid.Row="11" Text="Image View:" Margin="10 5 0 10"/>

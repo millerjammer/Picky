@@ -19,7 +19,7 @@ namespace Picky
     public class CameraModel : INotifyPropertyChanged
     {
         public MachineModel machine { get; set; }
-        public  VideoCapture capture { get; set; }
+        
         private Mat RawImage { get; set; }
 
         /* Mats for general availability */
@@ -28,7 +28,7 @@ namespace Picky
         public Mat ThresImage { get; set; }
         public Mat EdgeImage { get; set; }
         public Mat DilatedImage { get; set; }
-              
+
         public Mat CircleROI { get; set; }
         public Mat RectangleROI { get; set; }
         public Mat QRImageROI { get; set; }
@@ -53,7 +53,8 @@ namespace Picky
         private Mat searchTemplate;
         private OpenCvSharp.Rect searchTemplateROI;
         private List<Position3D> searchTemplateResults = new List<Position3D>();
-        
+        public bool IsTemplatePreviewActive { get; set; } = false;
+
         /* Circle Request */
         private bool searchCircleRequest = false;
         private CircleDetector circleDetector;
@@ -85,46 +86,11 @@ namespace Picky
             set { frameImage = value; OnPropertyChanged(nameof(FrameImage)); } //Notify listeners
         }
 
-        private bool isManualFocus;
-        public bool IsManualFocus
+        private CameraSettings settings;
+        public CameraSettings Settings
         {
-            get { return isManualFocus; }
-            set { isManualFocus = value; SetCameraFocus(); OnPropertyChanged(nameof(IsManualFocus)); }
-        }
-
-        private int binaryThreshold;
-        public int BinaryThreshold
-        {
-            get { return binaryThreshold; }
-            set { binaryThreshold = value; OnPropertyChanged(nameof(BinaryThreshold)); }
-        }
-
-        private int templateThreshold;
-        public int TemplateThreshold
-        {
-            get { return templateThreshold; }
-            set { templateThreshold = value; OnPropertyChanged(nameof(TemplateThreshold)); }
-        }
-
-        private int circleDetectorP1;
-        public int CircleDetectorP1
-        {
-            get { return circleDetectorP1; }
-            set { circleDetectorP1 = value; OnPropertyChanged(nameof(CircleDetectorP1)); }
-        }
-
-        private double circleDetectorP2;
-        public double CircleDetectorP2
-        {
-            get { return circleDetectorP2; }
-            set { circleDetectorP2 = value; OnPropertyChanged(nameof(CircleDetectorP2)); }
-        }
-
-        private int focus;
-        public int Focus
-        {
-            get { return focus; }
-            set { focus = value; SetCameraFocus(); OnPropertyChanged(nameof(Focus)); }
+            get { return settings; }
+            set { settings = value; OnPropertyChanged(nameof(Settings)); } //Notify listeners
         }
 
         public Mat selectedViewMat { get; set; }
@@ -142,23 +108,11 @@ namespace Picky
             DilatedImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
             
             partROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), (Constants.CAMERA_FRAME_HEIGHT / 2), Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 2);
+            settings = new CameraSettings(cameraIndex);
 
             grayTemplateImage = new Mat();
             matchResultImage = new Mat();
-                        
-            capture = new VideoCapture();
-
-            capture.Open(cameraIndex);
-            capture.Set(VideoCaptureProperties.Fps, Constants.CAMERA_FPS);
-            capture.Set(VideoCaptureProperties.FourCC, OpenCvSharp.VideoWriter.FourCC('m', 'j', 'p', 'g'));
-            capture.Set(VideoCaptureProperties.FourCC, OpenCvSharp.VideoWriter.FourCC('M', 'J', 'P', 'G'));
-
-            capture.Set(VideoCaptureProperties.FrameWidth, Constants.CAMERA_FRAME_WIDTH);
-            capture.Set(VideoCaptureProperties.FrameHeight, Constants.CAMERA_FRAME_HEIGHT);
-            capture.Set(VideoCaptureProperties.AutoExposure, 1);
-            capture.Set(VideoCaptureProperties.Brightness, .2);
-            capture.Set(VideoCaptureProperties.BufferSize, 200);
-
+            
             bkgWorker = new BackgroundWorker { WorkerSupportsCancellation = true };
             bkgWorker.DoWork += Worker_DoWork;
             bkgWorker.RunWorkerAsync();
@@ -172,19 +126,7 @@ namespace Picky
         }
                     
 
-        private void SetCameraFocus()
-        {
-            if (IsManualFocus == true)
-            {
-                int value = (int)capture.Get(VideoCaptureProperties.Focus);
-                capture.Set(VideoCaptureProperties.Focus, Focus);
-                Console.WriteLine("Manual Focus " + value + " -> " + Focus);
-            }
-            else
-            {
-                capture.Set(VideoCaptureProperties.AutoFocus, 1);
-            }
-        }
+        
 
         /* Default Send Notification boilerplate - properties that notify use OnPropertyChanged */
         public event PropertyChangedEventHandler PropertyChanged;
@@ -221,11 +163,11 @@ namespace Picky
          * ------------------------------------------------------------------------*/
         {
             //sc is in MM
-            IsManualFocus = detector.IsManualFocus;
-            Focus = detector.Focus;
-            CircleDetectorP1 = detector.Param1;
-            CircleDetectorP2 = detector.Param2;
-            BinaryThreshold = detector.Threshold;
+            Settings.Focus = detector.Focus;
+            Settings.IsManualFocus = detector.IsManualFocus;
+            Settings.CircleDetectorP1 = detector.Param1;
+            Settings.CircleDetectorP2 = detector.Param2;
+            Settings.BinaryThreshold = detector.Threshold;
 
             circleDetector = detector;
             bestCircles.Clear();
@@ -315,19 +257,20 @@ namespace Picky
             return searchTemplateRequest;
         }
 
-        public void RequestTemplateSearch(Mat template, OpenCvSharp.Rect roi, int threshold, int focus)
+        public void RequestTemplateSearch(Mat template, OpenCvSharp.Rect roi, CameraSettings settings)
         {
             /*-------------------------------------------------------------------------
              * Entry point for performing a template-based search
              * 
              *------------------------------------------------------------------------*/
 
-            TemplateThreshold = threshold;
-            Focus = focus;
-            if (focus == Constants.CAMERA_AUTOFOCUS)
-                IsManualFocus = false;
-            else
-                IsManualFocus = true;
+            //Settings.TemplateThreshold = threshold;
+            //Settings.Focus = focus;
+            //if (focus == Constants.CAMERA_AUTOFOCUS)
+            //    Settings.IsManualFocus = false;
+            //else
+            //    Settings.IsManualFocus = true;
+            Settings = settings.Clone();
             Cv2.CvtColor(template, grayTemplateImage, OpenCvSharp.ColorConversionCodes.BGR2GRAY);
             searchTemplateROI = roi;
             searchTemplateRequest = true;
@@ -355,8 +298,8 @@ namespace Picky
             var scale = machine.Cal.GetScaleMMPerPixAtZ(circleDetector.zEstimate);
             int minR = (int)((circleDetector.Radius / 2) / scale.xScale);
             int maxR = (int)((circleDetector.Radius * 2) / scale.xScale);
-            double param1 = machine.SelectedPickTool.UpperCircleDetector.Param1;
-            double param2 = machine.SelectedPickTool.UpperCircleDetector.Param2;
+            //double param1 = machine.SelectedPickTool.UpperCircleDetector.Param1;
+            //double param2 = machine.SelectedPickTool.UpperCircleDetector.Param2;
            
             //Set Min distance between matches
             int minDist = maxR;
@@ -367,8 +310,8 @@ namespace Picky
                 circleDetector.DetectorType,        // Usually HoughModes.Gradient or HoughModes.GradientAlt
                 dp: 1.5,
                 minDist: minDist,                   //Was 800, formally set to 2xmin raduis
-                param1: param1,                     //smaller means more false circles
-                param2: param2,                     //smaller means more false circles
+               // param1: param1,                     //smaller means more false circles
+               // param2: param2,                     //smaller means more false circles
                 minRadius: minR,            
                 maxRadius: maxR);
             
@@ -427,7 +370,7 @@ namespace Picky
             res_32f.ConvertTo(matchResultImage, MatType.CV_8U, 255.0);
             int size = ((grayTemplateImage.Cols + grayTemplateImage.Rows) / 4) * 2 + 1; //force size to be odd
             thresImage = new Mat(ThresImage, searchTemplateROI);
-            Cv2.AdaptiveThreshold(matchResultImage, thresImage, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.Binary, size, TemplateThreshold);
+            Cv2.AdaptiveThreshold(matchResultImage, thresImage, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.Binary, size, Settings.TemplateThreshold);
             searchTemplateResults.Clear();
 
             /* Convert Image to List of Rectangle */
@@ -494,7 +437,7 @@ namespace Picky
             {
                 double minval, maxval;
                 Feeder feeder = machine.selectedCassette.selectedFeeder;
-                double partZLocation = Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE + machine.Cal.ZCalPadZ;
+                double partZLocation = Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE + machine.Cal.CalPad.Z;
                 OpenCvSharp.Point minloc, maxloc;
                 Cv2.MinMaxLoc(thresImage, out minval, out maxval, out minloc, out maxloc);
                 
@@ -555,11 +498,11 @@ namespace Picky
                 try
                 {
                                    
-                    RawImage = capture.RetrieveMat();
+                    RawImage = Settings.Capture.RetrieveMat();
                     Cv2.CopyTo(RawImage, ColorImage);
                     Cv2.CvtColor(RawImage, GrayImage, ColorConversionCodes.BGR2GRAY);
                     Cv2.GaussianBlur(GrayImage, GrayImage, new OpenCvSharp.Size(5, 5), 0);
-                    Cv2.Threshold(GrayImage, ThresImage, BinaryThreshold, 255, ThresholdTypes.Binary);  // Default is 80
+                    Cv2.Threshold(GrayImage, ThresImage, Settings.BinaryThreshold, 255, ThresholdTypes.Binary);  // Default is 80
                     Cv2.Canny(ThresImage, EdgeImage, 50, 150, 3);  //50 150 3
                     Cv2.Dilate(EdgeImage, DilatedImage, null, iterations: 2);
                     
@@ -609,7 +552,7 @@ namespace Picky
                 {
                     if (FindTemplateInImage())
                     {
-                        if(!machine.Cal.IsPreviewLowerTargetActive && !machine.Cal.IsPreviewUpperTargetActive)
+                        if(!IsTemplatePreviewActive)
                             searchTemplateRequest = false;
                         foreach (Position3D pos in searchTemplateResults)
                         {

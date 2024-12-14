@@ -158,11 +158,13 @@ namespace Picky
         public bool IsPreviewUpperTargetActive
         {
             get { return isPreviewUpperTargetActive; }
-            set { isPreviewUpperTargetActive = value;
+            set {
+                MachineModel machine = MachineModel.Instance;
+                machine.downCamera.IsTemplatePreviewActive = value; 
+                isPreviewUpperTargetActive = value;
                 if (value)
                 {
-                    IsPreviewLowerTargetActive = false;
-                    CalTarget.PreviewCalTarget(CalTarget.UpperTemplateFileName, CalTarget.ActualLocUpper, CalTarget.upperThreshold, CalTarget.upperFocus);
+                    CalTarget.PreviewCalTarget(CalTarget.UpperTemplateFileName, CalTarget.ActualLocUpper, CalTarget.upperSettings);
                 }
                 OnPropertyChanged(nameof(IsPreviewUpperTargetActive)); }
         }
@@ -173,11 +175,13 @@ namespace Picky
         public bool IsPreviewLowerTargetActive
         {
             get { return isPreviewLowerTargetActive; }
-            set { isPreviewLowerTargetActive = value;
+            set {
+                MachineModel machine = MachineModel.Instance;
+                machine.downCamera.IsTemplatePreviewActive = value;
+                isPreviewLowerTargetActive = value;
                 if (value)
                 {
-                    IsPreviewUpperTargetActive = false;
-                    CalTarget.PreviewCalTarget(CalTarget.UpperTemplateFileName, CalTarget.ActualLocLower, CalTarget.lowerThreshold, CalTarget.lowerFocus);
+                    CalTarget.PreviewCalTarget(CalTarget.UpperTemplateFileName, CalTarget.ActualLocLower, CalTarget.lowerSettings);
                 }
                 OnPropertyChanged(nameof(IsPreviewLowerTargetActive)); }
         }
@@ -201,43 +205,21 @@ namespace Picky
             get { return downCameraToPickHeadY; }
             set { downCameraToPickHeadY = value; OnPropertyChanged(nameof(PickHeadToCameraY)); }
         }
-                
-        private double zCalPadX = Constants.ZPROBE_CAL_PAD_X;
-        public double ZCalPadX
-        {
-            get { return zCalPadX; }
-            set { zCalPadX = value; OnPropertyChanged(nameof(ZCalPadX)); }
-        }
-
-        private double zCalPadY = Constants.ZPROBE_CAL_PAD_Y;
-        public double ZCalPadY
-        {
-            get { return zCalPadY; }
-            set { zCalPadY = value; OnPropertyChanged(nameof(ZCalPadY)); }
-        }
-
-        private double zCalPadZ;
-        public double ZCalPadZ
-        {
-            get { return zCalPadZ; }
-            set { zCalPadZ = value; OnPropertyChanged(nameof(ZCalPadZ)); }
-        }
-
-        private double zCalDeckPadX = Constants.ZPROBE_CAL_DECK_PAD_X;
-        public double ZCalDeckPadX
-        {
-            get { return zCalDeckPadX; }
-            set { zCalDeckPadX = value; OnPropertyChanged(nameof(ZCalDeckPadX)); }
-        }
-
-        private double zCalDeckPadY = Constants.ZPROBE_CAL_DECK_PAD_Y;
-        public double ZCalDeckPadY
-        {
-            get { return zCalDeckPadY; }
-            set { zCalDeckPadY = value; OnPropertyChanged(nameof(ZCalDeckPadY)); }
-        }
         
-        
+        private Position3D deckPad = new Position3D { X = Constants.ZPROBE_CAL_DECK_PAD_X, Y = Constants.ZPROBE_CAL_DECK_PAD_Y }; 
+        public Position3D DeckPad
+        {
+            get { return deckPad; }
+            set { deckPad = value; OnPropertyChanged(nameof(DeckPad)); }
+        }
+
+        private Position3D calPad = new Position3D { X = Constants.ZPROBE_CAL_PAD_X, Y = Constants.ZPROBE_CAL_PAD_Y };
+        public Position3D CalPad
+        {
+            get { return calPad; }
+            set { calPad = value; OnPropertyChanged(nameof(CalPad)); }
+        }
+
         public CalibrationModel()
         {
             // Create Target
@@ -245,7 +227,7 @@ namespace Picky
             mmPerPixUpper = new Position3D();
             mmPerPixLower = new Position3D();
         }
-               
+            
 
         /* Calculate Values Based on Calibration */
 

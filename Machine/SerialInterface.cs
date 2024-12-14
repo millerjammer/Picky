@@ -105,8 +105,8 @@ namespace Picky
                 machine.Messages.Add(GCommand.G_SetZPosition(0));
                 machine.Messages.Add(GCommand.G_SetXYBacklashCompensationOff());
 
-                machine.upCamera.IsManualFocus = false;
-                machine.downCamera.IsManualFocus = false;
+                machine.upCamera.Settings.IsManualFocus = false;
+                machine.downCamera.Settings.IsManualFocus = false;
             });
             return true;
         }

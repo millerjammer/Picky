@@ -13,6 +13,7 @@ using System.Windows.Media.Media3D;
 using System.Windows.Input;
 using System.Security.Permissions;
 using OpenCvSharp.Dnn;
+using EnvDTE90;
 
 namespace Picky
 { 
@@ -29,19 +30,7 @@ namespace Picky
 
     public class PickToolModel : INotifyPropertyChanged
     {
-        
-
         public enum TipStates { Unknown, Loading, Calibrating, Ready, Unloading, Stored, Error }
-        
-        /* Measured Properties */
-        public string Description { get; set; }
-        public string UniqueID { get; set; }
-
-        /* Default search are for tool calbration */
-        public OpenCvSharp.Rect SearchToolROI { get; set; } 
-
-        public Point2d ToolReturnLocation { get; set; }
-
         public List<TipStyle> TipList { get; set; }
 
         private TipStyle selectedTip;
@@ -51,90 +40,48 @@ namespace Picky
             set { selectedTip = value; OnPropertyChanged(nameof(SelectedTip)); } //Notify listeners
         }
 
-        [JsonIgnore] // This property will not be serialized
-        private BitmapSource tipCalImage;
-        [JsonIgnore] // This property will not be serialized
-        public BitmapSource TipCalImage
+        private TipStates state;
+        public TipStates State
         {
-            get { return tipCalImage; }
-            set { tipCalImage = value;  OnPropertyChanged(nameof(TipCalImage)); }
+            get { return state; }
+            set { state = value; OnPropertyChanged(nameof(State)); } //Notify listeners
         }
 
-        private double toolStorageX;
-        public double ToolStorageX
-        {
-            get { return toolStorageX; }
-            set { toolStorageX = value; OnPropertyChanged(nameof(ToolStorageX)); }
-        }
+        public string Description { get; set; }
+        public string UniqueID { get; set; }
 
-        private double toolStorageY;
-        public double ToolStorageY
+        /* Default search are for tool calbration */
+        private OpenCvSharp.Rect toolROI { get; set; } 
+                
+        private string toolTemplateFileName;
+        public string ToolTemplateFileName
         {
-            get { return toolStorageY; }
-            set { toolStorageY = value; OnPropertyChanged(nameof(ToolStorageY)); }
+            get { return toolTemplateFileName; }
+            set { toolTemplateFileName = value; OnPropertyChanged(nameof(ToolTemplateFileName)); }
         }
-
-        private double toolStorageZ;
-        public double ToolStorageZ
+        
+        private Position3D toolStorage;
+        public Position3D ToolStorage
         {
-            get { return toolStorageZ; }
-            set { toolStorageZ = value; OnPropertyChanged(nameof(ToolStorageZ)); }
+            get { return toolStorage; }
+            set { toolStorage = value; OnPropertyChanged(nameof(ToolStorage)); }
         }
 
         private double length;
         public double Length
         {
             get { return length; }
-            set { length = value; OnPropertyChanged(nameof(Length)); }
+            set { if (length != value) { length = value; OnPropertyChanged(nameof(Length)); } }
         }
 
-        private CircleDetector upperCircleDetector = new CircleDetector();
-        public CircleDetector UpperCircleDetector
+        private CameraSettings settings;
+        public CameraSettings Settings
         {
-            get { return upperCircleDetector; }
-            set { upperCircleDetector = value; OnPropertyChanged(nameof(UpperCircleDetector)); }
+            get { return settings; }
+            set { settings = value; OnPropertyChanged(nameof(Settings)); }
         }
-
-        private CircleDetector lowerCircleDetector = new CircleDetector();
-        public CircleDetector LowerCircleDetector
-        {
-            get { return lowerCircleDetector; }
-            set { lowerCircleDetector = value; OnPropertyChanged(nameof(LowerCircleDetector)); }
-        }
-
-        private TipStates tipState;
-        public TipStates TipState
-        {
-            get { return tipState; }
-            set { tipState = value; OnPropertyChanged(nameof(TipState)); }
-        }
-
-        /* Create the data point used for tip calibration */
-        public List<Position3D> CalDataPoints = new List<Position3D>();
+           
         
-        private CircleEstimation tipOffsetUpper;
-        public CircleEstimation TipOffsetUpper
-        {
-            get { return tipOffsetUpper; }
-            set { tipOffsetUpper = value; OnPropertyChanged(nameof(TipOffsetUpper)); }
-        }
-
-        private CircleEstimation tipOffsetLower;
-        public CircleEstimation TipOffsetLower
-        {
-            get { return tipOffsetLower; }
-            set { tipOffsetLower = value; OnPropertyChanged(nameof(TipOffsetLower)); }
-        }
-
-        private Position3D tipEstimate;
-        public Position3D TipEstimate
-        {
-            get { return tipEstimate; }
-            set { tipEstimate = value; OnPropertyChanged(nameof(TipEstimate)); }
-        }
-
-        private Mat CalMat;
-
         public PickToolModel(string name)
         {
             Description = name;
@@ -143,9 +90,11 @@ namespace Picky
                documentation doesn't indicate that's what it does, but this workaround
                works.  Note that the calibration file is only loaded when tipOffsetLower 
                changes TODO - fix */
+
             if (name != null)
                 UniqueID = DateTime.Now.ToString("HHmmss-dd-MM-yy");
-            TipState = TipStates.Unknown;
+            toolStorage = new Position3D();
+            state = TipStates.Unknown;
                         
             TipList = new List<TipStyle>
             {
@@ -155,7 +104,7 @@ namespace Picky
                 new TipStyle("18GA <Large>", 3.5),
             };
             SelectedTip = TipList.FirstOrDefault();
-            SearchToolROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), 0, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 4);
+            toolROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), 0, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 5);
         }
 
         /* Default Send Notification boilerplate - properties that notify use OnPropertyChanged */
@@ -164,136 +113,64 @@ namespace Picky
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+                
+        public void SetToolTemplate()
+        {
+            /*--------------------------------------------------------------
+             * Called by GUI to save template for use later in tip guidance.
+             * Does not save storage location or location of calibration.
+             * ------------------------------------------------------------*/
+                       
+            MachineModel machine = MachineModel.Instance;
+            //ToolThreshold = machine.downCamera.TemplateThreshold;
+            //ToolFocus = Constants.CAMERA_AUTOFOCUS;
+            //if (machine.downCamera.IsManualFocus)
+            //    ToolFocus = machine.downCamera.Focus;
+            machine.downCamera.Settings = Settings.Clone();
+            Mat template = new Mat(machine.downCamera.ColorImage, toolROI);
 
-        public bool ResetPickOffsetCalibrationData()
-        {
-            CalDataPoints.Clear();
-            return true;
-        }
-        [JsonIgnore] // This property will not be serialized
-        public ICommand GetUpperCircleDetectorCommand { get { return new RelayCommand(GetUpperCircleDetector); } }
-        private void GetUpperCircleDetector()
-        {
-            MachineModel machine = MachineModel.Instance;
-            UpperCircleDetector.Threshold = machine.downCamera.BinaryThreshold;
-            UpperCircleDetector.Param1 = machine.downCamera.CircleDetectorP1;
-            UpperCircleDetector.Param2 = machine.downCamera.CircleDetectorP2;
-            UpperCircleDetector.Focus = machine.downCamera.Focus;
-        }
-        [JsonIgnore] // This property will not be serialized
-        public ICommand SetUpperCircleDetectorCommand { get { return new RelayCommand(SetUpperCircleDetector); } }
-        private void SetUpperCircleDetector()
-        {
-            MachineModel machine = MachineModel.Instance;
-            machine.downCamera.BinaryThreshold = UpperCircleDetector.Threshold;
-            machine.downCamera.CircleDetectorP1 = UpperCircleDetector.Param1;
-            machine.downCamera.CircleDetectorP2 = UpperCircleDetector.Param2;
-            machine.downCamera.Focus = UpperCircleDetector.Focus;
-        }
-        [JsonIgnore] // This property will not be serialized
-        public ICommand GetLowerCircleDetectorCommand { get { return new RelayCommand(GetLowerCircleDetector); } }
-        private void GetLowerCircleDetector()
-        {
-            MachineModel machine = MachineModel.Instance;
-            LowerCircleDetector.Threshold = machine.downCamera.BinaryThreshold;
-            LowerCircleDetector.Param1 = machine.downCamera.CircleDetectorP1;
-            LowerCircleDetector.Param2 = machine.downCamera.CircleDetectorP2;
-            LowerCircleDetector.Focus = machine.downCamera.Focus;
-        }
-        [JsonIgnore] // This property will not be serialized
-        public ICommand SetLowerCircleDetectorCommand { get { return new RelayCommand(SetLowerCircleDetector); } }
-        private void SetLowerCircleDetector()
-        {
-            MachineModel machine = MachineModel.Instance;
-            machine.downCamera.BinaryThreshold = LowerCircleDetector.Threshold;
-            machine.downCamera.CircleDetectorP1 = LowerCircleDetector.Param1;
-            machine.downCamera.CircleDetectorP2 = LowerCircleDetector.Param2;
-            machine.downCamera.Focus = LowerCircleDetector.Focus;
-        }
-        
-        public bool SetPickOffsetCalibrationData(Position3D point)
-        {
-            /* Calculate PickOffset from Calibration Data */
-            CalDataPoints.Add(point);
-            if(CalDataPoints.Count >= 12) {
-                double maxZ = CalDataPoints.Max(e => e.Z);
-                double minZ = CalDataPoints.Min(e => e.Z);
-                List<Position3D> lower = CalDataPoints.Where(e => e.Z == maxZ).ToList();
-                List<Position3D> upper = CalDataPoints.Where(e => e.Z == minZ).ToList();
+            // Write part template to file
+            String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            ToolTemplateFileName = path + "\\toolTemplate-" + UniqueID + ".png";
+            Cv2.ImWrite(ToolTemplateFileName, template);
+            while (File.Open(ToolTemplateFileName, FileMode.Open, FileAccess.Read, FileShare.Read) == null) { }
 
-                TipOffsetLower = new CircleEstimation();
-                TipOffsetLower.CalculateBestFitCircle(lower);
-                TipOffsetUpper = new CircleEstimation();
-                TipOffsetUpper.CalculateBestFitCircle(upper);
-
-                TipState = TipStates.Ready;
-                SaveCalibrationCircleToFile();
-            }
-            return true;
+            Console.WriteLine("Set Tool Target Template: " + ToolTemplateFileName);
         }
 
-        public (double x, double y) GetTipOffsetForZ(double z, double rot) {
+        public void PreviewToolTemplate(Position3D pos)
+        {
+            /*--------------------------------------------------------------
+             * Called by GUI to kickoff a preview session that occurs at the
+             * calibration deck - 2mm. Will terminate automatically by the GUI
+             * ------------------------------------------------------------*/
+            MachineModel machine = MachineModel.Instance;
+            machine.Messages.Add(GCommand.G_EnableIlluminator(true));
+            machine.Messages.Add(GCommand.G_SetPosition(pos.X, pos.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
+            machine.Messages.Add(GCommand.G_SetZPosition(-2.0));
+            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+
+            OpenCvSharp.Rect roi = new OpenCvSharp.Rect(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
+            Mat template = Cv2.ImRead(ToolTemplateFileName, ImreadModes.Color);
+            machine.downCamera.RequestTemplateSearch(template, roi, Settings);
+        }
+
+
+        public (double x, double y) GetTipOffset(Mat image) {
         /****************************************************************************
-         * Returns the x, y offset based on upper and lower calibrations circles for
-         * specific z and r.  All units in mm. Returns x and y in terms of tool ROI.  
-         * 
+         * Returns the position of the tip in an image, typically a full image.  
+         * Units are in pixels.
          * **************************************************************************/
-        
-            if(TipEstimate == null)
-            {
-                TipEstimate = new Position3D();
-            }
-            // Use slope (rise over run) to get x, y and r at z.  x, y, r in mm from center of ROI
-            double deltaZ = (TipOffsetLower.BestCircle.Z - TipOffsetUpper.BestCircle.Z);
-            double slopeX = (TipOffsetLower.BestCircle.X - TipOffsetUpper.BestCircle.X) / deltaZ;               // X(mm)/Z(mm)
-            TipEstimate.X = (TipOffsetLower.BestCircle.X + (slopeX * (z - TipOffsetLower.BestCircle.Z)));
-            double slopeY = (TipOffsetLower.BestCircle.Y - TipOffsetUpper.BestCircle.Y) / deltaZ;
-            TipEstimate.Y = (TipOffsetLower.BestCircle.Y + (slopeY * (z - TipOffsetLower.BestCircle.Z)));
-            double slopeR = (TipOffsetLower.BestCircle.Radius - TipOffsetUpper.BestCircle.Radius) / deltaZ;
-            TipEstimate.Radius = (TipOffsetUpper.BestCircle.Radius + (slopeR * (z - TipOffsetUpper.BestCircle.Z)));
-            TipEstimate.Z = z;
-            
-            // To calculate the rotation of the third circle proportional to the second circle's rotation relative to the first
-            double delta_z = (TipOffsetLower.BestCircle.Z - tipOffsetUpper.BestCircle.Z);
-            double delta_angle = (TipOffsetLower.BestCircle.Angle - TipOffsetUpper.BestCircle.Angle);
-            if(delta_angle < 0)
-                delta_angle += 360;
-            double angle_per_mm = delta_angle/delta_z;  //degrees per mm
-            
-            // Add rotation of the cal circle to the request circle
-            TipEstimate.Angle = rot + (TipOffsetLower.BestCircle.Angle + (angle_per_mm * (z - TipOffsetLower.BestCircle.Z)));
-
-            // On a circle with radius R, get x,y offset.
-            // IMPORTANT - change the sign of the radius so when we add center and offset it will be correct for calling function.
-            // With this calling function doesn't have to do anything weird
-            double angleInRadians = TipEstimate.Angle * (Math.PI / 180.0);
-            double x_rotation_offset = -TipEstimate.Radius * Math.Cos(angleInRadians);
-            double y_rotation_offset = TipEstimate.Radius * Math.Sin(angleInRadians);
-
-            /* Drawing and Debug */
-            MachineModel machine = MachineModel.Instance;
-            var scale = machine.Cal.GetScaleMMPerPixAtZ(z);
-            double x_pix_rotation = x_rotation_offset / scale.xScale;
-            double y_pix_rotation = y_rotation_offset / scale.yScale;
-            double x_pix = TipEstimate.X / scale.xScale;
-            double y_pix = TipEstimate.Y / scale.yScale;
-
-            Mat CalMatDiag = CalMat.Clone();
-            Cv2.Circle(CalMatDiag, (int)((CalMatDiag.Width / 2) + x_pix), (int)((CalMatDiag.Height / 2) + y_pix), 3, Scalar.Black , 3);
-            Cv2.Circle(CalMatDiag, (int)((CalMatDiag.Width / 2) + x_pix), (int)((CalMatDiag.Height / 2) + y_pix), (int)(TipEstimate.Radius/scale.xScale), Scalar.Green, 3);
-            Cv2.Circle(CalMatDiag, (int)((CalMatDiag.Width / 2) + x_pix + x_pix_rotation), (int)((CalMatDiag.Height / 2) + y_pix + y_pix_rotation), 3, Scalar.Black, 3); 
-            Cv2.DrawMarker(CalMatDiag, new OpenCvSharp.Point(CalMatDiag.Cols / 2, CalMatDiag.Rows / 2), new OpenCvSharp.Scalar(0, 0, 255), OpenCvSharp.MarkerTypes.Cross, 100, 1);
-            TipCalImage = BitmapSource.Create(CalMatDiag.Width, CalMatDiag.Height, 96, 96, PixelFormats.Bgr24, null, CalMatDiag.Data, (int)(CalMatDiag.Step() * CalMatDiag.Height), (int)CalMatDiag.Step());
-            
-            //Return the sum of the circle position (z dependant) and tip offset (rotation dependant)
-            return (TipEstimate.X + x_rotation_offset, TipEstimate.Y + y_rotation_offset);
+                  
+            return (0, 0);
         }
-
-       
-
+        
         public void LoadCalibrationCircleFromFile()
         {
-            Console.WriteLine("Loading Calibration Circle from File.");
+            /*Console.WriteLine("Loading Calibration Circle from File.");
             String path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), (UniqueID + "_tipCal.jpg"));
             CalMat = new Mat();
             try
@@ -307,54 +184,7 @@ namespace Picky
             Console.WriteLine("Loading Tip Calibration Image: " + path);
             if (CalMat.Width > 0 && CalMat.Height > 0)
                 TipCalImage = BitmapSource.Create(CalMat.Width, CalMat.Height, 96, 96, PixelFormats.Bgr24, null, CalMat.Data, (int)(CalMat.Step() * CalMat.Height), (int)CalMat.Step());
-
-        }
-
-        public void SaveCalibrationCircleToFile()
-        {
-            int x, y, r;
-            Console.WriteLine("Saving Calibration Circle to File.");
-            MachineModel machine = MachineModel.Instance;
-            Mat roiImage = new Mat(machine.downCamera.ColorImage, SearchToolROI);
-            Mat CalMat = roiImage.Clone();
-            for (int i = 0; i < 12; i++)
-            {
-                // Draw the circle outline
-                Position3D item = CalDataPoints.ElementAt(i);
-                x = (int)((CalMat.Width / 2) + (item.X));
-                y = (int)((CalMat.Height / 2) + (item.Y));
-                r = (int)(item.Radius);
-                // Draw the circle center
-                if(item.Z == CalDataPoints.Min(e => e.Z))
-                    Cv2.Circle(CalMat, x, y, 3, Scalar.Red, 3);
-                else
-                    Cv2.Circle(CalMat, x, y, 3, Scalar.Green, 3);
-            }
-            var scaleUpper = machine.Cal.GetScaleMMPerPixAtZ(TipOffsetUpper.BestCircle.Z);
-            var scaleLower = machine.Cal.GetScaleMMPerPixAtZ(TipOffsetLower.BestCircle.Z);
-            // Draw Result Calibration Upper and Lower
-            x = (int)((CalMat.Width / 2) + (TipOffsetUpper.BestCircle.X / scaleUpper.xScale));
-            y = (int)((CalMat.Height / 2) + (TipOffsetUpper.BestCircle.Y / scaleUpper.yScale));
-            r = (int)(TipOffsetUpper.BestCircle.Radius / scaleUpper.xScale);
-            Cv2.Circle(CalMat, x, y, r, Scalar.Black, 1);
-            // Draw the circle center - Upper
-            Cv2.Circle(CalMat, x, y, 3, Scalar.Black, 3);
-            x = (int)((CalMat.Width / 2) + (TipOffsetLower.BestCircle.X / scaleLower.xScale));
-            y = (int)((CalMat.Height / 2) + (TipOffsetLower.BestCircle.Y / scaleLower.yScale));
-            r = (int)(TipOffsetLower.BestCircle.Radius / scaleLower.xScale);
-            Cv2.Circle(CalMat, x, y, r, Scalar.Black, 1);
-            // Draw the circle center - Lower
-            Cv2.Circle(CalMat, x, y, 3, Scalar.Black, 3);
-                                    
-            String path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), (UniqueID + "_tipCal.jpg"));
-            Cv2.ImWrite(path, CalMat);
-            /* Update Bitmap in the UI thread */
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                TipCalImage = BitmapSource.Create(CalMat.Width, CalMat.Height, 96, 96, PixelFormats.Bgr24, null, CalMat.Data, (int)(CalMat.Step() * CalMat.Height), (int)CalMat.Step());
-                machine.SaveTools();
-            });
-            Console.WriteLine("Tip Calibration Image Saved: " + path);
+            */
         }
     }
 }

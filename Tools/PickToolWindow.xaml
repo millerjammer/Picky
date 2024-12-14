@@ -49,11 +49,17 @@
                                 </Grid>
                                 <Grid Grid.Row="0">
                                     <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="auto"/>
                                         <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="auto"/>
+                                        <ColumnDefinition Width="auto"/>
                
                                     </Grid.ColumnDefinitions>
                                     <ui:Button Grid.Column="0" Content="Save" Command="{Binding SaveToolsCommand}" Icon="Save28"  Height="30" Width="100" HorizontalAlignment="Right"/>
-                               </Grid>
+                                    <ui:Button Grid.Column="2" Content="Apply" Command="{Binding SetToolTemplateCommand}" Icon="Add28"  Margin ="10 0 10 0" Height="30" Width="100" HorizontalAlignment="Right"/>
+                                    <ToggleButton Grid.Column="3" Content="Preview" Height="30" Width="100" HorizontalAlignment="Right" IsChecked="{Binding IsPreviewToolTargetActive}"/>
+
+                                </Grid>
                                 <ui:DataGrid  x:Name="PickListGrid" Grid.Row="1" HorizontalAlignment="Stretch" SelectedItem="{Binding selectedPickTool}" 
                       ItemsSource="{Binding PickToolList}" AutoGenerateColumns="False" CanUserSortColumns="False" Width="auto"
                       HorizontalContentAlignment="Stretch" SelectionChanged="PickToolSelectionChanged" CanUserAddRows="False"
@@ -90,29 +96,13 @@
                                                             <!-- Row Header -->
                                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Tool Cal Location" Width="130" FontWeight="Bold"/>
                                                             <TextBlock Grid.Row="0" Grid.Column="1" Text="Threshold" Width="100" FontWeight="Bold"/>
-                                                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Detection P1" Width="100" FontWeight="Bold"/>
-                                                            <TextBlock Grid.Row="0" Grid.Column="3" Text="Detection P2" Width="100" FontWeight="Bold"/>
-                                                            <TextBlock Grid.Row="0" Grid.Column="4" Text="Focus" Width="70" FontWeight="Bold"/>
+                                                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Focus" Width="70" FontWeight="Bold"/>
 
                                                             <!-- Data Row 1 -->
                                                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Upper" Width="100"/>
-                                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding UpperCircleDetector.Threshold}" Width="100"/>
-                                                            <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding UpperCircleDetector.Param1, StringFormat={}{0:0}}" Width="100"/>
-                                                            <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding UpperCircleDetector.Param2, StringFormat={}{0:0.00}}" Width="100"/>
-                                                            <TextBlock Grid.Row="1" Grid.Column="4" Text="{Binding UpperCircleDetector.Focus}" Width="70"/>
-                                                            <Button Grid.Row="1" Grid.Column="5" Command="{Binding GetUpperCircleDetectorCommand}" Margin ="5 2 5 2" Width="100" Height="30" Content="Use Current"/>
-                                                            <Button Grid.Row="1" Grid.Column="6" Command="{Binding SetUpperCircleDetectorCommand}" Margin ="5 2 5 2" Width="100" Height="30" Content="Set Current"/>
-
-                                                            <!-- Data Row 2 -->
-                                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Lower" Width="100"/>
-                                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding LowerCircleDetector.Threshold}" Width="100"/>
-                                                            <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding LowerCircleDetector.Param1, StringFormat={}{0:0}}" Width="100"/>
-                                                            <TextBlock Grid.Row="2" Grid.Column="3" Text="{Binding LowerCircleDetector.Param2, StringFormat={}{0:0.00}}" Width="100"/>
-                                                            <TextBlock Grid.Row="2" Grid.Column="4" Text="{Binding LowerCircleDetector.Focus}" Width="70"/>
-                                                            <Button Grid.Row="2" Grid.Column="5" Command="{Binding GetLowerCircleDetectorCommand}" Margin ="5 2 5 2" Width="100" Height="35" Content="Use Current"/>
-                                                            <Button Grid.Row="2" Grid.Column="6" Command="{Binding SetLowerCircleDetectorCommand}" Margin ="5 2 5 2" Width="100" Height="35" Content="Set Current"/>
-
-                                                           
+                                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ToolThreshold}" Width="100"/>
+                                                            <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding ToolFocus}" Width="70"/>
+                                                                    
                                                         </Grid>
    
                                                     </StackPanel>

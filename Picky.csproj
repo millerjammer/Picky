@@ -153,6 +153,7 @@
     </Compile>
     <Compile Include="Calibration\CalTargetModel.cs" />
     <Compile Include="CameraModel.cs" />
+    <Compile Include="CameraSettings.cs" />
     <Compile Include="CameraView.xaml.cs">
       <DependentUpon>CameraView.xaml</DependentUpon>
     </Compile>
@@ -204,7 +205,6 @@
     <Compile Include="SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Tools\CircleEstimation.cs" />
     <Compile Include="Tools\PickToolModel.cs" />
     <Compile Include="Tools\PickToolViewModel.cs" />
     <Compile Include="Part.cs" />

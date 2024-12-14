@@ -168,12 +168,12 @@ namespace Picky
              
         public void FocusDragCompleted(object sender, DragCompletedEventArgs e)
         {
-            camera.camera.Focus = (int)((Slider)sender).Value;
+            camera.camera.Settings.Focus = (int)((Slider)sender).Value;
         }
 
         public void ThresholdDragCompleted(object sender, DragCompletedEventArgs e)
         {
-            camera.camera.TemplateThreshold = (int)((Slider)sender).Value;
+            camera.camera.Settings.TemplateThreshold = (int)((Slider)sender).Value;
         }
             
     }

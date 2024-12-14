@@ -255,12 +255,12 @@ namespace Picky
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Can't find file: " + path + "\\" + Constants.TOOL_FILE_NAME);
+                Console.WriteLine("ERROR: " + ex.ToString() + " Loading File: " + path + "\\" + Constants.TOOL_FILE_NAME);
                 PickToolList = new ObservableCollection<PickToolModel>();
             }
             foreach (var item in PickToolList)
             {
-                item.TipState = PickToolModel.TipStates.Unknown;
+                item.State = PickToolModel.TipStates.Unknown;
                 item.LoadCalibrationCircleFromFile();
                 
             }
@@ -302,7 +302,7 @@ namespace Picky
             Messages.Add(GCommand.SetCameraManualFocus(downCamera, true, Constants.FOCUS_FEEDER_PART));
             Messages.Add(GCommand.OpticallyAlignToPart(feeder));
             Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
-            Messages.Add(GCommand.OffsetCameraToPick(feeder.part, machine.selectedPickTool.TipOffsetLower.BestCircle.Z + 2.0));
+            //Messages.Add(GCommand.OffsetCameraToPick(feeder.part, machine.selectedPickTool.TipOffsetLower.BestCircle.Z + 2.0));
             Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             Messages.Add(GCommand.G_ProbeZ(Constants.PART_NOMINAL_Z_DRIVE_MM));
             Messages.Add(GCommand.G_FinishMoves());
@@ -321,7 +321,7 @@ namespace Picky
             double part_x = Board.PcbOriginX + (Convert.ToDouble(part.CenterX) * Constants.MIL_TO_MM);
             double part_y = Board.PcbOriginY + (Convert.ToDouble(part.CenterY) * Constants.MIL_TO_MM);
             Messages.Add(GCommand.G_SetXYPosition(part_x, part_y));
-            Messages.Add(GCommand.OffsetCameraToPick(part, machine.selectedPickTool.TipOffsetLower.BestCircle.Z - 2.0));
+            //Messages.Add(GCommand.OffsetCameraToPick(part, machine.selectedPickTool.TipOffsetLower.BestCircle.Z - 2.0));
             Messages.Add(GCommand.G_SetXYPosition(0, 0));
             Messages.Add(GCommand.G_SetRotation(Convert.ToDouble(part.Rotation)));
             Messages.Add(GCommand.G_FinishMoves());

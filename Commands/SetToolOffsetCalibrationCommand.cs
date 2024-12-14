@@ -47,15 +47,15 @@ namespace Picky
             tool = _tool;
             if (isUpper)
             {
-                detector = new CircleDetector(HoughModes.GradientAlt, tool.UpperCircleDetector.Param1, tool.UpperCircleDetector.Param2, tool.UpperCircleDetector.Threshold);
-                detector.Focus = tool.UpperCircleDetector.Focus;
-                detector.zEstimate = machine.Cal.ZCalPadZ;
+                //detector = new CircleDetector(HoughModes.GradientAlt, tool.UpperCircleDetector.Param1, tool.UpperCircleDetector.Param2, tool.UpperCircleDetector.Threshold);
+               // detector.Focus = tool.UpperCircleDetector.Focus;
+                //detector.zEstimate = machine.Cal.ZCalPadZ;
             }
             else
             {
-                detector = new CircleDetector(HoughModes.GradientAlt, tool.LowerCircleDetector.Param1, tool.LowerCircleDetector.Param2, tool.LowerCircleDetector.Threshold);
-                detector.Focus = tool.LowerCircleDetector.Focus;
-                detector.zEstimate = machine.Cal.ZCalPadZ + Constants.ZOFFSET_CAL_PAD_TO_DECK;
+                //detector = new CircleDetector(HoughModes.GradientAlt, tool.LowerCircleDetector.Param1, tool.LowerCircleDetector.Param2, tool.LowerCircleDetector.Threshold);
+                //detector.Focus = tool.LowerCircleDetector.Focus;
+                //detector.zEstimate = machine.Cal.ZCalPadZ + Constants.ZOFFSET_CAL_PAD_TO_DECK;
             }
             detector.ROI = new OpenCvSharp.Rect(Constants.CAMERA_FRAME_WIDTH / 3, 0, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 4);
             detector.IsManualFocus = true;
@@ -74,7 +74,7 @@ namespace Picky
 
         public bool PreMessageCommand(MachineMessage msg)
         {
-            tool.TipState = PickToolModel.TipStates.Calibrating;
+           // tool.TipState = PickToolModel.TipStates.Calibrating;
             cameraToUse.RequestCircleLocation(detector);
             return true;
         }
@@ -96,7 +96,7 @@ namespace Picky
                             Z = (machine.CurrentZ + tool.Length),
                             Angle = machine.CurrentA
                         };
-                        tool.SetPickOffsetCalibrationData( pos );
+                        //tool.SetPickOffsetCalibrationData( pos );
                         return true;
                     }
                 }

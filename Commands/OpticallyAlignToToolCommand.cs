@@ -74,11 +74,10 @@ namespace Picky.Tools
                 {
                     Console.WriteLine("Tool Offset (mm): " + x_offset + " " + y_offset + " radius: " + radius);
                     MachineMessage nxt = machine.Messages.ElementAt(machine.Messages.IndexOf(msg) + 1);
-                    nxt.target.x = tool.ToolStorageX - x_offset;
-                    nxt.target.y = tool.ToolStorageY + y_offset;
+                    nxt.target.x = tool.ToolStorage.X - x_offset;
+                    nxt.target.y = tool.ToolStorage.Y + y_offset;
                     nxt.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1}\n", nxt.target.x, nxt.target.y));
-                    //Save to tool
-                    tool.ToolReturnLocation = new Point2d(nxt.target.x, nxt.target.y);
+                    
                 }
                 return true;
             }

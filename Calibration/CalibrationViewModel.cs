@@ -195,7 +195,7 @@ namespace Picky
         public ICommand CalZProbeCommand { get { return new RelayCommand(CalZProbe); } }
         private void CalZProbe()
         {
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalPadX, machine.Cal.ZCalPadY, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.CalPad.X, machine.Cal.CalPad.Y, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.GetZProbe(Constants.ZPROBE_LIMIT));
             machine.Messages.Add(GCommand.G_SetZPosition(0));
@@ -204,13 +204,13 @@ namespace Picky
         public ICommand GoToDeckPadCommand { get { return new RelayCommand(GoToDeckPad); } }
         private void GoToDeckPad()
         {
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalDeckPadX, machine.Cal.ZCalDeckPadY, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.DeckPad.X, machine.Cal.DeckPad.Y, 0, 0, 0));
         }
 
         public ICommand GoToCalibrationPadCommand { get { return new RelayCommand(GoToCalibrationPad); } }
         private void GoToCalibrationPad()
         {
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalPadX, machine.Cal.ZCalPadY, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.CalPad.X, machine.Cal.CalPad.Y, 0, 0, 0));
         }
 
         public ICommand CalibrateMMPerPixCommand { get { return new RelayCommand(CalibrateMMPerPix); } }

@@ -97,25 +97,27 @@ namespace Picky
             set { lowerTemplateFileName = value; OnPropertyChanged(nameof(LowerTemplateFileName)); }
         }
 
-        public int upperThreshold { get; set; } = 0;
-        public int lowerThreshold { get; set; } = 0;
-        public int upperFocus { get; set; }
-        public int lowerFocus { get; set; }
+        public CameraSettings upperSettings { get; set; }   
+        public CameraSettings lowerSettings { get; set; }
 
-              
+        //public int upperThreshold { get; set; } = 0;
+        //public int lowerThreshold { get; set; } = 0;
+        //public int upperFocus { get; set; }
+        //public int lowerFocus { get; set; }
+                      
         public CalTargetModel()
         {
-         
         }
 
         public void SetUpperCalTarget()
         {
             MachineModel machine = MachineModel.Instance;
             ActualLocUpper.X = machine.CurrentX; ActualLocUpper.Y = machine.CurrentY;
-            upperThreshold = machine.downCamera.TemplateThreshold;
-            upperFocus = Constants.CAMERA_AUTOFOCUS;
-            if (machine.downCamera.IsManualFocus)
-                upperFocus = machine.downCamera.Focus;
+            upperSettings = machine.downCamera.Settings.Clone();
+            //upperThreshold = machine.downCamera.TemplateThreshold;
+            //upperFocus = Constants.CAMERA_AUTOFOCUS;
+            //if (machine.downCamera.IsManualFocus)
+            //    upperFocus = machine.downCamera.Focus;
             UpperTemplateFileName = SetCalTarget(machine, upperTemplate);
         }
         
@@ -123,14 +125,15 @@ namespace Picky
         {
             MachineModel machine = MachineModel.Instance;
             ActualLocLower.X = machine.CurrentX; ActualLocLower.Y = machine.CurrentY;
-            lowerThreshold = machine.downCamera.TemplateThreshold;
-            lowerFocus = Constants.CAMERA_AUTOFOCUS;
-            if (machine.downCamera.IsManualFocus)
-                lowerFocus = machine.downCamera.Focus;
+            lowerSettings = machine.downCamera.Settings.Clone();
+            //lowerThreshold = machine.downCamera.TemplateThreshold;
+            //lowerFocus = Constants.CAMERA_AUTOFOCUS;
+            //if (machine.downCamera.IsManualFocus)
+            //    lowerFocus = machine.downCamera.Focus;
             LowerTemplateFileName = SetCalTarget(machine, lowerTemplate);
         }
        
-        public void PreviewCalTarget(string templateFile, Position3D pos, int threshold, int focus)
+        public void PreviewCalTarget(string templateFile, Position3D pos, CameraSettings settings)
         {
         /*--------------------------------------------------------------
          * Called by GUI to kickoff a preview session.  The preview 
@@ -141,7 +144,7 @@ namespace Picky
             
             OpenCvSharp.Rect roi = new OpenCvSharp.Rect(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
             Mat template = Cv2.ImRead(templateFile, ImreadModes.Color);
-            machine.downCamera.RequestTemplateSearch(template, roi, threshold, focus);
+            machine.downCamera.RequestTemplateSearch(template, roi, settings);
         }
 
         private string SetCalTarget(MachineModel machine, Mat template) { 
@@ -182,7 +185,7 @@ namespace Picky
         {
             MachineModel machine = MachineModel.Instance;
             
-            double dist_to_deck_mm = machine.Cal.ZCalPadZ + Constants.ZOFFSET_CAL_PAD_TO_DECK;
+            double dist_to_deck_mm = machine.Cal.CalPad.Z + Constants.ZOFFSET_CAL_PAD_TO_DECK;
             machine.Cal.MMPerPixLower.Z = dist_to_deck_mm - LOWER_GRID_Z_OFFSET_FROM_DECK_MM;
             machine.Cal.MMPerPixUpper.Z = dist_to_deck_mm - UPPER_LOWER_GRID_Z_OFFSET_MM;
             
@@ -191,13 +194,13 @@ namespace Picky
             /* Get Upper */
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             machine.Messages.Add(GCommand.G_SetPosition(ActualLocUpper.X, ActualLocUpper.Y, 0, 0, 0));
-            machine.Messages.Add(GCommand.SetFocus(3000, upperFocus));
-            machine.Messages.Add(GCommand.GetGridCalibration(Cv2.ImRead(upperTemplateFileName, ImreadModes.Color), roi, machine.Cal.MMPerPixUpper, upperThreshold, upperFocus));
+            //machine.Messages.Add(GCommand.SetFocus(3000, upperFocus));
+            machine.Messages.Add(GCommand.GetGridCalibration(Cv2.ImRead(upperTemplateFileName, ImreadModes.Color), roi, machine.Cal.MMPerPixUpper, upperSettings));
 
             /* Get Lower */
             machine.Messages.Add(GCommand.G_SetPosition(ActualLocLower.X, ActualLocLower.Y, 0, 0, 0));
-            machine.Messages.Add(GCommand.SetFocus(3000, lowerFocus));
-            machine.Messages.Add(GCommand.GetGridCalibration(Cv2.ImRead(lowerTemplateFileName, ImreadModes.Color), roi, machine.Cal.MMPerPixLower, lowerThreshold, lowerFocus));
+            //machine.Messages.Add(GCommand.SetFocus(3000, lowerFocus));
+            machine.Messages.Add(GCommand.GetGridCalibration(Cv2.ImRead(lowerTemplateFileName, ImreadModes.Color), roi, machine.Cal.MMPerPixLower, lowerSettings));
         }
              
 

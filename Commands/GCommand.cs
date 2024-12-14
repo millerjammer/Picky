@@ -75,9 +75,9 @@ namespace Picky
             return cmd.GetMessage();
         }
         
-        public static MachineMessage GetGridCalibration(Mat _template, OpenCvSharp.Rect _roi, Position3D _result, int _threshold, int _focus)            
+        public static MachineMessage GetGridCalibration(Mat _template, OpenCvSharp.Rect _roi, Position3D _result, CameraSettings _settings)            
         {
-            GetGridCalibrationCommand cmd = new GetGridCalibrationCommand(_template, _roi, _result, _threshold, _focus);
+            GetGridCalibrationCommand cmd = new GetGridCalibrationCommand(_template, _roi, _result, _settings);
             return cmd.GetMessage();
         }
         
