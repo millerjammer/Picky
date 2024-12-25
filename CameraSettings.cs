@@ -53,35 +53,36 @@ namespace Picky
             set { circleDetectorP2 = value; OnPropertyChanged(nameof(CircleDetectorP2)); }
         }
 
-        public VideoCapture Capture { get; set; }
+        private CameraModel camera;
+           
 
-        public CameraSettings(int cameraIndex) 
+        public CameraSettings() 
         {
-            Capture = new VideoCapture();
-
-            Capture.Open(cameraIndex);
-            Capture.Set(VideoCaptureProperties.Fps, Constants.CAMERA_FPS);
-            Capture.Set(VideoCaptureProperties.FourCC, OpenCvSharp.VideoWriter.FourCC('m', 'j', 'p', 'g'));
-            Capture.Set(VideoCaptureProperties.FourCC, OpenCvSharp.VideoWriter.FourCC('M', 'J', 'P', 'G'));
-
-            Capture.Set(VideoCaptureProperties.FrameWidth, Constants.CAMERA_FRAME_WIDTH);
-            Capture.Set(VideoCaptureProperties.FrameHeight, Constants.CAMERA_FRAME_HEIGHT);
-            Capture.Set(VideoCaptureProperties.AutoExposure, 1);
-            Capture.Set(VideoCaptureProperties.Brightness, .2);
-            Capture.Set(VideoCaptureProperties.BufferSize, 200);
+            
         }
+
+        public void ApplySettings(CameraModel _camera)
+        {
+            camera = _camera;
+            SetCameraFocus();
+        }
+
 
         private void SetCameraFocus()
         {
+            if(camera == null)
+            {
+                return;
+            }
             if (IsManualFocus == true)
             {
-                int value = (int)Capture.Get(VideoCaptureProperties.Focus);
-                Capture.Set(VideoCaptureProperties.Focus, Focus);
+                int value = (int)camera.Capture.Get(VideoCaptureProperties.Focus);
+                camera.Capture.Set(VideoCaptureProperties.Focus, Focus);
                 Console.WriteLine("Manual Focus " + value + " -> " + Focus);
             }
             else
             {
-                Capture.Set(VideoCaptureProperties.AutoFocus, 1);
+                camera.Capture.Set(VideoCaptureProperties.AutoFocus, 1);
             }
         }
 

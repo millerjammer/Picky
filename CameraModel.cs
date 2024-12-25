@@ -13,6 +13,8 @@ using Xamarin.Forms;
 using Application = System.Windows.Application;
 using Image = System.Windows.Controls.Image;
 using EnvDTE;
+using System.Text.RegularExpressions;
+using Microsoft.VisualStudio.OLE.Interop;
 
 namespace Picky
 {
@@ -28,6 +30,7 @@ namespace Picky
         public Mat ThresImage { get; set; }
         public Mat EdgeImage { get; set; }
         public Mat DilatedImage { get; set; }
+        public Mat MatchImage { get; set; }
 
         public Mat CircleROI { get; set; }
         public Mat RectangleROI { get; set; }
@@ -90,10 +93,11 @@ namespace Picky
         public CameraSettings Settings
         {
             get { return settings; }
-            set { settings = value; OnPropertyChanged(nameof(Settings)); } //Notify listeners
+            set { settings = value; Console.WriteLine("Camera SettingsUpper Changed"); Settings.ApplySettings(this); OnPropertyChanged(nameof(Settings)); } //Notify listeners
         }
 
         public Mat selectedViewMat { get; set; }
+        public VideoCapture Capture { get; set; }
 
         private readonly BackgroundWorker bkgWorker;
 
@@ -106,9 +110,23 @@ namespace Picky
             ThresImage = new Mat();
             EdgeImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
             DilatedImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
-            
+            MatchImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
+
             partROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), (Constants.CAMERA_FRAME_HEIGHT / 2), Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 2);
-            settings = new CameraSettings(cameraIndex);
+            settings = new CameraSettings();
+
+            Capture = new VideoCapture();
+
+            Capture.Open(cameraIndex);
+            Capture.Set(VideoCaptureProperties.Fps, Constants.CAMERA_FPS);
+            Capture.Set(VideoCaptureProperties.FourCC, OpenCvSharp.VideoWriter.FourCC('m', 'j', 'p', 'g'));
+            Capture.Set(VideoCaptureProperties.FourCC, OpenCvSharp.VideoWriter.FourCC('M', 'J', 'P', 'G'));
+
+            Capture.Set(VideoCaptureProperties.FrameWidth, Constants.CAMERA_FRAME_WIDTH);
+            Capture.Set(VideoCaptureProperties.FrameHeight, Constants.CAMERA_FRAME_HEIGHT);
+            Capture.Set(VideoCaptureProperties.AutoExposure, 1);
+            Capture.Set(VideoCaptureProperties.Brightness, .2);
+            Capture.Set(VideoCaptureProperties.BufferSize, 200);
 
             grayTemplateImage = new Mat();
             matchResultImage = new Mat();
@@ -261,15 +279,9 @@ namespace Picky
         {
             /*-------------------------------------------------------------------------
              * Entry point for performing a template-based search
-             * 
+             * roi is the area you wanna search - usually the full image
              *------------------------------------------------------------------------*/
-
-            //Settings.TemplateThreshold = threshold;
-            //Settings.Focus = focus;
-            //if (focus == Constants.CAMERA_AUTOFOCUS)
-            //    Settings.IsManualFocus = false;
-            //else
-            //    Settings.IsManualFocus = true;
+                       
             Settings = settings.Clone();
             Cv2.CvtColor(template, grayTemplateImage, OpenCvSharp.ColorConversionCodes.BGR2GRAY);
             searchTemplateROI = roi;
@@ -351,50 +363,52 @@ namespace Picky
              * from the center of the image ROI in pixels.
              * 
              *****************************************************************************/
-            Mat image, res_32f, thresImage;
-            
-            // Get Matches
+
+            // Extract the region of interest (ROI) from the input image
+            Mat roiImage = new Mat(GrayImage, searchTemplateROI);
+
+            // Preprocess the ROI using adaptive thresholding
+            Mat thresholdedRoiImage = new Mat();
+            Cv2.AdaptiveThreshold(roiImage, thresholdedRoiImage, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.Binary, 11, 5);
+
+            // Preprocess the template image using adaptive thresholding
+            Mat thresholdedTemplateImage = new Mat();
+            Cv2.AdaptiveThreshold(grayTemplateImage, thresholdedTemplateImage, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.Binary, 11, 5);
+
+            // Perform template matching
+            Mat matchResult = new Mat();
             try
             {
-                image = new Mat(GrayImage, searchTemplateROI);
-                res_32f = new Mat(image.Rows - grayTemplateImage.Rows + 1, image.Cols - grayTemplateImage.Cols + 1, MatType.CV_32FC1);
-                Cv2.MatchTemplate(image, grayTemplateImage, res_32f, TemplateMatchModes.CCoeffNormed);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Error matching: {e.Message}");
-                return false;
-            }
+                Cv2.MatchTemplate(thresholdedRoiImage, thresholdedTemplateImage, matchResult, TemplateMatchModes.CCoeffNormed);
+            }catch(Exception e) { return false; }
 
-            /* Generate Result Image*/
-            res_32f.ConvertTo(matchResultImage, MatType.CV_8U, 255.0);
-            int size = ((grayTemplateImage.Cols + grayTemplateImage.Rows) / 4) * 2 + 1; //force size to be odd
-            thresImage = new Mat(ThresImage, searchTemplateROI);
-            Cv2.AdaptiveThreshold(matchResultImage, thresImage, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.Binary, size, Settings.TemplateThreshold);
+            // Threshold to determine "good matches"
             searchTemplateResults.Clear();
-
-            /* Convert Image to List of Rectangle */
+            double threshold = 0.2; // Adjust based on requirements (closer to 1.0 for stricter matches)
             while (true)
             {
-                double minval, maxval;
-                OpenCvSharp.Point minloc, maxloc;
-                Cv2.MinMaxLoc(thresImage, out minval, out maxval, out minloc, out maxloc);
+                // Find the location of the maximum match
+                Cv2.MinMaxLoc(matchResult, out _, out double maxVal, out _, out OpenCvSharp.Point maxLoc);
 
-                if (maxval > 0)
-                {
-                    int x = maxloc.X + searchTemplateROI.X;
-                    int y = maxloc.Y + searchTemplateROI.Y;
-                    searchTemplateResults.Add(new Position3D { X = x, Y = y, Width = grayTemplateImage.Cols, Height = grayTemplateImage.Rows });
-                    Cv2.FloodFill(thresImage, maxloc, 0);   //mark drawn blob so we don't find it again
-                }
-                else
-                {
+                // If the maximum match value is below the threshold, exit the loop
+                if (maxVal < threshold)
                     break;
-                }
+
+                // Add the matching region to the results list
+                int x = maxLoc.X + searchTemplateROI.X;
+                int y = maxLoc.Y + searchTemplateROI.Y;
+                searchTemplateResults.Add(new Position3D { X = x, Y = y, Width = grayTemplateImage.Cols, Height = grayTemplateImage.Rows });
+
+                // Suppress the matched region in the result matrix to find distinct matches - connected +/- 10
+                OpenCvSharp.Rect box;
+                Cv2.FloodFill(matchResult, maxLoc, new Scalar(0), out box, new Scalar(10), new Scalar(10), FloodFillFlags.Link8);
+
             }
+
             if (searchTemplateResults.Count > 0)
                 return true;
-            return false;
+            return false; 
+    
         }
 
         private bool FindPartInImage(Part part, Mat grayImage)
@@ -498,7 +512,7 @@ namespace Picky
                 try
                 {
                                    
-                    RawImage = Settings.Capture.RetrieveMat();
+                    RawImage = Capture.RetrieveMat();
                     Cv2.CopyTo(RawImage, ColorImage);
                     Cv2.CvtColor(RawImage, GrayImage, ColorConversionCodes.BGR2GRAY);
                     Cv2.GaussianBlur(GrayImage, GrayImage, new OpenCvSharp.Size(5, 5), 0);
@@ -552,8 +566,7 @@ namespace Picky
                 {
                     if (FindTemplateInImage())
                     {
-                        if(!IsTemplatePreviewActive)
-                            searchTemplateRequest = false;
+                        searchTemplateRequest = false;
                         foreach (Position3D pos in searchTemplateResults)
                         {
                             Cv2.Rectangle(ColorImage, pos.GetRect(), new OpenCvSharp.Scalar(0, 255, 0), 2);

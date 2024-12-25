@@ -4,23 +4,24 @@ using System.IO;
 using System.ComponentModel;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
-using System.Xml.Linq;
-using System.Windows;
-using System.Windows.Media.Media3D;
+using Newtonsoft.Json;
+using System.Windows.Forms.VisualStyles;
+using Xamarin.Forms.Xaml;
 using System.Windows.Input;
-using System.Security.Permissions;
-using OpenCvSharp.Dnn;
-using EnvDTE90;
+using System.Security.Cryptography.X509Certificates;
+using Picky.Tools;
+using Xamarin.Forms.PlatformConfiguration.GTKSpecific;
+using EnvDTE;
+using static Picky.MachineMessage;
 
 namespace Picky
-{ 
-     public class TipStyle
+{
+    public class TipStyle
     {
         public string TipName { get; set; }
-        public double TipDia  { get; set; }
+        public double TipDia { get; set; }
         public TipStyle(string name, double diameter_mm)
         {
             TipName = name;
@@ -50,14 +51,12 @@ namespace Picky
         public string Description { get; set; }
         public string UniqueID { get; set; }
 
-        /* Default search are for tool calbration */
-        private OpenCvSharp.Rect toolROI { get; set; } 
-                
-        private string toolTemplateFileName;
-        public string ToolTemplateFileName
+        /* This is the area where the tool is expect to be found */
+        private OpenCvSharp.Rect toolSearchROI;
+        public OpenCvSharp.Rect ToolSearchROI
         {
-            get { return toolTemplateFileName; }
-            set { toolTemplateFileName = value; OnPropertyChanged(nameof(ToolTemplateFileName)); }
+            get { return toolSearchROI; }
+            set { toolSearchROI = value; OnPropertyChanged(nameof(ToolSearchROI)); }
         }
         
         private Position3D toolStorage;
@@ -74,28 +73,42 @@ namespace Picky
             set { if (length != value) { length = value; OnPropertyChanged(nameof(Length)); } }
         }
 
-        private CameraSettings settings;
-        public CameraSettings Settings
+        private PickToolCalPosition upperCal;
+        public PickToolCalPosition UpperCal
         {
-            get { return settings; }
-            set { settings = value; OnPropertyChanged(nameof(Settings)); }
+            get { return upperCal; }
+            set { upperCal = value; OnPropertyChanged(nameof(UpperCal)); }
         }
-           
-        
+
+        private PickToolCalPosition lowerCal;
+        public PickToolCalPosition LowerCal
+        {
+            get { return lowerCal; }
+            set { lowerCal = value; OnPropertyChanged(nameof(LowerCal)); }
+        }
+             
+
         public PickToolModel(string name)
         {
             Description = name;
-            /* If name is null - we're being deserialized - don't update UniqueID. 
-               Deserialization seems to run the construct and update fields that differ 
-               documentation doesn't indicate that's what it does, but this workaround
-               works.  Note that the calibration file is only loaded when tipOffsetLower 
-               changes TODO - fix */
-
+            
+            /* If name is null - we're being deserialized - don't update UniqueID. */
             if (name != null)
+            {
                 UniqueID = DateTime.Now.ToString("HHmmss-dd-MM-yy");
-            toolStorage = new Position3D();
+                
+            }
+            if (LowerCal == null || UpperCal == null)
+            {
+                String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                LowerCal = new PickToolCalPosition();
+                UpperCal = new PickToolCalPosition();
+                LowerCal.ToolTemplateFileName = path + "\\toolTemplate-lower-" + UniqueID + ".png";
+                UpperCal.ToolTemplateFileName = path + "\\toolTemplate-upper-" + UniqueID + ".png";
+            }
+            ToolStorage = new Position3D();
             state = TipStates.Unknown;
-                        
+
             TipList = new List<TipStyle>
             {
                 new TipStyle("28GA <Fine>", 1.2),
@@ -104,7 +117,19 @@ namespace Picky
                 new TipStyle("18GA <Large>", 3.5),
             };
             SelectedTip = TipList.FirstOrDefault();
-            toolROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), 0, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 5);
+
+            double width = (Constants.CAMERA_FRAME_WIDTH / 4);
+            double height = (Constants.CAMERA_FRAME_HEIGHT / 6);
+            double x = (Constants.CAMERA_FRAME_WIDTH / 2) - (width / 2);
+            double y = 0;
+            LowerCal.toolROI = new OpenCvSharp.Rect((int)x, (int)y, (int)width, (int)height);
+            UpperCal.toolROI = new OpenCvSharp.Rect((int)x, (int)y, (int)width, (int)height);
+
+            width *= 1.2;
+            height = Constants.CAMERA_FRAME_HEIGHT;
+            x = (Constants.CAMERA_FRAME_WIDTH / 2) - (width / 2);
+            ToolSearchROI = new OpenCvSharp.Rect((int)x, (int)y, (int)width, (int)height);
+         
         }
 
         /* Default Send Notification boilerplate - properties that notify use OnPropertyChanged */
@@ -113,30 +138,46 @@ namespace Picky
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-                
-        public void SetToolTemplate()
+
+        public void LoadImagery()
+        {
+            LowerCal.LoadToolTemplateImage(); 
+            UpperCal.LoadToolTemplateImage();
+        }
+        
+        public void SaveCalPosition(PickToolCalPosition calPosition)
+        {   
+            // Get Settings
+            MachineModel machine = MachineModel.Instance;
+            calPosition.CaptureSettings = machine.downCamera.Settings.Clone();
+
+            // Write part template image to file
+            calPosition.SaveToolTemplateImage();
+            
+            calPosition.Set3DToolTipFromToolMat(machine.downCamera.DilatedImage, machine.CurrentZ);
+            Console.WriteLine("Set Tool Target Template: " + calPosition.ToolTemplateFileName);
+        }
+
+        public void CalibrateTool()
         {
             /*--------------------------------------------------------------
-             * Called by GUI to save template for use later in tip guidance.
-             * Does not save storage location or location of calibration.
+             * Called by GUI to calibrate this tool.  Must have previously
+             * set the CameraSettings, and Set CalDeck and CalPad locations.
+             * Will update the tip position (x, y and z (in mm)) for use with
+             * accurate picking commands.
              * ------------------------------------------------------------*/
-                       
+
             MachineModel machine = MachineModel.Instance;
-            //ToolThreshold = machine.downCamera.TemplateThreshold;
-            //ToolFocus = Constants.CAMERA_AUTOFOCUS;
-            //if (machine.downCamera.IsManualFocus)
-            //    ToolFocus = machine.downCamera.Focus;
-            machine.downCamera.Settings = Settings.Clone();
-            Mat template = new Mat(machine.downCamera.ColorImage, toolROI);
-
-            // Write part template to file
-            String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            ToolTemplateFileName = path + "\\toolTemplate-" + UniqueID + ".png";
-            Cv2.ImWrite(ToolTemplateFileName, template);
-            while (File.Open(ToolTemplateFileName, FileMode.Open, FileAccess.Read, FileShare.Read) == null) { }
-
-            Console.WriteLine("Set Tool Target Template: " + ToolTemplateFileName);
-        }
+            machine.Messages.Add(GCommand.G_EnableIlluminator(true));
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.CalPad.X, machine.Cal.CalPad.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
+            machine.Messages.Add(GCommand.SetToolCalibration(UpperCal));
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.DeckPad.X, machine.Cal.DeckPad.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
+            machine.Messages.Add(GCommand.SetToolCalibration(LowerCal));
+            // Raise Probe
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.DeckPad.X, machine.Cal.DeckPad.Y, 0, 0, 0));
+        }      
 
         public void PreviewToolTemplate(Position3D pos)
         {
@@ -144,47 +185,25 @@ namespace Picky
              * Called by GUI to kickoff a preview session that occurs at the
              * calibration deck - 2mm. Will terminate automatically by the GUI
              * ------------------------------------------------------------*/
+
+            PickToolCalPosition calPosition = LowerCal;
             MachineModel machine = MachineModel.Instance;
+            if (pos == machine.Cal.CalPad)
+                calPosition = UpperCal;
+
+            if (calPosition.ToolTemplateImage == null)
+            { //If there's no template, create anything
+                calPosition.CaptureSettings  = machine.downCamera.Settings.Clone();
+            }
+            
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             machine.Messages.Add(GCommand.G_SetPosition(pos.X, pos.Y, 0, 0, 0));
             machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
-            machine.Messages.Add(GCommand.G_SetZPosition(-2.0));
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
+            machine.Messages.Add(GCommand.SetToolCalibration(calPosition));
             machine.Messages.Add(GCommand.G_FinishMoves());
 
-            OpenCvSharp.Rect roi = new OpenCvSharp.Rect(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
-            Mat template = Cv2.ImRead(ToolTemplateFileName, ImreadModes.Color);
-            machine.downCamera.RequestTemplateSearch(template, roi, Settings);
-        }
-
-
-        public (double x, double y) GetTipOffset(Mat image) {
-        /****************************************************************************
-         * Returns the position of the tip in an image, typically a full image.  
-         * Units are in pixels.
-         * **************************************************************************/
-                  
-            return (0, 0);
-        }
-        
-        public void LoadCalibrationCircleFromFile()
-        {
-            /*Console.WriteLine("Loading Calibration Circle from File.");
-            String path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), (UniqueID + "_tipCal.jpg"));
-            CalMat = new Mat();
-            try
-            {
-                CalMat = Cv2.ImRead(path);
-            }
-            catch { Console.WriteLine("No file found."); }
-            if (CalMat.Empty()) { 
-                CalMat = Cv2.ImRead("no-image.jpg");
-            }
-            Console.WriteLine("Loading Tip Calibration Image: " + path);
-            if (CalMat.Width > 0 && CalMat.Height > 0)
-                TipCalImage = BitmapSource.Create(CalMat.Width, CalMat.Height, 96, 96, PixelFormats.Bgr24, null, CalMat.Data, (int)(CalMat.Step() * CalMat.Height), (int)CalMat.Step());
-            */
+            Mat ToolTemplate = Cv2.ImRead(calPosition.ToolTemplateFileName, ImreadModes.Color);
+            machine.downCamera.RequestTemplateSearch(ToolTemplate, ToolSearchROI, calPosition.CaptureSettings);
         }
     }
 }

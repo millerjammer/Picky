@@ -108,12 +108,12 @@ namespace Picky
             this.X = seg.Center.X; this.Y = seg.Center.Y;this.Radius = seg.Radius;
         }
 
-
         public Position3D() {
         }
-
+               
         public OpenCvSharp.Rect GetRect()
         {
+        // Returns a Rectangle with X, Y at the upper left.
             return new OpenCvSharp.Rect((int)X, (int)Y, (int)Width, (int)Height);
         }
 

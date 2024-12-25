@@ -14,12 +14,15 @@ namespace Picky
      * --------------------------------------------------------------------*/
     {
         public MachineMessage msg;
+        public Position3D pos_to_update;
         private int delay;
         
-        public GetZProbeCommand(double distance_mm)
+        public GetZProbeCommand(Position3D z_pos_to_update)
         {
-            msg = GCommand.G_ProbeZ(distance_mm);
+            pos_to_update = z_pos_to_update;
+            msg = new MachineMessage();
             msg.messageCommand = this;
+            msg.cmd = Encoding.ASCII.GetBytes("J102 Set Tool Calibration\n");
             delay = (200 / Constants.QUEUE_SERVICE_INTERVAL);
         }
 
@@ -39,12 +42,8 @@ namespace Picky
                 return false;
             MachineModel machine = MachineModel.Instance;
             machine.LastZProbeResult = machine.CurrentZ;
-            if (machine.CurrentX == machine.Cal.CalPad.X && machine.CurrentY == machine.Cal.CalPad.Y)
-            {
-                machine.Cal.CalPad.Z = machine.CurrentZ;
-                Console.WriteLine("Calibrated Z Location: Success");
-            }
-            Console.WriteLine("Last Z Result: " + machine.LastZProbeResult + "mm");
+            pos_to_update.Z = machine.CurrentZ;
+            Console.WriteLine("Last Z Result: " + machine.CurrentZ + "mm");
             return true;
         }
     }

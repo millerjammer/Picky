@@ -25,7 +25,7 @@ namespace Picky
         private bool[] DistToAdv = new bool[] { false, true, false, false };
         public bool[] distToAdv
         {
-            get { int i = Array.IndexOf(DistToAdv, true); Console.WriteLine("Default: " + i); distanceToAdvance = distToAdvValue[i]; return DistToAdv; }
+            get { int i = Array.IndexOf(DistToAdv, true); distanceToAdvance = distToAdvValue[i]; return DistToAdv; }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

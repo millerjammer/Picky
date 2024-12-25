@@ -86,7 +86,13 @@ namespace Picky
             SetFocusCommand cmd = new SetFocusCommand(msDelay, focus);
             return cmd.GetMessage();
         }
-              
+
+        public static MachineMessage SetToolCalibration(PickToolCalPosition calPos)
+        {
+            SetToolCalibrationCommand cmd = new SetToolCalibrationCommand(calPos);
+            return cmd.GetMessage();
+        }
+
 
         public static MachineMessage CalculateMachineStepsPerMM()
         {
@@ -95,9 +101,9 @@ namespace Picky
         }
 
 
-        public static MachineMessage GetZProbe(double distance_mm)            
+        public static MachineMessage GetZProbe(Position3D z_pos_to_update)            
         {
-            GetZProbeCommand cmd = new GetZProbeCommand(distance_mm);
+            GetZProbeCommand cmd = new GetZProbeCommand(z_pos_to_update);
             return cmd.GetMessage();
         }
 

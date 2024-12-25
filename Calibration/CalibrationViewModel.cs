@@ -197,7 +197,7 @@ namespace Picky
         {
             machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.CalPad.X, machine.Cal.CalPad.Y, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.GetZProbe(Constants.ZPROBE_LIMIT));
+            machine.Messages.Add(GCommand.GetZProbe(new Position3D { Z = Constants.ZPROBE_LIMIT }));
             machine.Messages.Add(GCommand.G_SetZPosition(0));
         }
 

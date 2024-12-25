@@ -40,7 +40,7 @@ namespace Picky
         /* Board */
         public BoardModel Board { get; set; }
 
-        /* Settings */
+        /* SettingsUpper */
         public SettingsModel Settings { get; set; }
 
         /* Cameras */
@@ -261,8 +261,6 @@ namespace Picky
             foreach (var item in PickToolList)
             {
                 item.State = PickToolModel.TipStates.Unknown;
-                item.LoadCalibrationCircleFromFile();
-                
             }
         }
 
@@ -275,7 +273,7 @@ namespace Picky
         {
             String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             File.WriteAllText(path + "\\" + Constants.SETTINGS_FILE_NAME, JsonConvert.SerializeObject(Settings, Formatting.Indented));
-            Console.WriteLine("Save Settings");
+            Console.WriteLine("Save SettingsUpper");
         }
 
         public void SaveTools()

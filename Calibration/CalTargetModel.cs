@@ -114,10 +114,6 @@ namespace Picky
             MachineModel machine = MachineModel.Instance;
             ActualLocUpper.X = machine.CurrentX; ActualLocUpper.Y = machine.CurrentY;
             upperSettings = machine.downCamera.Settings.Clone();
-            //upperThreshold = machine.downCamera.TemplateThreshold;
-            //upperFocus = Constants.CAMERA_AUTOFOCUS;
-            //if (machine.downCamera.IsManualFocus)
-            //    upperFocus = machine.downCamera.Focus;
             UpperTemplateFileName = SetCalTarget(machine, upperTemplate);
         }
         
@@ -126,10 +122,6 @@ namespace Picky
             MachineModel machine = MachineModel.Instance;
             ActualLocLower.X = machine.CurrentX; ActualLocLower.Y = machine.CurrentY;
             lowerSettings = machine.downCamera.Settings.Clone();
-            //lowerThreshold = machine.downCamera.TemplateThreshold;
-            //lowerFocus = Constants.CAMERA_AUTOFOCUS;
-            //if (machine.downCamera.IsManualFocus)
-            //    lowerFocus = machine.downCamera.Focus;
             LowerTemplateFileName = SetCalTarget(machine, lowerTemplate);
         }
        
@@ -142,9 +134,9 @@ namespace Picky
             MachineModel machine = MachineModel.Instance;
             machine.Messages.Add(GCommand.G_SetPosition(pos.X, pos.Y, 0, 0, 0));
             
-            OpenCvSharp.Rect roi = new OpenCvSharp.Rect(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
-            Mat template = Cv2.ImRead(templateFile, ImreadModes.Color);
-            machine.downCamera.RequestTemplateSearch(template, roi, settings);
+            OpenCvSharp.Rect TargetROI = new OpenCvSharp.Rect(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
+            Mat CalTargetTemplate = Cv2.ImRead(templateFile, ImreadModes.Color);
+            machine.downCamera.RequestTemplateSearch(CalTargetTemplate, TargetROI, settings);
         }
 
         private string SetCalTarget(MachineModel machine, Mat template) { 

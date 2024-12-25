@@ -25,19 +25,29 @@ namespace Picky
             get { return machine; }
         }
 
-        private bool isPreviewToolTargetActive = false;
-        public bool IsPreviewToolTargetActive
+        private bool isPreviewUpperToolTargetActive = false;     //This is the GUI button
+        public bool IsPreviewUpperToolTargetActive
         {
-            get { return isPreviewToolTargetActive; }
+            get { return isPreviewUpperToolTargetActive; }
             set
             {
-                Machine.downCamera.IsTemplatePreviewActive = value;
-                isPreviewToolTargetActive = value;
+                isPreviewUpperToolTargetActive = value;
                 if (value)
-                {
+                    Machine.SelectedPickTool.PreviewToolTemplate(machine.Cal.CalPad);
+                OnPropertyChanged(nameof(IsPreviewUpperToolTargetActive));
+            }
+        }
+
+        private bool isPreviewLowerToolTargetActive = false;     //This is the GUI button
+        public bool IsPreviewLowerToolTargetActive
+        {
+            get { return isPreviewLowerToolTargetActive; }
+            set
+            {
+                isPreviewLowerToolTargetActive = value;
+                if (value)
                     Machine.SelectedPickTool.PreviewToolTemplate(machine.Cal.DeckPad);
-                }
-                OnPropertyChanged(nameof(IsPreviewToolTargetActive));
+                OnPropertyChanged(nameof(IsPreviewLowerToolTargetActive));
             }
         }
 
@@ -52,13 +62,15 @@ namespace Picky
 
         private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            OnPropertyChanged(nameof(PickToolList)); // Notify that the collection has changed (add/remove)
+            if (machine.PickList.Count > 0)
+            {
+                machine.SelectedPickTool = machine.PickToolList.Last();
+            }
         }
 
         protected virtual void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            
         }
 
         public PickToolModel selectedPickTool
@@ -66,9 +78,12 @@ namespace Picky
             get { return machine.SelectedPickTool; }
             set
             {
-                Machine.SelectedPickTool = value;
                 Console.WriteLine("Pick Tool Selection Changed");
-                IsPreviewToolTargetActive = false;
+                if (value != null)
+                    value.LoadImagery();
+                IsPreviewUpperToolTargetActive = false;
+                IsPreviewLowerToolTargetActive = false;
+                Machine.SelectedPickTool = value;
                 OnPropertyChanged(nameof(selectedPickTool));
             }
         }
@@ -79,12 +94,18 @@ namespace Picky
             set { Machine.PickToolList = value; OnPropertyChanged(nameof(PickToolList)); }
         }
 
-        
-        public ICommand SetToolTemplateCommand { get { return new RelayCommand(SetToolTemplate); } }
-        private void SetToolTemplate()
+        public ICommand SetUpperToolTemplateCommand { get { return new RelayCommand(SetUpperToolTemplate); } }
+        public void SetUpperToolTemplate()
         {
-            IsPreviewToolTargetActive = false;
-            Machine.SelectedPickTool.SetToolTemplate();
+            selectedPickTool.SaveCalPosition(selectedPickTool.UpperCal);
+            selectedPickTool.UpperCal.LoadToolTemplateImage();
+        }
+
+        public ICommand SetLowerToolTemplateCommand { get { return new RelayCommand(SetLowerToolTemplate); } }
+        public void SetLowerToolTemplate()
+        {
+            selectedPickTool.SaveCalPosition(selectedPickTool.LowerCal);
+            selectedPickTool.LowerCal.LoadToolTemplateImage();
         }
 
         public ICommand RemoveToolCommand { get { return new RelayCommand(RemoveTool); } }
@@ -97,8 +118,10 @@ namespace Picky
         public ICommand NewToolCommand { get { return new RelayCommand(NewTool); } }
         private void NewTool()
         {
-            if(PickToolList.Count() < Constants.TOOL_COUNT)
+            if (PickToolList.Count() < Constants.TOOL_COUNT) { 
                 machine.PickToolList.Add(new PickToolModel("untitled"));
+                machine.SelectedPickTool = machine.PickToolList.Last();
+            }
         }
 
         public ICommand SaveToolsCommand { get { return new RelayCommand(SaveTools); } }
@@ -110,10 +133,13 @@ namespace Picky
         public ICommand SetAsStorageLocationCommand { get { return new RelayCommand(SetAsStorageLocation); } }
         private void SetAsStorageLocation()
         {
-            Machine.SelectedPickTool.ToolStorage.X = Machine.CurrentX;
-            Machine.SelectedPickTool.ToolStorage.Y = Machine.CurrentY;
-            Machine.SelectedPickTool.ToolStorage.Z = Constants.TOOL_NOMINAL_Z_DRIVE_MM;
-            OnPropertyChanged(nameof(PickToolList)); // Notify that the collection has changed
+            if (Machine.SelectedPickTool != null)
+            {
+                Machine.SelectedPickTool.ToolStorage.X = Machine.CurrentX;
+                Machine.SelectedPickTool.ToolStorage.Y = Machine.CurrentY;
+                Machine.SelectedPickTool.ToolStorage.Z = Constants.TOOL_NOMINAL_Z_DRIVE_MM;
+                OnPropertyChanged(nameof(PickToolList)); // Notify that the collection has changed
+            }
         }
 
         public ICommand GoToStorageLocationCommand { get { return new RelayCommand(GoToStorageLocation); } }
@@ -158,7 +184,14 @@ namespace Picky
         {
             Machine.SelectedPickTool.State = PickToolModel.TipStates.Unknown;
         }
-               
+
+        public ICommand CalibrateToolCommand { get { return new RelayCommand(CalibrateToolTip); } }
+        private void CalibrateToolTip()
+        {
+            Machine.SelectedPickTool.CalibrateTool();
+        }
+
+
 
         public ICommand RetrieveToolCommand { get { return new RelayCommand(RetrieveTool); } }
         private void RetrieveTool()
@@ -200,44 +233,6 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
             machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.CalPad.X, machine.Cal.CalPad.Y, 0, 0, 0));
         }
-
-        public ICommand CalibrateToolCommand { get { return new RelayCommand(CalibrateTool); } }
-        private void CalibrateTool()
-        {
-            machine.Messages.Add(GCommand.G_EnableIlluminator(true));
-            machine.Messages.Add(GCommand.G_EnableUpIlluminator(false));
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.CalPad.X, machine.Cal.CalPad.Y, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
-            machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.SetToolLength(machine.SelectedPickTool));
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
-            machine.Messages.Add(GCommand.G_SetZPosition(-2.0));
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
-            machine.Messages.Add(GCommand.G_FinishMoves());
-            for (int i = 0; i < 360; i += 60)
-            {
-                machine.Messages.Add(GCommand.G_SetRotation(i));
-                machine.Messages.Add(GCommand.G_FinishMoves());
-                machine.Messages.Add(GCommand.SetToolOffsetCalibration(machine.SelectedPickTool, true));
-            }
-            //machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalDeckPadX, machine.Cal.ZCalDeckPadY, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
-            machine.Messages.Add(GCommand.G_SetZPosition(-2.0));
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
-            //machine.Messages.Add(GCommand.SetFocus(1000, machine.SelectedPickTool.LowerCircleDetector.Focus));
-            machine.Messages.Add(GCommand.G_FinishMoves());
-            for (int i = 0; i < 360; i += 60)
-            {
-                machine.Messages.Add(GCommand.G_SetRotation(i));
-                machine.Messages.Add(GCommand.G_FinishMoves());
-                machine.Messages.Add(GCommand.SetToolOffsetCalibration(machine.SelectedPickTool, false));
-            }
-            //machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.ZCalDeckPadX, machine.Cal.ZCalDeckPadY, 0, 0, 0));
-        }
-
         public ICommand ReturnToolCommand { get { return new RelayCommand(ReturnTool); } }
         private void ReturnTool()
         {

@@ -65,13 +65,14 @@ namespace Picky
                 new VisualizationStyle("Threshold", camera.ThresImage),
                 new VisualizationStyle("Edge Image", camera.EdgeImage),
                 new VisualizationStyle("Dilated Image", camera.DilatedImage),
+                new VisualizationStyle("Match Image", camera.MatchImage),
             };
             SelectedVisualizationViewItem = VisualizationView.FirstOrDefault();
 
             ImageProcessingView = new List<ImageProcessingStyle>
             {
                 new ImageProcessingStyle("Normal"),
-                new ImageProcessingStyle("ToolTip"),
+                new ImageProcessingStyle("ToolTipUpper"),
                 new ImageProcessingStyle("QR Code"),
             };
             SelectedImageProcessingItem = ImageProcessingView.FirstOrDefault();

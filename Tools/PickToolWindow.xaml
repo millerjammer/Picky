@@ -53,18 +53,16 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="auto"/>
                                         <ColumnDefinition Width="auto"/>
-               
+
                                     </Grid.ColumnDefinitions>
-                                    <ui:Button Grid.Column="0" Content="Save" Command="{Binding SaveToolsCommand}" Icon="Save28"  Height="30" Width="100" HorizontalAlignment="Right"/>
-                                    <ui:Button Grid.Column="2" Content="Apply" Command="{Binding SetToolTemplateCommand}" Icon="Add28"  Margin ="10 0 10 0" Height="30" Width="100" HorizontalAlignment="Right"/>
-                                    <ToggleButton Grid.Column="3" Content="Preview" Height="30" Width="100" HorizontalAlignment="Right" IsChecked="{Binding IsPreviewToolTargetActive}"/>
+                                    <ui:Button Grid.Column="1" Content="Save" Height="30" Icon="Save28" Width="100" HorizontalAlignment="Left" Command="{Binding SaveToolsCommand}"/>
+                                    <ui:Button Grid.Column="3" Content="Calibrate Tool" Height="30" Icon="TargetArrow24" Width="200" HorizontalAlignment="Left" Command="{Binding CalibrateToolCommand}"/>
 
                                 </Grid>
                                 <ui:DataGrid  x:Name="PickListGrid" Grid.Row="1" HorizontalAlignment="Stretch" SelectedItem="{Binding selectedPickTool}" 
                       ItemsSource="{Binding PickToolList}" AutoGenerateColumns="False" CanUserSortColumns="False" Width="auto"
                       HorizontalContentAlignment="Stretch" SelectionChanged="PickToolSelectionChanged" CanUserAddRows="False"
                       VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="False" >
-
 
                                     <!-- Define Details -->
                                     <ui:DataGrid.RowDetailsTemplate>
@@ -76,9 +74,10 @@
                                                 </Grid.ColumnDefinitions>
                                                 <DockPanel Grid.Column="0" HorizontalAlignment="Stretch">
                                                     <StackPanel Orientation="Vertical" Margin="0 0 0 0">
-                                                        
+
                                                         <Grid>
                                                             <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="auto" />
                                                                 <ColumnDefinition Width="auto" />
                                                                 <ColumnDefinition Width="auto" />
                                                                 <ColumnDefinition Width="auto" />
@@ -89,26 +88,67 @@
                                                             </Grid.ColumnDefinitions>
                                                             <Grid.RowDefinitions>
                                                                 <RowDefinition Height="auto" />
-                                                                <RowDefinition Height="auto" />
-                                                                <RowDefinition Height="auto" />
+                                                                <RowDefinition Height="38" />
+                                                                <RowDefinition Height="38" />
                                                             </Grid.RowDefinitions>
 
                                                             <!-- Row Header -->
-                                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Tool Cal Location" Width="130" FontWeight="Bold"/>
-                                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Threshold" Width="100" FontWeight="Bold"/>
-                                                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Focus" Width="70" FontWeight="Bold"/>
+                                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Location" FontWeight="Bold"/>
+                                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Threshold" FontWeight="Bold"/>
+                                                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Focus" FontWeight="Bold"/>
+                                                            <TextBlock Grid.Row="0" Grid.Column="3" Text="Z [mm]" FontWeight="Bold"/>
+                                                            <TextBlock Grid.Row="0" Grid.Column="4" Text="Tip [pix]" FontWeight="Bold"/>
+                                                            <TextBlock Grid.Row="0" Grid.Column="5" Text="Tip [mm]" FontWeight="Bold"/>
+                                                            <Line X1="0" Y1="30" X2="700" Y2="30" Stroke="DarkSlateGray" StrokeThickness="1" Grid.ColumnSpan="7" />
 
                                                             <!-- Data Row 1 -->
-                                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Upper" Width="100"/>
-                                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ToolThreshold}" Width="100"/>
-                                                            <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding ToolFocus}" Width="70"/>
-                                                                    
+                                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Upper" VerticalAlignment="Center"/>
+                                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding UpperCal.CaptureSettings.BinaryThreshold}" VerticalAlignment="Center"/>
+                                                            <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding UpperCal.CaptureSettings.Focus}" VerticalAlignment="Center"/>
+                                                            <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding UpperCal.TipPosition.Z,StringFormat={}{0:0.00}}" VerticalAlignment="Center"/>
+                                                            <TextBlock Grid.Row="1" Grid.Column="4" VerticalAlignment="Center">
+                                                                <TextBlock.Text>
+                                                                    <MultiBinding StringFormat="({0:0}, {1:0})">
+                                                                        <Binding Path="UpperCal.TipPosition.X" />
+                                                                        <Binding Path="UpperCal.TipPosition.Y" />
+                                                                    </MultiBinding>
+                                                                </TextBlock.Text>
+                                                            </TextBlock>
+                                                            
+                                                            <TextBlock Grid.Row="1" Grid.Column="5" VerticalAlignment="Center">
+                                                                <TextBlock.Text>
+                                                                    <MultiBinding StringFormat="({0:0.000}, {1:0.000})">
+                                                                        <Binding Path="UpperCal.TipOffsetMM.X" />
+                                                                        <Binding Path="UpperCal.TipOffsetMM.Y" />
+                                                                    </MultiBinding>
+                                                                </TextBlock.Text>
+                                                            </TextBlock>
+
+
+                                                            <!-- Data Row 2 -->
+                                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Lower" VerticalAlignment="Center"/>
+                                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding LowerCal.CaptureSettings.BinaryThreshold}" VerticalAlignment="Center"/>
+                                                            <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding LowerCal.CaptureSettings.Focus}" VerticalAlignment="Center"/>
+                                                            <TextBlock Grid.Row="2" Grid.Column="3" Text="{Binding LowerCal.TipPosition.Z,StringFormat={}{0:0.00}}" VerticalAlignment="Center"/>
+                                                            <TextBlock Grid.Row="2" Grid.Column="4" VerticalAlignment="Center">
+                                                                <TextBlock.Text>
+                                                                    <MultiBinding StringFormat="({0:0}, {1:0})">
+                                                                        <Binding Path="LowerCal.TipPosition.X" />
+                                                                        <Binding Path="LowerCal.TipPosition.Y" />
+                                                                    </MultiBinding>
+                                                                </TextBlock.Text>
+                                                            </TextBlock>
+
+                                                            <TextBlock Grid.Row="2" Grid.Column="5" VerticalAlignment="Center">
+                                                                <TextBlock.Text>
+                                                                    <MultiBinding StringFormat="({0:0.000}, {1:0.000})">
+                                                                        <Binding Path="LowerCal.TipOffsetMM.X" />
+                                                                        <Binding Path="LowerCal.TipOffsetMM.Y" />
+                                                                    </MultiBinding>
+                                                                </TextBlock.Text>
+                                                            </TextBlock>
                                                         </Grid>
-   
                                                     </StackPanel>
-                                                </DockPanel>
-                                                <DockPanel Grid.Column="1" DockPanel.Dock="Left">
-                                                    <Image Margin="10 0 20 0" Source="{Binding part.TemplateFileName}" MaxHeight="100" MaxWidth="200" />
                                                 </DockPanel>
                                             </Grid>
                                         </DataTemplate>
@@ -118,10 +158,10 @@
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Binding="{Binding Description}" Header="Description" Width="*"/>
 
-                                        <DataGridTextColumn Binding="{Binding TipState}" Header="State" Width="100"/>
-                                        <DataGridTextColumn Binding="{Binding ToolStorageX,StringFormat={}{0:0.000}}" Header="X [mm]" Width="70"/>
-                                        <DataGridTextColumn Binding="{Binding ToolStorageY,StringFormat={}{0:0.000}}" Header="Y [mm]" Width="70"/>
-                                        <DataGridTextColumn Binding="{Binding ToolStorageZ,StringFormat={}{0:0.000}}" Header="Z [mm]" Width="70"/>
+                                        <DataGridTextColumn Binding="{Binding State}" Header="State" Width="100"/>
+                                        <DataGridTextColumn Binding="{Binding ToolStorage.X,StringFormat={}{0:0.000}}" Header="X [mm]" Width="70"/>
+                                        <DataGridTextColumn Binding="{Binding ToolStorage.Y,StringFormat={}{0:0.000}}" Header="Y [mm]" Width="70"/>
+                                        <DataGridTextColumn Binding="{Binding ToolStorage.Z,StringFormat={}{0:0.000}}" Header="Z [mm]" Width="70"/>
                                         <DataGridTextColumn Binding="{Binding Length,StringFormat={}{0:0.00}}" Header="L [mm]" Width="80"/>
                                         <!-- ComboBox Column -->
                                         <DataGridTemplateColumn Header="Type" Width="200">
@@ -175,84 +215,50 @@
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="auto" />
+                                        <RowDefinition Height="38" />
+                                    </Grid.RowDefinitions>
                                     <GroupBox Grid.Column="0" BorderBrush="Gray" BorderThickness=".2" Header="Last Calibration" Margin="0 15 0 0">
-                                        <Grid Grid.Row="2">
+                                        <Grid Grid.Row="0">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" ClipToBounds="True" HorizontalAlignment="Stretch">
-                                                <Image ClipToBounds="True" Source="{Binding selectedPickTool.TipCalImage}" Margin="5 5 5 5"/>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="*" />
+                                            </Grid.RowDefinitions>
+                                            <Border Grid.Column="0" Grid.Row="0" ClipToBounds="True" HorizontalAlignment="Stretch" Height="250">
+                                                <Image ClipToBounds="True" Source="{Binding selectedPickTool.UpperCal.ToolTemplateImage}"  Margin="10 5 15 5"/>
                                             </Border>
-                                            <Grid Grid.Column="1" VerticalAlignment="Top" Margin="10">
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="auto"/>
-                                                    <RowDefinition Height="auto"/>
-                                                    <RowDefinition Height="auto"/>
-                                                    <RowDefinition Height="auto"/>
-                                                    <RowDefinition Height="auto"/>
-                                                    <RowDefinition Height="auto"/>
-                                                    <RowDefinition Height="auto"/>
-                                                </Grid.RowDefinitions>
-                                                <Border Grid.Row="0" BorderBrush="LightGray" BorderThickness=".1">
-                                                    <StackPanel  Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                                        <TextBlock Text="Parameter" Width="130" VerticalAlignment="Center" Margin="5 0 5 0"/>
-                                                        <TextBlock Text="Upper" VerticalAlignment="Center" Width="100"/>
-                                                        <TextBlock Text="Lower" VerticalAlignment="Center" Width="100"/>
-                                                        <TextBlock Text="Projected" VerticalAlignment="Center" Margin="0 5 0 5" Width="100"/>
-                                                    </StackPanel>
-                                                </Border>
-                                                <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness=".1">
-                                                    <StackPanel  Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                                        <TextBlock Text="Tool Tip Z:" Width="130" VerticalAlignment="Center" Margin="5 0 5 0"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetUpper.BestCircle.Z,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Width="100"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetLower.BestCircle.Z,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Width="100"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipEstimate.Z,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Margin="5"/>
-                                                    </StackPanel>
-                                                </Border>
-                                                <Border Grid.Row="2" BorderBrush="LightGray" BorderThickness=".1">
-                                                    <StackPanel  Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                                        <TextBlock Text="Offset X:" Width="130" VerticalAlignment="Center" Margin="5 0 5 0"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetUpper.BestCircle.X,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Width="100"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetLower.BestCircle.X,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Width="100"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipEstimate.X, StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Margin="5"/>
-                                                    </StackPanel>
-                                                </Border>
-                                                <Border Grid.Row="3" BorderBrush="LightGray" BorderThickness=".1">
-                                                    <StackPanel  Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                                        <TextBlock Text="Offset Y:" Width="130" VerticalAlignment="Center" Margin="5 0 5 0"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetUpper.BestCircle.Y,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Width="100"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetLower.BestCircle.Y,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Width="100"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipEstimate.Y, StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Margin="5"/>
-                                                    </StackPanel>
-                                                </Border>
-                                                <Border Grid.Row="4" BorderBrush="LightGray" BorderThickness=".1">
-                                                    <StackPanel  Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                                        <TextBlock Text="Radius:" Width="130" VerticalAlignment="Center" Margin="5 0 5 0"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetUpper.BestCircle.Radius,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Width="100"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetLower.BestCircle.Radius,StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Width="100"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipEstimate.Radius, StringFormat={}{0:0.00 mm}}" VerticalAlignment="Center" Margin="5"/>
-                                                    </StackPanel>
-                                                </Border>
-                                                <Border Grid.Row="5" BorderBrush="LightGray" BorderThickness=".1">
-                                                    <StackPanel  Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                                        <TextBlock Text="Angle Offset:" Width="130" VerticalAlignment="Center" Margin="5 0 5 0"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetUpper.BestCircle.Angle,StringFormat={}{0:0.0°}}" VerticalAlignment="Center" Width="100"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetLower.BestCircle.Angle,StringFormat={}{0:0.0°}}" VerticalAlignment="Center" Width="100"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipEstimate.Angle, StringFormat={}{0:0.0°}}" VerticalAlignment="Center" Margin="5"/>
-                                                    </StackPanel>
-                                                </Border>
-                                                <Border Grid.Row="6" BorderBrush="LightGray" BorderThickness=".1">
-                                                    <StackPanel  Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                                        <TextBlock Text="Fit Quality:" Width="130" VerticalAlignment="Center" Margin="5 0 5 0"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetUpper.BestCircle.Quality,StringFormat={}{0:0.000}}" VerticalAlignment="Center" Width="100"/>
-                                                        <TextBlock Text="{Binding selectedPickTool.TipOffsetLower.BestCircle.Quality,StringFormat={}{0:0.000}}" VerticalAlignment="Center" Margin="5"/>
-                                                    </StackPanel>
-                                                </Border>
+                                            <Grid Grid.Column="0" Grid.Row="1" VerticalAlignment="Top" >
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="auto"/>
+                                                    <ColumnDefinition Width="auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Button Grid.Column="0" Content="Apply" Command="{Binding SetUpperToolTemplateCommand}" Background="SlateGray" Margin ="10 0 10 10" Height="34" Width="100" HorizontalAlignment="Right"/>
+                                                <ToggleButton  Grid.Column="1" Content="Go To" Background="SlateGray" Margin ="10 0 10 10" Height="34" Width="100" HorizontalAlignment="Right" IsChecked="{Binding IsPreviewUpperToolTargetActive}"/>
                                             </Grid>
+
+                                            <Border Grid.Column="1" Grid.Row="0" ClipToBounds="True" HorizontalAlignment="Stretch" Height="250">
+                                                <Image ClipToBounds="True" Source="{Binding selectedPickTool.LowerCal.ToolTemplateImage}" Margin="10 5 15 5"/>
+                                            </Border>
+                                            <Grid Grid.Column="1" Grid.Row="1" VerticalAlignment="Top" >
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="auto"/>
+                                                    <ColumnDefinition Width="auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Button Grid.Column="0" Content="Apply" Command="{Binding SetLowerToolTemplateCommand}" Background="SlateGray" Margin ="10 0 10 10" Height="34" Width="100" HorizontalAlignment="Right"/>
+                                                <ToggleButton  Grid.Column="1" Content="Go To" Background="SlateGray" Margin ="10 0 10 10" Height="34" Width="100" HorizontalAlignment="Right" IsChecked="{Binding IsPreviewLowerToolTargetActive}"/>
+                                            </Grid>
+
                                         </Grid>
                                     </GroupBox>
-
                                 </Grid>
                             </Grid>
                         </Grid>

@@ -72,7 +72,7 @@ namespace Picky
         public ICommand ReadActiveSettingsCommand { get { return new RelayCommand(ReadSettings); } }
         private void ReadSettings()
         {
-            Console.WriteLine("Read Settings");
+            Console.WriteLine("Read SettingsUpper");
             machine.Settings.Response = null;
             machine.Messages.Add(GCommand.G_ReportSettings());
         }
@@ -80,7 +80,7 @@ namespace Picky
         public ICommand WriteActiveSettingsCommand { get { return new RelayCommand(WriteSettings); } }
         private void WriteSettings()
         {
-            Console.WriteLine("Write Settings");
+            Console.WriteLine("Write SettingsUpper");
             machine.Messages.Add(GCommand.G_SaveSettings());
         }
 
