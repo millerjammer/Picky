@@ -1,9 +1,12 @@
 ﻿using Newtonsoft.Json;
 using OpenCvSharp;
 using OpenCvSharp.Dnn;
+using Picky.Properties;
 using System;
 using System.ComponentModel;
+using System.Web.UI.WebControls;
 using System.Windows.Navigation;
+using static Picky.MachineMessage;
 
 namespace Picky
 {
@@ -164,7 +167,8 @@ namespace Picky
                 isPreviewUpperTargetActive = value;
                 if (value)
                 {
-                    CalTarget.PreviewCalTarget(CalTarget.UpperTemplateFileName, CalTarget.ActualLocUpper, CalTarget.upperSettings);
+                    isPreviewLowerTargetActive = false;
+                    CalTarget.QueueCalTargetSearch(CalTarget.UpperTemplateFileName, CalTarget.ActualLocUpper, CalTarget.upperSettings, null, 5.5);
                 }
                 OnPropertyChanged(nameof(IsPreviewUpperTargetActive)); }
         }
@@ -181,17 +185,35 @@ namespace Picky
                 isPreviewLowerTargetActive = value;
                 if (value)
                 {
-                    CalTarget.PreviewCalTarget(CalTarget.UpperTemplateFileName, CalTarget.ActualLocLower, CalTarget.lowerSettings);
+                    isPreviewUpperTargetActive = false;
+                    CalTarget.QueueCalTargetSearch(CalTarget.LowerTemplateFileName, CalTarget.ActualLocLower, CalTarget.lowerSettings, null, 5);
                 }
                 OnPropertyChanged(nameof(IsPreviewLowerTargetActive)); }
+        }
+
+        [JsonIgnore]
+        private bool isPreviewGridActive = false;
+        [JsonIgnore]
+        public bool IsPreviewGridActive
+        {
+            get { return isPreviewGridActive; }
+            set {
+                MachineModel machine = MachineModel.Instance;
+                machine.downCamera.IsTemplatePreviewActive = value;
+                isPreviewGridActive = value;
+                if (value)
+                {
+                    CalTarget.QueueCalTargetSearch(CalTarget.GridTemplateFileName, CalTarget.Grid, CalTarget.gridSettings, null, 1.4);
+                }
+                OnPropertyChanged(nameof(IsPreviewGridActive));
+            }
         }
 
 
         /*Calculated */
         public double DownCameraToItemX { get; set; }
         public double DownCameraToItemY { get; set; }
-
-       
+               
         private double downCameraToPickHeadX;
         public double PickHeadToCameraX 
         {

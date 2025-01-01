@@ -75,15 +75,15 @@ namespace Picky
             return cmd.GetMessage();
         }
         
-        public static MachineMessage GetGridCalibration(Mat _template, OpenCvSharp.Rect _roi, Position3D _result, CameraSettings _settings)            
+        public static MachineMessage GetGridCalibration(Mat _template, OpenCvSharp.Rect _roi, Position3D _result)            
         {
-            GetGridCalibrationCommand cmd = new GetGridCalibrationCommand(_template, _roi, _result, _settings);
+            GetGridCalibrationCommand cmd = new GetGridCalibrationCommand(_template, _roi, _result);
             return cmd.GetMessage();
         }
         
-        public static MachineMessage SetFocus(int msDelay, int focus)
+        public static MachineMessage SetCamera(CameraSettings settings, CameraModel camera)
         {
-            SetFocusCommand cmd = new SetFocusCommand(msDelay, focus);
+            SetCameraCommand cmd = new SetCameraCommand(settings, camera);
             return cmd.GetMessage();
         }
 
@@ -106,13 +106,7 @@ namespace Picky
             GetZProbeCommand cmd = new GetZProbeCommand(z_pos_to_update);
             return cmd.GetMessage();
         }
-
-        public static MachineMessage SetToolLength(PickToolModel tool)
-        {
-            SetToolLengthCommand cmd = new SetToolLengthCommand(tool);
-            return cmd.GetMessage();
-        }
-
+                
         public static MachineMessage GetFeederQRCode(Feeder feeder)
         {
             GetFeederQRCodeCommand cmd = new GetFeederQRCodeCommand(feeder);

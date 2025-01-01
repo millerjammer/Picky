@@ -56,6 +56,7 @@ namespace Picky
             machine = MachineModel.Instance;
             machine.PickToolList.CollectionChanged += OnCollectionChanged;
             machine.SelectedPickTool = machine.PickToolList.FirstOrDefault();
+            machine.SelectedPickTool.LoadImagery();
         }
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;
@@ -118,8 +119,13 @@ namespace Picky
         public ICommand NewToolCommand { get { return new RelayCommand(NewTool); } }
         private void NewTool()
         {
-            if (PickToolList.Count() < Constants.TOOL_COUNT) { 
-                machine.PickToolList.Add(new PickToolModel("untitled"));
+            if (PickToolList.Count() < Constants.TOOL_COUNT) {
+                string name = string.Format("Tool{0}", PickToolList.Count());
+                PickToolModel tool = new PickToolModel(name);
+                tool.ToolStorage.X = Constants.TOOL_ORIGIN_X;
+                tool.ToolStorage.Y = Constants.TOOL_ORIGIN_Y + (Constants.TOOL_ORIGIN_Y_PITCH * PickToolList.Count());
+                tool.ToolStorage.Z = Constants.TOOL_ORIGIN_Z;
+                machine.PickToolList.Add(tool);
                 machine.SelectedPickTool = machine.PickToolList.Last();
             }
         }
@@ -191,8 +197,6 @@ namespace Picky
             Machine.SelectedPickTool.CalibrateTool();
         }
 
-
-
         public ICommand RetrieveToolCommand { get { return new RelayCommand(RetrieveTool); } }
         private void RetrieveTool()
         {
@@ -200,16 +204,9 @@ namespace Picky
             Machine.SelectedPickTool.State = PickToolModel.TipStates.Loading;
             //Go to tool
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
-            //machine.Messages.Add(GCommand.SetCameraManualFocus(machine.downCamera, true, Constants.FOCUS_TOOL_RETRIVAL));
             var head = machine.Cal.GetPickHeadOffsetToCameraAtZ(Constants.TOOL_NOMINAL_Z_DRIVE_MM);
             machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorage.X + head.x_offset, Machine.SelectedPickTool.ToolStorage.Y - head.y_offset, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
-                 //Align and adjust next position command
-            //machine.Messages.Add(GCommand.OpticallyAlignToTool(Machine.SelectedPickTool));
-            //machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
-            //machine.Messages.Add(GCommand.OffsetCameraToPick(0));
-            //machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
-
             machine.Messages.Add(GCommand.G_ProbeZ(Machine.SelectedPickTool.ToolStorage.Z));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_OpenToolStorage(true));
@@ -220,26 +217,12 @@ namespace Picky
             
         }
 
-        public ICommand CalibrateToolLengthCommand { get { return new RelayCommand(CalibrateToolLength); } }
-        private void CalibrateToolLength()
-        {
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.CalPad.X, machine.Cal.CalPad.Y, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
-            machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.SetToolLength(machine.SelectedPickTool));
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(false));
-            machine.Messages.Add(GCommand.G_SetZPosition(-2.0));
-            machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.CalPad.X, machine.Cal.CalPad.Y, 0, 0, 0));
-        }
+       
         public ICommand ReturnToolCommand { get { return new RelayCommand(ReturnTool); } }
         private void ReturnTool()
         {
             Machine.SelectedPickTool.State = PickToolModel.TipStates.Unloading;
             //Move to Camera Position
-            //machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolReturnLocation.X, Machine.SelectedPickTool.ToolReturnLocation.Y, 0, 0, 0));
-            //machine.Messages.Add(GCommand.OffsetCameraToPick(0));
             var head = machine.Cal.GetPickHeadOffsetToCameraAtZ(Constants.TOOL_NOMINAL_Z_DRIVE_MM);
             machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorage.X + head.x_offset, Machine.SelectedPickTool.ToolStorage.Y - head.y_offset, 0, 0, 0));
             
@@ -250,9 +233,6 @@ namespace Picky
             machine.Messages.Add(GCommand.G_OpenToolStorage(false));
             machine.Messages.Add(GCommand.G_SetZPosition(0));
             machine.Messages.Add(GCommand.G_FinishMoves());
-            //Camera to Tool (former) location
-            //machine.Messages.Add(GCommand.OpticallyAlignToTool(Machine.SelectedPickTool));
-            //machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorageX, Machine.SelectedPickTool.ToolStorageY, 0, 0, 0));
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

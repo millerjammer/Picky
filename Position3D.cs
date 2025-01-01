@@ -88,12 +88,27 @@ namespace Picky
             set { if (isValid != value) { isValid = value; OnPropertyChanged(nameof(IsValid)); } }
         }
 
+        public Position3D(double x, double y)
+        {
+            this.X = x;
+            this.Y = y;
+        }
+
         public Position3D(double x, double y, double z, double angle)
         {
             this.X = x;
             this.Y = y;
             this.Z = z;
             this.Angle = angle;
+        }
+
+        public Position3D(double x, double y, double z, double width, double height)
+        {
+            this.X = x;
+            this.Y = y;
+            this.Z = z;
+            this.Width = width;
+            this.Height = height;
         }
 
         public Position3D(double x, double y, double angle)

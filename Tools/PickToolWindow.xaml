@@ -6,7 +6,7 @@
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:local="clr-namespace:Picky.Tools"
         mc:Ignorable="d"
-        Height="700" Width="1000">
+        Height="750" Width="1000">
     <Border Background="#151f2d" Margin="0 0 0 0">
         <Grid Margin="10 5 10 5" VerticalAlignment="Top">
             <Grid.RowDefinitions>
@@ -114,7 +114,7 @@
                                                                     </MultiBinding>
                                                                 </TextBlock.Text>
                                                             </TextBlock>
-                                                            
+
                                                             <TextBlock Grid.Row="1" Grid.Column="5" VerticalAlignment="Center">
                                                                 <TextBlock.Text>
                                                                     <MultiBinding StringFormat="({0:0.000}, {1:0.000})">
@@ -204,9 +204,6 @@
                                             <Separator Margin="2"/>
                                             <MenuItem Header="Mark State Unknown" Command="{Binding MarkStateUnknownCommand}" />
                                             <Separator Margin="2"/>
-                                            <MenuItem Header="Calibrate Tool Length" Command="{Binding CalibrateToolLengthCommand}" />
-                                            <MenuItem Header="Calibrate Tool Tip" Command="{Binding CalibrateToolCommand}" />
-                                            <Separator Margin="2"/>
                                             <MenuItem Header="Assign to Selected Feeder" Command="{Binding AssignToSelectedFeederCommand}" />
                                         </ContextMenu>
                                     </DataGrid.ContextMenu>
@@ -217,10 +214,10 @@
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="auto" />
-                                        <RowDefinition Height="38" />
+                                        <RowDefinition Height="auto" />
                                     </Grid.RowDefinitions>
                                     <GroupBox Grid.Column="0" BorderBrush="Gray" BorderThickness=".2" Header="Last Calibration" Margin="0 15 0 0">
-                                        <Grid Grid.Row="0">
+                                        <Grid Grid.Row="1">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="*"/>
@@ -228,11 +225,14 @@
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="*" />
                                                 <RowDefinition Height="*" />
+                                                <RowDefinition Height="*" />
                                             </Grid.RowDefinitions>
-                                            <Border Grid.Column="0" Grid.Row="0" ClipToBounds="True" HorizontalAlignment="Stretch" Height="250">
-                                                <Image ClipToBounds="True" Source="{Binding selectedPickTool.UpperCal.ToolTemplateImage}"  Margin="10 5 15 5"/>
+                                            
+                                            <TextBlock Grid.Column="0" Grid.Row="0" Text="Upper" Margin="10,10,0,0" HorizontalAlignment="Left" TextAlignment="Left" />
+                                            <Border Grid.Column="0" Grid.Row="1" ClipToBounds="True" HorizontalAlignment="Stretch" Height="250">
+                                                <Image ClipToBounds="True" Source="{Binding selectedPickTool.UpperCal.ToolTemplateImage}"  Margin="10 0 15 0"/>
                                             </Border>
-                                            <Grid Grid.Column="0" Grid.Row="1" VerticalAlignment="Top" >
+                                            <Grid Grid.Column="0" Grid.Row="2" VerticalAlignment="Top" >
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="auto"/>
                                                     <ColumnDefinition Width="auto"/>
@@ -242,11 +242,13 @@
                                                 <Button Grid.Column="0" Content="Apply" Command="{Binding SetUpperToolTemplateCommand}" Background="SlateGray" Margin ="10 0 10 10" Height="34" Width="100" HorizontalAlignment="Right"/>
                                                 <ToggleButton  Grid.Column="1" Content="Go To" Background="SlateGray" Margin ="10 0 10 10" Height="34" Width="100" HorizontalAlignment="Right" IsChecked="{Binding IsPreviewUpperToolTargetActive}"/>
                                             </Grid>
-
-                                            <Border Grid.Column="1" Grid.Row="0" ClipToBounds="True" HorizontalAlignment="Stretch" Height="250">
-                                                <Image ClipToBounds="True" Source="{Binding selectedPickTool.LowerCal.ToolTemplateImage}" Margin="10 5 15 5"/>
+                                            
+                                            
+                                            <TextBlock Grid.Column="1" Grid.Row="0" Text="Lower" Margin="10,10,0,0" HorizontalAlignment="Left" TextAlignment="Left" />
+                                            <Border Grid.Column="1" Grid.Row="1" ClipToBounds="True" HorizontalAlignment="Stretch" Height="250">
+                                                <Image ClipToBounds="True" Source="{Binding selectedPickTool.LowerCal.ToolTemplateImage}" Margin="10 0 15 0"/>
                                             </Border>
-                                            <Grid Grid.Column="1" Grid.Row="1" VerticalAlignment="Top" >
+                                            <Grid Grid.Column="1" Grid.Row="2" VerticalAlignment="Top" >
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="auto"/>
                                                     <ColumnDefinition Width="auto"/>
@@ -256,7 +258,6 @@
                                                 <Button Grid.Column="0" Content="Apply" Command="{Binding SetLowerToolTemplateCommand}" Background="SlateGray" Margin ="10 0 10 10" Height="34" Width="100" HorizontalAlignment="Right"/>
                                                 <ToggleButton  Grid.Column="1" Content="Go To" Background="SlateGray" Margin ="10 0 10 10" Height="34" Width="100" HorizontalAlignment="Right" IsChecked="{Binding IsPreviewLowerToolTargetActive}"/>
                                             </Grid>
-
                                         </Grid>
                                     </GroupBox>
                                 </Grid>

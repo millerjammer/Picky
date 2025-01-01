@@ -17,7 +17,6 @@ namespace Picky
 
     internal class Constants
     {
-        
         /* Camera SettingsUpper - Select one */
         public static int CAMERA_FRAME_WIDTH = 2592;
         public static int CAMERA_FRAME_HEIGHT = 1944;
@@ -30,14 +29,25 @@ namespace Picky
         //public static int CAMERA_FRAME_HEIGHT = 960;
         //public static int CAMERA_FPS = 45;
 
+        /* Camera settings */
+        public static int LOWER_FOCUS = 393;
+        public static int LOWER_THRESHOLD = 174;
+        public static int UPPER_FOCUS = 432;
+        public static int UPPER_THRESHOLD = 144;
+
         /* The tools */
-        public static int       TOOL_COUNT = 4;
-        public static double    TOOL_CENTER_RADIUS_MILS = 80;
-        public static double    TOOL_LENGTH_MM = 28.575;
-        public static int       TOOL_LOWER_THRESHOLD = 149;
-        public static int       TOOL_UPPER_THRESHOLD = 230;
-        public static int       TOOL_DETECTOR_P1 = 100;
-        public static double    TOOL_DETECTOR_P2 = 0.65;
+        public static double TOOL_ORIGIN_X = 0.900;
+        public static double TOOL_ORIGIN_Y = 62.80;
+        public static double TOOL_ORIGIN_Y_PITCH = 25.4;
+        public static double TOOL_ORIGIN_Z = 37.00;
+        public static int    TOOL_DETECTOR_P1 = 100;
+        public static double TOOL_DETECTOR_P2 = 0.65;
+
+
+        public static int    TOOL_COUNT = 4;
+        public static double TOOL_CENTER_RADIUS_MILS = 80;
+        public static double TOOL_LENGTH_MM = 28.575;
+             
 
         /* GUI */
         public static string PAUSE_ICON = "\uE769";
@@ -93,7 +103,9 @@ namespace Picky
             
         public static int DOWN_CAMERA_INDEX = 0;
         public static int UP_CAMERA_INDEX = 1;
+
         
+
 
     }
 }

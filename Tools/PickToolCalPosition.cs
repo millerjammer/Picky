@@ -44,7 +44,7 @@ namespace Picky.Tools
         public BitmapSource ToolTemplateImage
         {
             get { return toolTemplateImage; }
-            set { toolTemplateImage = value; Console.WriteLine("bmp changed"); OnPropertyChanged(nameof(ToolTemplateImage)); }
+            set { toolTemplateImage = value; OnPropertyChanged(nameof(ToolTemplateImage)); }
         }
 
         private string toolTemplateFileName;
@@ -57,9 +57,10 @@ namespace Picky.Tools
         /* Tool ROI for template - captured at specific location */
         public OpenCvSharp.Rect toolROI { get; set; }
 
-        public PickToolCalPosition()
+        public PickToolCalPosition(int focus, int threshold)
         {
-
+            CaptureSettings = new CameraSettings();
+            CaptureSettings.Focus = focus; CaptureSettings.BinaryThreshold = threshold;
             tipOffsetMM = new Position3D();
             tipPosition = new Position3D();
         }
@@ -151,11 +152,11 @@ namespace Picky.Tools
             MachineModel machine = MachineModel.Instance;
             var mm_per_pix = machine.Cal.GetScaleMMPerPixAtZ(TipPosition.Z);
 
-            tipOffsetMM.X = mm_per_pix.xScale * ((Constants.CAMERA_FRAME_WIDTH / 2) - (toolROI.X + TipPosition.X));
-            tipOffsetMM.Y = mm_per_pix.yScale * ((Constants.CAMERA_FRAME_HEIGHT / 2) - (toolROI.Y + TipPosition.Y));
-            tipOffsetMM.Z = tipPosition.Z;
+            TipOffsetMM.X = mm_per_pix.xScale * ((Constants.CAMERA_FRAME_WIDTH / 2) - (toolROI.X + TipPosition.X));
+            TipOffsetMM.Y = mm_per_pix.yScale * ((Constants.CAMERA_FRAME_HEIGHT / 2) - (toolROI.Y + TipPosition.Y));
+            TipOffsetMM.Z = TipPosition.Z;
 
-            Console.WriteLine("Offset: " + tipOffsetMM.ToString());
+            Console.WriteLine("Offset from center of camera frame: " + TipOffsetMM.ToString());
             return (TipOffsetMM);
         }
 

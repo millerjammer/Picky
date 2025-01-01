@@ -103,7 +103,7 @@ namespace Picky
             _part.PropertyChanged += OnPartPropertyChanged;
         }
 
-        public void SetCandidateNextPartPickLocation(double x_next, double y_next, double targetZ, double targetPickAngle)
+        public void SetCandidateNextPartPickLocation(double x_next, double y_next, double targetZ)
         {
             /*----------------------------------------------------------------------
              * When part is in view, call here to update the part's position, optically
@@ -116,37 +116,24 @@ namespace Picky
             // Get pixel offset relative to center of frame.
             double x_offset_pix = (x_next - (Constants.CAMERA_FRAME_WIDTH / 2));
             double y_offset_pix = (y_next - (Constants.CAMERA_FRAME_HEIGHT / 2));
+
             // Convert pixels to mm
-            //var scale = machine.Cal.GetScaleMMPerPixAtZ(machine.Cal.TargetResAtPCB.MMHeightZ);
-            var scale = machine.Cal.GetScaleMMPerPixAtZ(targetZ); //TODO fix this
+            var scale = machine.Cal.GetScaleMMPerPixAtZ(targetZ);
             NextPartOpticalLocation.X = machine.CurrentX - (x_offset_pix * scale.xScale);
             NextPartOpticalLocation.Y = machine.CurrentY + (y_offset_pix * scale.yScale);
 
-            //Now, if there's a tool, calculate offset to tool
-            // Linearly interpolate X and Y offsets between the two circles based on Z
-            PickToolModel tool = machine.SelectedPickTool;
-            if (tool == null)
+            // Now, if there's a tool, calculate offset to tool
+            if (machine.SelectedPickTool == null)
             {
                 NextPartPickLocation.X = 0;
                 NextPartPickLocation.Y = 0;
                 return;
             }
-
-            // Get offset relative to Tip ROI
-           // var offset = tool.GetTipOffsetForZ(targetZ, targetPickAngle);
-
-            // Next, translate from ROI position to frame position in mm.
-            //double y_offset_roi = scale.yScale * ((Constants.CAMERA_FRAME_HEIGHT / 2) - tool.SearchToolROI.Y - (tool.SearchToolROI.Height / 2));
-            //double x_offset_roi = scale.xScale * ((Constants.CAMERA_FRAME_WIDTH / 2) - tool.SearchToolROI.X - (tool.SearchToolROI.Width / 2));
-
-            // Add Tip offset and roi offset (all in mm)
-           // x_offset_roi += offset.x;
-           //y_offset_roi -= offset.y;
-
-            // Finally, add the position of the part (we did above) relative to the center of the full frame.
-            //NextPartPickLocation.X = x_offset_roi + NextPartOpticalLocation.X;
-           // NextPartPickLocation.Y = y_offset_roi + NextPartOpticalLocation.Y;
-
+            PickToolModel tool = machine.SelectedPickTool;
+            NextPartPickLocation.Z = Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE + tool.LowerCal.TipPosition.Z;
+            Position3D pos = machine.SelectedPickTool.GetToolTipOffsetAtZ(NextPartPickLocation.Z);
+            NextPartPickLocation.X = NextPartOpticalLocation.X - pos.X;
+            NextPartPickLocation.Y = NextPartOpticalLocation.Y + pos.Y;
             return;
         }
 

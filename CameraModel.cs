@@ -31,11 +31,13 @@ namespace Picky
         public Mat EdgeImage { get; set; }
         public Mat DilatedImage { get; set; }
         public Mat MatchImage { get; set; }
+        public Mat MatchThresholdImage { get; set; }
+        public Mat TemplateImage { get; set; }
 
         public Mat CircleROI { get; set; }
         public Mat RectangleROI { get; set; }
         public Mat QRImageROI { get; set; }
-        public Mat TemplateROI { get; set; }
+        
 
         /* What we are currently viewing */
         public VisualizationStyle SelectedVisualizationViewItem { get; set; }
@@ -111,6 +113,7 @@ namespace Picky
             EdgeImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
             DilatedImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
             MatchImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
+            MatchThresholdImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
 
             partROI = new OpenCvSharp.Rect((Constants.CAMERA_FRAME_WIDTH / 3), (Constants.CAMERA_FRAME_HEIGHT / 2), Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 2);
             settings = new CameraSettings();
@@ -275,15 +278,14 @@ namespace Picky
             return searchTemplateRequest;
         }
 
-        public void RequestTemplateSearch(Mat template, OpenCvSharp.Rect roi, CameraSettings settings)
+        public void RequestTemplateSearch(Mat template, OpenCvSharp.Rect roi)
         {
             /*-------------------------------------------------------------------------
              * Entry point for performing a template-based search
              * roi is the area you wanna search - usually the full image
              *------------------------------------------------------------------------*/
                        
-            Settings = settings.Clone();
-            Cv2.CvtColor(template, grayTemplateImage, OpenCvSharp.ColorConversionCodes.BGR2GRAY);
+            TemplateImage = template;
             searchTemplateROI = roi;
             searchTemplateRequest = true;
      
@@ -364,52 +366,50 @@ namespace Picky
              * 
              *****************************************************************************/
 
-            // Extract the region of interest (ROI) from the input image
-            Mat roiImage = new Mat(GrayImage, searchTemplateROI);
+            Mat roiImage, res_32f;
+            double x, y;
 
-            // Preprocess the ROI using adaptive thresholding
-            Mat thresholdedRoiImage = new Mat();
-            Cv2.AdaptiveThreshold(roiImage, thresholdedRoiImage, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.Binary, 11, 5);
-
-            // Preprocess the template image using adaptive thresholding
-            Mat thresholdedTemplateImage = new Mat();
-            Cv2.AdaptiveThreshold(grayTemplateImage, thresholdedTemplateImage, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.Binary, 11, 5);
-
-            // Perform template matching
-            Mat matchResult = new Mat();
             try
             {
-                Cv2.MatchTemplate(thresholdedRoiImage, thresholdedTemplateImage, matchResult, TemplateMatchModes.CCoeffNormed);
-            }catch(Exception e) { return false; }
-
-            // Threshold to determine "good matches"
-            searchTemplateResults.Clear();
-            double threshold = 0.2; // Adjust based on requirements (closer to 1.0 for stricter matches)
-            while (true)
-            {
-                // Find the location of the maximum match
-                Cv2.MinMaxLoc(matchResult, out _, out double maxVal, out _, out OpenCvSharp.Point maxLoc);
-
-                // If the maximum match value is below the threshold, exit the loop
-                if (maxVal < threshold)
-                    break;
-
-                // Add the matching region to the results list
-                int x = maxLoc.X + searchTemplateROI.X;
-                int y = maxLoc.Y + searchTemplateROI.Y;
-                searchTemplateResults.Add(new Position3D { X = x, Y = y, Width = grayTemplateImage.Cols, Height = grayTemplateImage.Rows });
-
-                // Suppress the matched region in the result matrix to find distinct matches - connected +/- 10
-                OpenCvSharp.Rect box;
-                Cv2.FloodFill(matchResult, maxLoc, new Scalar(0), out box, new Scalar(10), new Scalar(10), FloodFillFlags.Link8);
-
+                // Convert Template to Gray, Resize Gray Image to ROI and create Match Image.
+                Cv2.CvtColor(TemplateImage, grayTemplateImage, OpenCvSharp.ColorConversionCodes.BGR2GRAY);
+                roiImage = new Mat(GrayImage, searchTemplateROI);
+                res_32f = new Mat(roiImage.Rows - TemplateImage.Rows + 1, roiImage.Cols - TemplateImage.Cols + 1, MatType.CV_32FC1);
+                Cv2.MatchTemplate(roiImage, grayTemplateImage, res_32f, TemplateMatchModes.CCoeffNormed);
             }
+            catch (Exception e) { return false; };
 
+            /* Show Results - search area only */
+            res_32f.ConvertTo(MatchImage, MatType.CV_8U, 255.0);
+            int size = ((TemplateImage.Cols + TemplateImage.Rows) / 4) * 2 + 1; //force size to be odd
+            CameraSettings set = machine.downCamera.Settings;
+            Cv2.AdaptiveThreshold(MatchImage, MatchThresholdImage, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.Binary, size, set.TemplateThreshold);
+
+            searchTemplateResults.Clear();
+
+            CircleSegment[] circles = Cv2.HoughCircles(
+                MatchThresholdImage,
+                HoughModes.GradientAlt,
+                dp: 1,           // Inverse ratio of accumulator resolution
+                minDist: 30,     // Minimum distance between circle centers
+                param1: set.CircleDetectorP1,     // Higher threshold for the Canny edge detector
+                param2: set.CircleDetectorP2,      // Accumulator threshold for circle detection
+                minRadius: 10,    // Minimum circle radius (10px diameter → radius = 5px)
+                maxRadius: 40     // Maximum circle radius
+            );
+            
+            // Create a list of circles 
+            foreach (var circle in circles)
+            {
+                x = circle.Center.X + searchTemplateROI.X; y = circle.Center.Y + searchTemplateROI.Y;
+                searchTemplateResults.Add(new Position3D(x, y, 0, TemplateImage.Width, TemplateImage.Height));
+            }
+                     
             if (searchTemplateResults.Count > 0)
                 return true;
             return false; 
-    
         }
+              
 
         private bool FindPartInImage(Part part, Mat grayImage)
         {
@@ -480,7 +480,7 @@ namespace Picky
                     Application.Current.Dispatcher.Invoke(() =>
                     {
                         // Update next part location & calculate pick location
-                        feeder.SetCandidateNextPartPickLocation(x_next, y_next, partZLocation, 0);
+                        feeder.SetCandidateNextPartPickLocation(x_next, y_next, partZLocation);
                     });
                     break;
                 }
@@ -566,7 +566,9 @@ namespace Picky
                 {
                     if (FindTemplateInImage())
                     {
-                        searchTemplateRequest = false;
+                        
+                        if(!machine.Cal.IsPreviewLowerTargetActive && !machine.Cal.IsPreviewUpperTargetActive)
+                            searchTemplateRequest = false;
                         foreach (Position3D pos in searchTemplateResults)
                         {
                             Cv2.Rectangle(ColorImage, pos.GetRect(), new OpenCvSharp.Scalar(0, 255, 0), 2);

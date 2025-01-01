@@ -16,15 +16,13 @@ namespace Picky.Commands
         public MachineMessage msg;
         private Position3D result;
         private OpenCvSharp.Rect roi;
-        private CameraSettings settings;
         private Mat template;
         public CameraModel cameraToUse;
                                            
-        public GetGridCalibrationCommand(Mat _template, OpenCvSharp.Rect _roi, Position3D _result, CameraSettings _settings)
+        public GetGridCalibrationCommand(Mat _template, OpenCvSharp.Rect _roi, Position3D _result)
         {
             machine = MachineModel.Instance;
             roi = _roi;
-            settings = _settings;
             template = _template;
             result = _result;
             
@@ -41,7 +39,7 @@ namespace Picky.Commands
 
         public bool PreMessageCommand(MachineMessage msg)
         {
-            cameraToUse.RequestTemplateSearch(template, roi, settings);
+            cameraToUse.RequestTemplateSearch(template, roi);
             return true;
         }
 
@@ -56,6 +54,8 @@ namespace Picky.Commands
                     double y_min = cameraToUse.GetTemplateMatches().OrderBy(p => p.Y).Take(3).Average(p => p.Y);
                     double x_max = cameraToUse.GetTemplateMatches().OrderByDescending(p => p.X).Take(3).Average(p => p.X);
                     double y_max = cameraToUse.GetTemplateMatches().OrderByDescending(p => p.Y).Take(3).Average(p => p.Y);
+                    if (result == null)
+                        return true;
                     result.X = (2 * CalTargetModel.OPTICAL_GRID_X_MM) / (x_max - x_min);
                     result.Y = (2 * CalTargetModel.OPTICAL_GRID_Y_MM) / (y_max - y_min);
                     Console.WriteLine("MMPerPixel Calibration Complete. X: " + result.X + " mm/pix, Y: " + result.Y + " mm/pix");
@@ -64,7 +64,7 @@ namespace Picky.Commands
                 else
                 {
                     Console.WriteLine("Failed to find required matches (9).  Found: " + cameraToUse.GetTemplateMatches().Count);
-                    cameraToUse.RequestTemplateSearch(template, roi, settings);
+                    return true;
                 }
             }
             return false;

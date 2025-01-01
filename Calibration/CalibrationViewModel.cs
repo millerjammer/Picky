@@ -60,34 +60,13 @@ namespace Picky
         {
              Target.CalibrateMMPerStep();
         }
-
-        
-        public ICommand SetMonument00Command { get { return new RelayCommand(SetMonument00); } }
-        private void SetMonument00()
-        {
-            Target.ActualLoc00.X = machine.CurrentX;
-            Target.ActualLoc00.Y = machine.CurrentY;
-        }
-
+               
         public ICommand GoMonument00Command { get { return new RelayCommand(GoMonument00); } }
         private void GoMonument00()
         {
-            machine.Messages.Add(GCommand.G_SetPosition(Target.ActualLoc00.X, Target.ActualLoc00.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(Target.Grid.X, Target.Grid.Y, 0, 0, 0));
         }
-
-        public ICommand SetMonument11Command { get { return new RelayCommand(SetMonument11); } }
-        private void SetMonument11()
-        {
-            Target.ActualLoc11.X = machine.CurrentX;
-            Target.ActualLoc11.Y = machine.CurrentY;
-        }
-
-        public ICommand GoMonument11Command { get { return new RelayCommand(GoMonument11); } }
-        private void GoMonument11()
-        {
-            machine.Messages.Add(GCommand.G_SetPosition(Target.ActualLoc11.X, Target.ActualLoc11.Y, 0, 0, 0));
-        }
-            
+                    
         public ICommand WriteStepPerUnitCommand { get { return new RelayCommand(WriteStepPerUnit); } }
         private void WriteStepPerUnit()
         {
@@ -168,23 +147,7 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.Feeder0X, machine.Cal.Feeder0Y, 0, 0, 0));
         }
         /*-----------------*/
-
-        public ICommand SetUpperTargetResCommand { get { return new RelayCommand(SetUpperTargetRes); } }
-        private void SetUpperTargetRes()
-        {
-            machine.Cal.IsPreviewLowerTargetActive = false;
-            machine.Cal.IsPreviewUpperTargetActive = false;
-            Target.SetUpperCalTarget();
-        }
-
-        public ICommand SetLowerTargetResCommand { get { return new RelayCommand(SetLowerTargetRes); } }
-        private void SetLowerTargetRes()
-        {
-            machine.Cal.IsPreviewLowerTargetActive = false;
-            machine.Cal.IsPreviewUpperTargetActive = false;
-            Target.SetLowerCalTarget();
-        }
-        
+                       
         /* This is called when machine z changes */
         private void OnMachinePropertyChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -197,7 +160,8 @@ namespace Picky
         {
             machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.CalPad.X, machine.Cal.CalPad.Y, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.GetZProbe(new Position3D { Z = Constants.ZPROBE_LIMIT }));
+            machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
+            machine.Messages.Add(GCommand.GetZProbe(Machine.Cal.CalPad));
             machine.Messages.Add(GCommand.G_SetZPosition(0));
         }
 

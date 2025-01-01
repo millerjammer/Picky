@@ -136,7 +136,7 @@
             <Label Grid.Row="15" Grid.Column="0" Content="Upper Surface Target:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
             <TextBox Grid.Row="15" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.ActualLocUpper.X, StringFormat={}{0:0.0000}, UpdateSourceTrigger=PropertyChanged}"/>
             <TextBox Grid.Row="15" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.ActualLocUpper.Y, StringFormat={}{0:0.0000},UpdateSourceTrigger=PropertyChanged}"/>
-            <Button Grid.Row="15" Grid.Column="4" Grid.ColumnSpan="1" Content="Use Current" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding SetUpperTargetResCommand}"/>
+            <Button Grid.Row="15" Grid.Column="4" Grid.ColumnSpan="1" Content="Apply" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding Target.SetUpperCalTargetCommand}"/>
             <ToggleButton Grid.Row="15" Grid.Column="5"  Margin="10 0 10 0" Foreground="White" HorizontalAlignment="Stretch" Content="Preview" IsChecked="{Binding Machine.Cal.IsPreviewUpperTargetActive}"/>
            
             <Label Grid.Row="16" Grid.Column="0" Content="Upper Scale [mm/pix]:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
@@ -147,7 +147,7 @@
             <Label Grid.Row="17" Grid.Column="0" Content="Lower Surface Target:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
             <TextBox Grid.Row="17" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.ActualLocLower.X, StringFormat={}{0:0.0000}, UpdateSourceTrigger=PropertyChanged}"/>
             <TextBox Grid.Row="17" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.ActualLocLower.Y , StringFormat={}{0:0.0000},UpdateSourceTrigger=PropertyChanged}"/>
-            <Button Grid.Row="17" Grid.Column="4" Grid.ColumnSpan="1" Content="Use Current" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding SetLowerTargetResCommand}"/>
+            <Button Grid.Row="17" Grid.Column="4" Grid.ColumnSpan="1" Content="Apply" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding Target.SetLowerCalTargetCommand}"/>
             <ToggleButton Grid.Row="17" Grid.Column="5" Margin="10 0 10 0" Foreground="White" HorizontalAlignment="Stretch" Content="Preview" IsChecked="{Binding Machine.Cal.IsPreviewLowerTargetActive}"/>
 
             <Label Grid.Row="18" Grid.Column="0" Content="Lower Scale [mm/pix]:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
@@ -161,18 +161,17 @@
             <Label Grid.Row="19" Grid.Column="1" Content="X [mm]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>
             <Label Grid.Row="19" Grid.Column="2" Content="Y [mm]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>
                        
-            <Label Grid.Row="20" Grid.Column="0" Content="Monument [0,0]:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
-            <TextBox Grid.Row="20" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.ActualLoc00.X, StringFormat={}{0:0.000}}"/>
-            <TextBox Grid.Row="20" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.ActualLoc00.Y, StringFormat={}{0:0.000}}"/>
-            <Button Grid.Row="20" Grid.Column="4" Grid.ColumnSpan="1" Content="Use Current" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding SetMonument00Command}"/>
-            <Button Grid.Row="20" Grid.Column="5" Grid.ColumnSpan="1" Content="Go To" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GoMonument00Command}"/>
-           
-            <Label Grid.Row="21" Grid.Column="0" Content="Monument [1,1]:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
-            <TextBox Grid.Row="21" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.ActualLoc11.X, StringFormat={}{0:0.000}}"/>
-            <TextBox Grid.Row="21" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.ActualLoc11.Y, StringFormat={}{0:0.000}}"/>
-            <Button Grid.Row="21" Grid.Column="4" Grid.ColumnSpan="1" Content="Use Current" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding SetMonument11Command}"/>
-            <Button Grid.Row="21" Grid.Column="5" Grid.ColumnSpan="1" Content="Go To" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GoMonument11Command}"/>
-            
+            <Label Grid.Row="20" Grid.Column="0" Content="Grid Origin:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
+            <TextBox Grid.Row="20" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.Grid.X, StringFormat={}{0:0.000}}"/>
+            <TextBox Grid.Row="20" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.Grid.Y, StringFormat={}{0:0.000}}"/>
+            <Button Grid.Row="20" Grid.Column="4" Grid.ColumnSpan="1" Content="Apply" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding Target.SetGridCalTargetCommand}"/>
+            <ToggleButton Grid.Row="20" Grid.Column="5" Margin="10 0 10 0" Foreground="White" HorizontalAlignment="Stretch" Content="Preview" IsChecked="{Binding Machine.Cal.IsPreviewGridActive}"/>
+
+
+            <Label Grid.Row="21" Grid.Column="0" Content="Grid Dimensions:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
+            <TextBox Grid.Row="21" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.Grid.Width, StringFormat={}{0:0}}"/>
+            <TextBox Grid.Row="21" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding Target.Grid.Height, StringFormat={}{0:0}}"/>
+             
             <Label Grid.Row="22" Grid.Column="0" Content="Calculated [stps/mm]: " Margin="10 5 10 5" VerticalContentAlignment="Center"/>
             <TextBox Grid.Row="22" Grid.Column="1" Margin="10 5 10 5" Foreground="White" HorizontalAlignment="Stretch" Text="{Binding Machine.Cal.CalculatedStepsPerUnitX, StringFormat={}{0:0.000}}"/>
             <TextBox Grid.Row="22" Grid.Column="2" Margin="10 5 10 5" Foreground="White" HorizontalAlignment="Stretch" Text="{Binding Machine.Cal.CalculatedStepsPerUnitY, StringFormat={}{0:0.000}}"/>

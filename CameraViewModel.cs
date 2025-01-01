@@ -65,7 +65,8 @@ namespace Picky
                 new VisualizationStyle("Threshold", camera.ThresImage),
                 new VisualizationStyle("Edge Image", camera.EdgeImage),
                 new VisualizationStyle("Dilated Image", camera.DilatedImage),
-                new VisualizationStyle("Match Image", camera.MatchImage),
+                new VisualizationStyle("ROI Match", camera.MatchImage),
+                new VisualizationStyle("ROI Threshold", camera.MatchThresholdImage),
             };
             SelectedVisualizationViewItem = VisualizationView.FirstOrDefault();
 

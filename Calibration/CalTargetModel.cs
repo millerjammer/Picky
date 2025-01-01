@@ -10,7 +10,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web.UI.WebControls;
 using System.Web.UI.WebControls.WebParts;
+using System.Windows;
 using System.Windows.Forms;
+using System.Windows.Input;
 using System.Windows.Markup;
 
 namespace Picky
@@ -37,37 +39,15 @@ namespace Picky
         public static double OPTICAL_GRID_Y_MM = 10;
         public static double OPTICAL_GRID_RADIUS_MM = 1.5;
 
-        /* Targets for Steps per MM */
-        private Position3D actualLoc00;
-        public Position3D ActualLoc00 
-        {
-            get { return actualLoc00; }
-            set { actualLoc00 = value; OnPropertyChanged(nameof(ActualLoc00)); }
-        }
-        private Position3D actualLoc10;
-        public Position3D ActualLoc10
-        {
-            get { return actualLoc10; }
-            set { actualLoc10 = value; OnPropertyChanged(nameof(ActualLoc10)); }
-        }
-        private Position3D actualLoc01;
-        public Position3D ActualLoc01
-        {
-            get { return actualLoc01; }
-            set { actualLoc01 = value; OnPropertyChanged(nameof(ActualLoc01)); }
-        }
-        private Position3D actualLoc11;
-        public Position3D ActualLoc11
-        {
-            get { return actualLoc11; }
-            set { actualLoc11 = value; OnPropertyChanged(nameof(ActualLoc11)); }
-        }
+        private Position3D Grid00, Grid11;
 
         /* Upper and Lower Resolution Targets */
         [JsonIgnore]
         private Mat upperTemplate;
         [JsonIgnore]
         private Mat lowerTemplate;
+        [JsonIgnore]
+        private Mat gridTemplate;
 
         private Position3D actualLocUpper;
         public Position3D ActualLocUpper
@@ -83,6 +63,13 @@ namespace Picky
             set { actualLocLower = value; OnPropertyChanged(nameof(ActualLocLower)); }
         }
 
+        private Position3D grid;
+        public Position3D Grid
+        {
+            get { return grid; }
+            set { grid = value; OnPropertyChanged(nameof(Grid)); }
+        }
+       
         private string upperTemplateFileName;
         public string UpperTemplateFileName
         {
@@ -97,52 +84,55 @@ namespace Picky
             set { lowerTemplateFileName = value; OnPropertyChanged(nameof(LowerTemplateFileName)); }
         }
 
-        public CameraSettings upperSettings { get; set; }   
-        public CameraSettings lowerSettings { get; set; }
-
-        //public int upperThreshold { get; set; } = 0;
-        //public int lowerThreshold { get; set; } = 0;
-        //public int upperFocus { get; set; }
-        //public int lowerFocus { get; set; }
-                      
-        public CalTargetModel()
+        private string gridTemplateFileName;
+        public string GridTemplateFileName
         {
+            get { return gridTemplateFileName; }
+            set { gridTemplateFileName = value; OnPropertyChanged(nameof(GridTemplateFileName)); }
         }
 
+        public CameraSettings upperSettings { get; set; }   
+        public CameraSettings lowerSettings { get; set; }
+        public CameraSettings gridSettings { get; set; }
+
+        public CalTargetModel()
+        {
+            Grid = new Position3D();
+            Grid.Width = 100;
+            Grid.Height = 100;
+        }
+
+        public ICommand SetUpperCalTargetCommand { get { return new RelayCommand(SetUpperCalTarget); } }
         public void SetUpperCalTarget()
         {
             MachineModel machine = MachineModel.Instance;
-            ActualLocUpper.X = machine.CurrentX; ActualLocUpper.Y = machine.CurrentY;
+            ActualLocUpper = new Position3D(machine.CurrentX, machine.CurrentY);
             upperSettings = machine.downCamera.Settings.Clone();
             UpperTemplateFileName = SetCalTarget(machine, upperTemplate);
         }
-        
+
+        public ICommand SetLowerCalTargetCommand { get { return new RelayCommand(SetLowerCalTarget); } }
         public void SetLowerCalTarget()
         {
             MachineModel machine = MachineModel.Instance;
-            ActualLocLower.X = machine.CurrentX; ActualLocLower.Y = machine.CurrentY;
+            ActualLocLower = new Position3D(machine.CurrentX, machine.CurrentY);
             lowerSettings = machine.downCamera.Settings.Clone();
             LowerTemplateFileName = SetCalTarget(machine, lowerTemplate);
         }
-       
-        public void PreviewCalTarget(string templateFile, Position3D pos, CameraSettings settings)
-        {
-        /*--------------------------------------------------------------
-         * Called by GUI to kickoff a preview session.  The preview 
-         * will terminate automatically by the GUI
-         * ------------------------------------------------------------*/
-            MachineModel machine = MachineModel.Instance;
-            machine.Messages.Add(GCommand.G_SetPosition(pos.X, pos.Y, 0, 0, 0));
-            
-            OpenCvSharp.Rect TargetROI = new OpenCvSharp.Rect(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
-            Mat CalTargetTemplate = Cv2.ImRead(templateFile, ImreadModes.Color);
-            machine.downCamera.RequestTemplateSearch(CalTargetTemplate, TargetROI, settings);
-        }
 
+        public ICommand SetGridCalTargetCommand { get { return new RelayCommand(SetGridCalTarget); } }
+        public void SetGridCalTarget()
+        {
+            MachineModel machine = MachineModel.Instance;
+            Grid.X = machine.CurrentX; Grid.Y = machine.CurrentY;
+            gridSettings = machine.downCamera.Settings.Clone();
+            GridTemplateFileName = SetCalTarget(machine, gridTemplate);
+        }
+                       
         private string SetCalTarget(MachineModel machine, Mat template) { 
         /*---------------------------------------------------------------
-         * Private routine for saving calibration target template
-         * Don't call here directly.
+         * Private routine for saving calibration target template and grid
+         * Don't call here directly. ROI is centered in frame
          * -------------------------------------------------------------*/
                              
             int width = (Constants.CAMERA_FRAME_WIDTH / 6);
@@ -166,7 +156,7 @@ namespace Picky
 
         public void CalibrateMMPerPixelAtZ()
         /*---------------------------------------------------------------------
-         * Called from GUI
+         * Called by GUI for calibration
          * 
          * Uses step alignment to determine mm/pix at a specific target. This
          * is a calibration used to enable jump step connections based on cammea
@@ -177,25 +167,44 @@ namespace Picky
         {
             MachineModel machine = MachineModel.Instance;
             
+            /* Get Z distance for each */
             double dist_to_deck_mm = machine.Cal.CalPad.Z + Constants.ZOFFSET_CAL_PAD_TO_DECK;
             machine.Cal.MMPerPixLower.Z = dist_to_deck_mm - LOWER_GRID_Z_OFFSET_FROM_DECK_MM;
             machine.Cal.MMPerPixUpper.Z = dist_to_deck_mm - UPPER_LOWER_GRID_Z_OFFSET_MM;
             
-            OpenCvSharp.Rect roi = new OpenCvSharp.Rect(0,0,Constants.CAMERA_FRAME_WIDTH,Constants.CAMERA_FRAME_HEIGHT);
-
             /* Get Upper */
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
-            machine.Messages.Add(GCommand.G_SetPosition(ActualLocUpper.X, ActualLocUpper.Y, 0, 0, 0));
-            //machine.Messages.Add(GCommand.SetFocus(3000, upperFocus));
-            machine.Messages.Add(GCommand.GetGridCalibration(Cv2.ImRead(upperTemplateFileName, ImreadModes.Color), roi, machine.Cal.MMPerPixUpper, upperSettings));
-
-            /* Get Lower */
-            machine.Messages.Add(GCommand.G_SetPosition(ActualLocLower.X, ActualLocLower.Y, 0, 0, 0));
-            //machine.Messages.Add(GCommand.SetFocus(3000, lowerFocus));
-            machine.Messages.Add(GCommand.GetGridCalibration(Cv2.ImRead(lowerTemplateFileName, ImreadModes.Color), roi, machine.Cal.MMPerPixLower, lowerSettings));
+            QueueCalTargetSearch(upperTemplateFileName, ActualLocUpper, upperSettings, machine.Cal.MMPerPixUpper, 5.5);
+            QueueCalTargetSearch(lowerTemplateFileName, ActualLocLower, lowerSettings, machine.Cal.MMPerPixLower, 5);
         }
-             
 
+        public void QueueCalTargetSearch(string templateFile, Position3D pos, CameraSettings settings, Position3D res, double roi_factor)
+        {
+            /*--------------------------------------------------------------
+             * Called by GUI for calibration or preview.  Establishes a
+             * search roi to get 8 templated from template search.  
+             * For calibration set preview buttons false. roi_factor is the
+             * search area factor based on dimensions of the template
+             * ------------------------------------------------------------*/
+            
+            MachineModel machine = MachineModel.Instance;
+            Mat template = Cv2.ImRead(templateFile, ImreadModes.Color);
+
+            /* Search Area */
+            int width = (int)(roi_factor * template.Width);
+            int height = (int)(roi_factor * template.Height);
+            int x = (Constants.CAMERA_FRAME_WIDTH / 2) - (width / 2);
+            int y = (Constants.CAMERA_FRAME_HEIGHT / 2) - (height / 2);
+
+            OpenCvSharp.Rect search_roi = new OpenCvSharp.Rect(x, y, width, height);
+
+            machine.Messages.Add(GCommand.G_SetPosition(pos.X, pos.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.SetCamera(settings, machine.downCamera));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            machine.Messages.Add(GCommand.GetGridCalibration(template, search_roi, res));
+
+        }
+        
         public void CalibrateMMPerStep()
         /*---------------------------------------------------------------------
          * Called by GUI
@@ -207,40 +216,33 @@ namespace Picky
          * -------------------------------------------------------------------*/
         {
             MachineModel machine = MachineModel.Instance;
-            
+
             // TODO Replace with calibrated Z
-            ActualLoc00.Z = (Constants.CAMERA_TO_DECK_MILS * Constants.MIL_TO_MM) - GRID_MONUMENT_HEIGHT_MM;
-            ActualLoc00.Radius = GRID_MONUMENT_RADIUS_MM;
-            ActualLoc01.Z = (Constants.CAMERA_TO_DECK_MILS * Constants.MIL_TO_MM) - GRID_MONUMENT_HEIGHT_MM;
-            ActualLoc01.Radius = GRID_MONUMENT_RADIUS_MM;
-            ActualLoc10.Z = (Constants.CAMERA_TO_DECK_MILS * Constants.MIL_TO_MM) - GRID_MONUMENT_HEIGHT_MM;
-            ActualLoc10.Radius = GRID_MONUMENT_RADIUS_MM;
-            ActualLoc11.Z = (Constants.CAMERA_TO_DECK_MILS * Constants.MIL_TO_MM) - GRID_MONUMENT_HEIGHT_MM;
-            ActualLoc11.Radius = GRID_MONUMENT_RADIUS_MM;
+            Grid00 = new Position3D(Grid.X, Grid.Y);
+            Grid00.Z = (Constants.CAMERA_TO_DECK_MILS * Constants.MIL_TO_MM) - GRID_MONUMENT_HEIGHT_MM;
+            Grid00.Radius = GRID_MONUMENT_RADIUS_MM;
 
-            // Update 01 and 10 defaults location from 11 and 00 positions set by the GUI
-            ActualLoc01.X = ActualLoc00.X;
-            ActualLoc01.Y = ActualLoc11.Y;
-            ActualLoc10.X = ActualLoc11.X;
-            ActualLoc10.Y = ActualLoc00.Y;
-
+            Grid11 = new Position3D(Grid.X + Grid.Width, Grid.Y + Grid.Height);
+            Grid11.Z = (Constants.CAMERA_TO_DECK_MILS * Constants.MIL_TO_MM) - GRID_MONUMENT_HEIGHT_MM;
+            Grid11.Radius = GRID_MONUMENT_RADIUS_MM;
+            
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             machine.Messages.Add(GCommand.G_GetStepsPerUnit());
             machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
             // For the x = 0, y = 0 position
-            machine.Messages.Add(GCommand.G_SetPosition(ActualLoc00.X, ActualLoc00.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(Grid.X, Grid.Y, 0, 0, 0));
             for (int i = 0; i < 4; i++)
             {
                 machine.Messages.Add(GCommand.G_FinishMoves());
-                machine.Messages.Add(GCommand.StepAlignToCalCircle(ActualLoc00));
+                machine.Messages.Add(GCommand.StepAlignToCalCircle(Grid00));
                 machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             }
             //For the x = 1, y = 1 position
-            machine.Messages.Add(GCommand.G_SetPosition(ActualLoc11.X, ActualLoc11.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(Grid.X + Grid.Width, Grid.Y + Grid.Height, 0, 0, 0));
             for (int i = 0; i < 4; i++)
             {
                 machine.Messages.Add(GCommand.G_FinishMoves());
-                machine.Messages.Add(GCommand.StepAlignToCalCircle(ActualLoc11));
+                machine.Messages.Add(GCommand.StepAlignToCalCircle(Grid11));
                 machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             }
             machine.Messages.Add(GCommand.CalculateMachineStepsPerMM());
@@ -255,6 +257,7 @@ namespace Picky
 
         public void CalculateMachineStepsPerMM(){
             /*-------------------------------------------------------------------------------------
+             - Called by Command Queue
              - updates, but does not write steps per MM based ActualLoc
              - This is called after Location data is updated
              - Notes:
@@ -265,11 +268,11 @@ namespace Picky
             MachineModel machine = MachineModel.Instance;
                         
             double x_true_dist_mm = (CalTargetModel.GRID_SPACING_X_MILS * Constants.MIL_TO_MM);
-            double x_delta_mm = (ActualLoc11.X - ActualLoc00.X);
+            double x_delta_mm = (Grid11.X - Grid00.X);
             Console.WriteLine("X Delta: " + x_true_dist_mm + " - " + x_delta_mm + " ");
             
             double y_true_dist_mm = (CalTargetModel.GRID_SPACING_Y_MILS * Constants.MIL_TO_MM);
-            double y_delta_mm = (ActualLoc11.Y - ActualLoc00.Y);
+            double y_delta_mm = (Grid11.Y - Grid00.Y);
             Console.WriteLine("Y Delta: " + y_true_dist_mm + " - " + y_delta_mm + " ");
                                   
             double xf = (x_delta_mm / x_true_dist_mm);
@@ -280,8 +283,8 @@ namespace Picky
             Console.WriteLine("Actual ----> " + x_true_dist_mm + "," + y_true_dist_mm);
             Console.WriteLine("Delta -----> " + x_delta_mm + "," + y_delta_mm);
             Console.WriteLine("Fraction --> " + xf + " " + machine.Cal.CalculatedStepsPerUnitX + " " + yf + " " + machine.Cal.CalculatedStepsPerUnitY);
-            Console.WriteLine("00 " + ActualLoc00.ToString());
-            Console.WriteLine("11 " + ActualLoc11.ToString());
+            Console.WriteLine("00 " + Grid00.ToString());
+            Console.WriteLine("11 " + Grid11.ToString());
         }
     }
 }

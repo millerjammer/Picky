@@ -1,20 +1,10 @@
 ﻿using OpenCvSharp;
 using System;
-using System.IO;
 using System.ComponentModel;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Media.Imaging;
-using System.Windows.Media;
-using Newtonsoft.Json;
-using System.Windows.Forms.VisualStyles;
-using Xamarin.Forms.Xaml;
-using System.Windows.Input;
-using System.Security.Cryptography.X509Certificates;
 using Picky.Tools;
-using Xamarin.Forms.PlatformConfiguration.GTKSpecific;
-using EnvDTE;
-using static Picky.MachineMessage;
+using Xamarin.Forms.Xaml;
 
 namespace Picky
 {
@@ -96,13 +86,12 @@ namespace Picky
             if (name != null)
             {
                 UniqueID = DateTime.Now.ToString("HHmmss-dd-MM-yy");
-                
             }
             if (LowerCal == null || UpperCal == null)
             {
                 String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                LowerCal = new PickToolCalPosition();
-                UpperCal = new PickToolCalPosition();
+                LowerCal = new PickToolCalPosition(Constants.LOWER_FOCUS, Constants.LOWER_THRESHOLD);
+                UpperCal = new PickToolCalPosition(Constants.UPPER_FOCUS, Constants.UPPER_THRESHOLD);
                 LowerCal.ToolTemplateFileName = path + "\\toolTemplate-lower-" + UniqueID + ".png";
                 UpperCal.ToolTemplateFileName = path + "\\toolTemplate-upper-" + UniqueID + ".png";
             }
@@ -170,9 +159,11 @@ namespace Picky
             MachineModel machine = MachineModel.Instance;
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.CalPad.X, machine.Cal.CalPad.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
             machine.Messages.Add(GCommand.SetToolCalibration(UpperCal));
             machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.DeckPad.X, machine.Cal.DeckPad.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
             machine.Messages.Add(GCommand.SetToolCalibration(LowerCal));
             // Raise Probe
@@ -197,13 +188,38 @@ namespace Picky
             }
             
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
+            machine.Messages.Add(GCommand.SetCamera(calPosition.CaptureSettings, machine.downCamera));
             machine.Messages.Add(GCommand.G_SetPosition(pos.X, pos.Y, 0, 0, 0));
             machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
             machine.Messages.Add(GCommand.SetToolCalibration(calPosition));
             machine.Messages.Add(GCommand.G_FinishMoves());
 
             Mat ToolTemplate = Cv2.ImRead(calPosition.ToolTemplateFileName, ImreadModes.Color);
-            machine.downCamera.RequestTemplateSearch(ToolTemplate, ToolSearchROI, calPosition.CaptureSettings);
+            machine.downCamera.RequestTemplateSearch(ToolTemplate, ToolSearchROI);
+        }
+
+        public Position3D GetToolTipOffsetAtZ(double z) 
+        {
+            /*----------------------------------------------------
+             * Given a z in MM this function returns the x, y, z
+             * position of the tip based on calibration and 
+             * similar triangles.  This is focus corrected
+             * --------------------------------------------------*/
+
+            double zUpper = UpperCal.TipOffsetMM.Z;
+            double zLower = LowerCal.TipOffsetMM.Z;
+            if (zUpper == zLower )
+                throw new ArgumentException("zUpper and zLower must be different values.");
+            
+            // Calculate the scaling factor based on similar triangles
+            double scaleFactor = (z - zLower) / (zUpper - zLower);
+
+            // Interpolate the X and Y positions
+            double iX = LowerCal.TipOffsetMM.X + (scaleFactor * (UpperCal.TipOffsetMM.X - LowerCal.TipOffsetMM.X));
+            double iY = LowerCal.TipOffsetMM.Y + (scaleFactor * (UpperCal.TipOffsetMM.Y - LowerCal.TipOffsetMM.Y));
+
+            Position3D pos = new Position3D(iX, iY, z, 0);
+            return (pos);
         }
     }
 }

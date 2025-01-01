@@ -182,6 +182,14 @@ namespace Picky
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        private void ShowEst()
+        {
+            if(SelectedPickTool != null)
+            {
+                Console.WriteLine("zEst: " + SelectedPickTool.GetToolTipOffsetAtZ(CurrentZ).ToString());
+            }
+        }
+
         private MachineModel()
         {
             Messages = new ObservableCollection<MachineMessage>();
