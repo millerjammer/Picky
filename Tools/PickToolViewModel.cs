@@ -182,7 +182,7 @@ namespace Picky
         public ICommand AssignToSelectedFeederCommand { get { return new RelayCommand(assignToSelectedFeeder); } }
         private void assignToSelectedFeeder()
         {
-            machine.selectedCassette.selectedFeeder.PickToolName = Machine.SelectedPickTool.UniqueID;
+            machine.SelectedCassette.SelectedFeeder.PickTool = Machine.SelectedPickTool;
         }
         
         public ICommand MarkStateUnknownCommand { get { return new RelayCommand(markStateUnknown); } }
@@ -204,16 +204,16 @@ namespace Picky
             Machine.SelectedPickTool.State = PickToolModel.TipStates.Loading;
             //Go to tool
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
-            var head = machine.Cal.GetPickHeadOffsetToCameraAtZ(Constants.TOOL_NOMINAL_Z_DRIVE_MM);
-            machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorage.X + head.x_offset, Machine.SelectedPickTool.ToolStorage.Y - head.y_offset, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_FinishMoves());
+            double x = Machine.SelectedPickTool.ToolStorage.X + Constants.CAMERA_TO_HEAD_OFFSET_X_MM;
+            double y = Machine.SelectedPickTool.ToolStorage.Y + Constants.CAMERA_TO_HEAD_OFFSET_Y_MM;
+            machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0)); machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_ProbeZ(Machine.SelectedPickTool.ToolStorage.Z));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_OpenToolStorage(true));
             machine.Messages.Add(GCommand.G_SetZPosition(0));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_OpenToolStorage(false));
-            //CalibrateTool();
+  
             
         }
 
@@ -223,9 +223,9 @@ namespace Picky
         {
             Machine.SelectedPickTool.State = PickToolModel.TipStates.Unloading;
             //Move to Camera Position
-            var head = machine.Cal.GetPickHeadOffsetToCameraAtZ(Constants.TOOL_NOMINAL_Z_DRIVE_MM);
-            machine.Messages.Add(GCommand.G_SetPosition(Machine.SelectedPickTool.ToolStorage.X + head.x_offset, Machine.SelectedPickTool.ToolStorage.Y - head.y_offset, 0, 0, 0));
-            
+            double x = Machine.SelectedPickTool.ToolStorage.X + Constants.CAMERA_TO_HEAD_OFFSET_X_MM;
+            double y = Machine.SelectedPickTool.ToolStorage.Y + Constants.CAMERA_TO_HEAD_OFFSET_Y_MM;
+            machine.Messages.Add(GCommand.G_SetPosition(x, y, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_OpenToolStorage(true));
             machine.Messages.Add(GCommand.G_ProbeZ(Machine.SelectedPickTool.ToolStorage.Z));

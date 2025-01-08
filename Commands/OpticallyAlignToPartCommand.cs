@@ -11,7 +11,7 @@ namespace Picky.Tools
 {
     public class OpticallyAlignToPartCommand : MessageRelayCommand
     /*------------------------------------------------------------------------------
-    * This command uses the down camera to image the next part in a feeder.  It  
+    * This command uses the down camera to image the next Part in a Feeder.  It  
     * OVERWRITES position of the next command to add an offset to align camere.  
     * It does NOT do the camera to head offset.
     * 
@@ -46,14 +46,14 @@ namespace Picky.Tools
 
         public bool PreMessageCommand(MachineMessage msg)
         {
-            machine.selectedPickListPart = feeder.part;
+            machine.selectedPickListPart = feeder.Part;
             return true;
         }
 
 
         public bool PostMessageCommand(MachineMessage msg)
         {
-            if (feeder.part.IsInView == true)
+            if (feeder.Part.IsInView == true)
             {
                 MachineMessage nxt = machine.Messages.ElementAt(machine.Messages.IndexOf(msg) + 1);
                 nxt.target.x = feeder.NextPartOpticalLocation.X;

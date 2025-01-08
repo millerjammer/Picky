@@ -50,21 +50,21 @@ namespace Picky
         public ICommand AddPartToCassetteCommand { get { return new RelayCommand(AddPartToCassette); } }
         private void AddPartToCassette()
         {
-            if (Machine.selectedPickListPart.cassette != null)
+            if (Machine.selectedPickListPart.Cassette != null)
             {
-                Console.WriteLine("Error, part already assigned");
+                Console.WriteLine("Error, Part already assigned");
                 return;
             }
-            if (Machine.selectedCassette == null)
+            if (Machine.SelectedCassette == null)
             {
-                Console.WriteLine("Error, no cassette selected");
+                Console.WriteLine("Error, no Cassette selected");
                 return;
             }
             Feeder fdr = new Feeder();
             fdr.width = Feeder.FEEDER_8MM_WIDTH_MILS;
-            fdr.part = Machine.selectedPickListPart;
-            Machine.selectedCassette.Feeders.Add(fdr);
-            Machine.selectedPickListPart.cassette = Machine.selectedCassette;
+            fdr.Part = Machine.selectedPickListPart;
+            Machine.SelectedCassette.Feeders.Add(fdr);
+            Machine.selectedPickListPart.Cassette = Machine.SelectedCassette;
         }
 
         public ICommand PickPlaceAllPartsCommand { get { return new RelayCommand(PickPlaceAllParts); } }
@@ -73,7 +73,7 @@ namespace Picky
             Console.WriteLine("Pick-N-Place All");
             for (int i = 0; i < Machine.PickList.Count; i++)
             {
-                machine.AddFeederPickToQueue(Machine.PickList.ElementAt(i).feeder);
+                machine.AddFeederPickToQueue(Machine.PickList.ElementAt(i).Feeder);
                 Machine.AddPartPlacementToQueue(Machine.PickList.ElementAt(i));
             }
         }
@@ -82,7 +82,7 @@ namespace Picky
         private void PickPlaceSinglePart()
         {
             Console.WriteLine("Pick-N-Place Single");
-            machine.AddFeederPickToQueue(Machine.selectedPickListPart.feeder);
+            machine.AddFeederPickToQueue(Machine.selectedPickListPart.Feeder);
             Machine.AddPartPlacementToQueue(Machine.selectedPickListPart);
         }
 

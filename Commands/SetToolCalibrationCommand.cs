@@ -53,11 +53,9 @@ namespace Picky
             if (delay-- > 0)
                 return false;
                         
-            // Save Tool Length 
+            // Save Tool Length when calibrating @ the Calibrated Cal Pad 
             if (machine.CurrentX == machine.Cal.CalPad.X && machine.CurrentY == machine.Cal.CalPad.Y)
                 machine.SelectedPickTool.Length = machine.Cal.CalPad.Z - machine.CurrentZ;
-            else if (machine.CurrentX == machine.Cal.DeckPad.X && machine.CurrentY == machine.Cal.DeckPad.Y)
-                machine.SelectedPickTool.Length = (machine.Cal.CalPad.Z + Constants.ZOFFSET_CAL_PAD_TO_DECK) - machine.CurrentZ;
             // Save Current Z 
             CalPosition.TipPosition.Z = (machine.CurrentZ + machine.SelectedPickTool.Length);
             // Get 3D Position from Image

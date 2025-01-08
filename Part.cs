@@ -15,20 +15,14 @@ namespace Picky
 {
     public class Part : INotifyPropertyChanged
     {
-        MachineModel machine = MachineModel.Instance;
-
         private string templateFileName;
         public string TemplateFileName
         {
             get { return templateFileName; }
             set { templateFileName = value; SetPartMat(); OnPropertyChanged(nameof(TemplateFileName)); }
         }
-        private double partDetectionThreshold = Constants.DEFAULT_PART_DETECTION_THRESHOLD;
-        public double PartDetectionThreshold
-        {
-            get { return partDetectionThreshold; }
-            set { partDetectionThreshold = value; OnPropertyChanged(nameof(PartDetectionThreshold)); }
-        }
+        private CameraSettings CaptureSettings { get; set; } = new CameraSettings();
+       
         private bool isInView = false;
         public bool IsInView
         {
@@ -45,18 +39,18 @@ namespace Picky
         public string Description { get; set; }
         public string Thickness { get; set; }
       
-        private Cassette _cassette;
-        public Cassette cassette
+        private Cassette cassette;
+        public Cassette Cassette
         {
-            get { return _cassette; }
-            set { _cassette = value; OnPropertyChanged(nameof(cassette)); }
+            get { return cassette; }
+            set { cassette = value; OnPropertyChanged(nameof(Cassette)); }
         }
         
-        private Feeder _feeder;
-        public Feeder feeder
+        private Feeder feeder;
+        public Feeder Feeder
         {
-            get { return _feeder; }
-            set { _feeder = value; OnPropertyChanged(nameof(feeder)); }
+            get { return feeder; }
+            set { feeder = value; OnPropertyChanged(nameof(Feeder)); }
         }
         
         [JsonIgnore]
@@ -76,7 +70,7 @@ namespace Picky
 
         private void SetPartMat()
         {
-            Console.WriteLine("part setting Mat: " + templateFileName);
+            Console.WriteLine("Part setting Mat: " + templateFileName);
             if (templateFileName == null)
                 return;
             Template = new Mat(templateFileName);

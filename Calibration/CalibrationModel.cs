@@ -14,33 +14,24 @@ namespace Picky
     {
         public CalTargetModel CalTarget { get; set; }
 
-        /* Feeder */
-        private double feeder0X;
-        public double Feeder0X
+        /* Feeder/Cassette */
+        private Position3D qRRegion = new Position3D(Constants.TRAVEL_LIMIT_X_MM, 200.0, 0, Constants.TRAVEL_LIMIT_X_MM, 10.0);
+        public Position3D QRRegion
         {
-            get { return feeder0X; }
-            set { feeder0X = value; OnPropertyChanged(nameof(Feeder0X)); }
+            get { return qRRegion; }
+            set { qRRegion = value; OnPropertyChanged(nameof(QRRegion)); }
         }
-        private double feeder0Y;
-        public double Feeder0Y
+        private Position3D channelRegion = new Position3D(Constants.TRAVEL_LIMIT_X_MM, 210.0, 0, Constants.TRAVEL_LIMIT_X_MM, Constants.TRAVEL_LIMIT_X_MM - 210.0);
+        public Position3D ChannelRegion
         {
-            get { return feeder0Y; }
-            set { feeder0Y = value; OnPropertyChanged(nameof(Feeder0Y)); }
+            get { return channelRegion; }
+            set { channelRegion = value; OnPropertyChanged(nameof(ChannelRegion)); }
         }
 
-        private double feederNX;
-        public double FeederNX
-        {
-            get { return feederNX; }
-            set { feederNX = value; OnPropertyChanged(nameof(FeederNX)); }
-        }
-        private double feederNY;
-        public double FeederNY
-        {
-            get { return feederNY; }
-            set { feederNY = value; OnPropertyChanged(nameof(FeederNY)); }
-        }
-                       
+        public CameraSettings QRCaptureSettings { get; set; }
+        public CameraSettings ChannelCaptureSettings { get; set; }
+
+
         /* Used to calculate mm/pixel and different Z using similar triangles */
         private Position3D mmPerPixUpper;
         public Position3D MMPerPixUpper
@@ -54,75 +45,6 @@ namespace Picky
         {
             get { return mmPerPixLower; }
             set { mmPerPixLower = value; OnPropertyChanged(nameof(MMPerPixLower)); }
-        }
-
-        /* Camera/Pick Physics */
-        private double originToUpCameraX;
-        public double OriginToUpCameraX
-        {
-            get { return originToUpCameraX; }
-            set { originToUpCameraX = value; OnPropertyChanged(nameof(originToUpCameraX)); }
-        }
-        private double originToUpCameraY;
-        public double OriginToUpCameraY
-        {
-            get { return originToUpCameraY; }
-            set { originToUpCameraY = value; OnPropertyChanged(nameof(originToUpCameraY)); }
-        }
-
-        private double originToDownCameraX;
-        public double OriginToDownCameraX
-        {
-            get { return originToDownCameraX; }
-            set { originToDownCameraX = value; OnPropertyChanged(nameof(originToDownCameraX)); }
-        }
-        private double originToDownCameraY;
-        public double OriginToDownCameraY
-        {
-            get { return originToDownCameraY; }
-            set { originToDownCameraY = value; OnPropertyChanged(nameof(originToDownCameraY)); }
-        }
-
-        private double originToPickHeadX1;
-        public double OriginToPickHeadX1 
-        {  
-            get { return originToPickHeadX1; }
-            set { originToPickHeadX1 = value; OnPropertyChanged(nameof(OriginToPickHeadX1)); }
-        }
-
-        private double originToPickHeadY1;
-        public double OriginToPickHeadY1
-        {
-            get { return originToPickHeadY1; }
-            set { originToPickHeadY1 = value; OnPropertyChanged(nameof(OriginToPickHeadY1)); }
-        }
-
-        private double originToPickHeadZ1;
-        public double OriginToPickHeadZ1
-        {
-            get { return originToPickHeadZ1; }
-            set { originToPickHeadZ1 = value; OnPropertyChanged(nameof(OriginToPickHeadZ1)); }
-        }
-
-        private double originToPickHeadX2;
-        public double OriginToPickHeadX2
-        {
-            get { return originToPickHeadX2; }
-            set { originToPickHeadX2 = value; OnPropertyChanged(nameof(OriginToPickHeadX2)); }
-        }
-
-        private double originToPickHeadY2;
-        public double OriginToPickHeadY2
-        {
-            get { return originToPickHeadY2; }
-            set { originToPickHeadY2 = value; OnPropertyChanged(nameof(OriginToPickHeadY2)); }
-        }
-
-        private double originToPickHeadZ2;
-        public double OriginToPickHeadZ2
-        {
-            get { return originToPickHeadZ2; }
-            set { originToPickHeadZ2 = value; OnPropertyChanged(nameof(OriginToPickHeadZ2)); }
         }
 
         /* Steps Per Unit */
@@ -140,6 +62,13 @@ namespace Picky
             set { stepsPerUnitY = value; OnPropertyChanged(nameof(StepsPerUnitY)); }
         }
 
+        private double stepsPerUnitZ;
+        public double StepsPerUnitZ
+        {
+            get { return stepsPerUnitZ; }
+            set { stepsPerUnitZ = value; OnPropertyChanged(nameof(StepsPerUnitZ)); }
+        }
+
 
         private double calculatedStepsPerUnitX;
         public double CalculatedStepsPerUnitX
@@ -155,6 +84,13 @@ namespace Picky
             set { calculatedStepsPerUnitY = value; OnPropertyChanged(nameof(CalculatedStepsPerUnitY)); }
         }
 
+        private double calculatedStepsPerUnitZ;
+        public double CalculatedStepsPerUnitZ
+        {
+            get { return calculatedStepsPerUnitZ; }
+            set { calculatedStepsPerUnitZ = value; OnPropertyChanged(nameof(CalculatedStepsPerUnitZ)); }
+        }
+
         [JsonIgnore]
         private bool isPreviewUpperTargetActive = false;
         [JsonIgnore]
@@ -167,7 +103,7 @@ namespace Picky
                 isPreviewUpperTargetActive = value;
                 if (value)
                 {
-                    isPreviewLowerTargetActive = false;
+                    isPreviewLowerTargetActive = false; isPreviewGridActive = false;
                     CalTarget.QueueCalTargetSearch(CalTarget.UpperTemplateFileName, CalTarget.ActualLocUpper, CalTarget.upperSettings, null, 5.5);
                 }
                 OnPropertyChanged(nameof(IsPreviewUpperTargetActive)); }
@@ -185,7 +121,7 @@ namespace Picky
                 isPreviewLowerTargetActive = value;
                 if (value)
                 {
-                    isPreviewUpperTargetActive = false;
+                    isPreviewUpperTargetActive = false; isPreviewGridActive = false;
                     CalTarget.QueueCalTargetSearch(CalTarget.LowerTemplateFileName, CalTarget.ActualLocLower, CalTarget.lowerSettings, null, 5);
                 }
                 OnPropertyChanged(nameof(IsPreviewLowerTargetActive)); }
@@ -203,7 +139,8 @@ namespace Picky
                 isPreviewGridActive = value;
                 if (value)
                 {
-                    CalTarget.QueueCalTargetSearch(CalTarget.GridTemplateFileName, CalTarget.Grid, CalTarget.gridSettings, null, 1.4);
+                    CalTarget.QueueCalTargetSearch(CalTarget.GridTemplateFileName, CalTarget.GridOrigin, CalTarget.gridSettings, null, 2);
+                    isPreviewLowerTargetActive = false; isPreviewUpperTargetActive = false;
                 }
                 OnPropertyChanged(nameof(IsPreviewGridActive));
             }
@@ -242,13 +179,23 @@ namespace Picky
             set { calPad = value; OnPropertyChanged(nameof(CalPad)); }
         }
 
+        private Position3D stepPad = new Position3D { X = Constants.ZPROBE_STEP_PAD_X, Y = Constants.ZPROBE_STEP_PAD_Y };
+        public Position3D StepPad
+        {
+            get { return stepPad; }
+            set { stepPad = value; OnPropertyChanged(nameof(StepPad)); }
+        }
+
         public CalibrationModel()
         {
             // Create Target
             CalTarget = new CalTargetModel();
             mmPerPixUpper = new Position3D();
             mmPerPixLower = new Position3D();
-        }
+
+            QRCaptureSettings = new CameraSettings();
+            ChannelCaptureSettings = new CameraSettings();
+    }
             
 
         /* Calculate Values Based on Calibration */
@@ -257,6 +204,7 @@ namespace Picky
             /*----------------------------------------------------------------------------------
              - Returns the scale in mm/pix at the given Z (in mm) requires the calibration has 
              - been performed. Uses linear interpolation.  z is physical distance camera-to-item
+             - WITHOUT A TIP!
              -----------------------------------------------------------------------------------*/
 
             double scaleFactor = (z - MMPerPixUpper.Z) / (MMPerPixLower.Z - MMPerPixUpper.Z);
@@ -265,29 +213,7 @@ namespace Picky
          
             return (mmPerPixX, mmPerPixY);
         }
-          
-        
-        public (double x_offset, double y_offset) GetPickHeadOffsetToCameraAtZ(double targetZ)
-        /*----------------------------------------------------------------------------------
-         - When you've centered the camera and want to pick something you need to call here 
-         - with the approximate z of the destination.  This function will return the offset.  After you 
-         - pick the item you need to subtract the offset.  Why is this needed?  Because the probe
-         - head may not be perfectly square to the surface - or the camera may not be square.
-         - This is a simple slope-intercept in xy and z.  Slope is rise over run.    
-         --------------------------------------------------------------------------------------*/
-        {
-            double slope_x = (OriginToPickHeadX2 - OriginToPickHeadX1) / (OriginToPickHeadZ2 - OriginToPickHeadZ1);
-            double slope_y = (OriginToPickHeadY2 - OriginToPickHeadY1) / (OriginToPickHeadZ2 - OriginToPickHeadZ1);
-
-            double offset_x = -(slope_x * targetZ) - OriginToPickHeadX1 + OriginToDownCameraX;
-            double offset_y = -(slope_y * targetZ) - OriginToPickHeadY1 + OriginToDownCameraY;
-
-            PickHeadToCameraX = offset_x;
-            PickHeadToCameraY = offset_y;
-            
-            return (offset_x, offset_y);
-        }
-        
+              
                        
         /* Default Send Notification boilerplate - properties that notify use OnPropertyChanged */
         public event PropertyChangedEventHandler PropertyChanged;

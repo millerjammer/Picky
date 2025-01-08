@@ -44,7 +44,7 @@
                         <ui:Button Grid.Column="1" Content="Load..." Icon="Folder32" Height="30" Margin="0,0,5,0" Command="{Binding LoadCassetteCommand}" HorizontalAlignment="Right"/>
                         <ui:Button Grid.Column="2" Content="New..." Icon="New24" Height="30" Margin="0,0,0,0" Command="{Binding AddCassetteCommand}" HorizontalAlignment="Right"/>
                     </Grid>
-                    <TabControl Grid.Row="1" SelectedIndex="0" SelectedItem="{Binding selectedCassette}" ItemsSource="{Binding Cassettes}">
+                    <TabControl Grid.Row="1" SelectedIndex="0" SelectedItem="{Binding SelectedCassette}" ItemsSource="{Binding Cassettes}">
                         <TabControl.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding name}">
@@ -54,6 +54,9 @@
                                             <MenuItem Header="Save As..." Command="{Binding SaveAsCassetteCommand}" />
                                             <Separator Margin="2"/>
                                             <MenuItem Header="Close" Command="{Binding CloseCassetteCommand}" />
+                                            <Separator Margin="2"/>
+                                            <MenuItem Header="Add Feeder" Command="{Binding AddFeederCommand}" />
+                                            <MenuItem Header="Remove Feeder" Command="{Binding RemoveFeederCommand}" />
                                             <Separator Margin="2"/> 
                                             <MenuItem Header="Go to Cassette Origin" Command="{Binding GoToCassetteCommand}" />
                                             <MenuItem Header="Set As Cassete Origin" Command="{Binding SetCassetteHomeCommand}" />
@@ -64,7 +67,7 @@
                         </TabControl.ItemTemplate>
                         <TabControl.ContentTemplate>
                             <DataTemplate>
-                                <ui:DataGrid RowDetailsVisibilityMode="VisibleWhenSelected" SelectedItem="{Binding selectedFeeder}" 
+                                <ui:DataGrid RowDetailsVisibilityMode="VisibleWhenSelected" SelectedItem="{Binding SelectedFeeder}" 
                                              ItemsSource="{Binding Feeders}" Grid.Row="1" HorizontalAlignment="Stretch" 
                                              AutoGenerateColumns="False" CanUserSortColumns="False" HorizontalContentAlignment="Stretch"
                                              MaxHeight="299" VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow"
@@ -91,13 +94,13 @@
                                                                 <ColumnDefinition Width="auto" />
                                                             </Grid.ColumnDefinitions>
                                                             <TextBlock  Grid.Column="0" Text="Feeder: (X,Y):"/>
-                                                            <TextBlock  Grid.Column="1" TextAlignment="Right" Text="{Binding x_origin , StringFormat={}{0:0.000}}"/>
+                                                            <TextBlock  Grid.Column="1" TextAlignment="Right" Text="{Binding Origin.X, StringFormat={}{0:0.000}}"/>
                                                             <TextBlock  Grid.Column="2" Text=","/>
-                                                            <TextBlock  Grid.Column="3" Text="{Binding y_origin , StringFormat={}{0:0.000}}"/>
+                                                            <TextBlock  Grid.Column="3" Text="{Binding Origin.Y , StringFormat={}{0:0.000}}"/>
                                                         </Grid>
                                                         <DockPanel>
                                                             <TextBlock DockPanel.Dock="Left" Text="Part Detection Threshold:"/>
-                                                            <TextBlock TextAlignment="Right" Text="{Binding part.PartDetectionThreshold}"/>
+                                                            <TextBlock TextAlignment="Right" Text="{Binding Part.CaptureSettings.TemplateThreshold}"/>
                                                         </DockPanel>
                                                         <Grid>
                                                             <Grid.ColumnDefinitions>
@@ -127,12 +130,12 @@
                                                         </Grid>
                                                         <DockPanel>
                                                             <TextBlock DockPanel.Dock="Left" Text="Template:"/>
-                                                            <TextBlock TextAlignment="Right" Text="{Binding part.TemplateFileName}"/>
+                                                            <TextBlock TextAlignment="Right" Text="{Binding Part.TemplateFileName}"/>
                                                         </DockPanel>
                                                     </StackPanel>
                                                 </DockPanel>
                                                 <DockPanel Grid.Column="1" DockPanel.Dock="Left">
-                                                    <Image Margin="10 0 20 0" Source="{Binding part.TemplateFileName}" MaxHeight="100" MaxWidth="200" />
+                                                    <Image Margin="10 0 20 0" Source="{Binding Part.TemplateFileName}" MaxHeight="100" MaxWidth="200" />
                                                 </DockPanel>
                                             </Grid>
                                         </DataTemplate>
@@ -140,10 +143,10 @@
                                     <!-- Placement Data Grid -->
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Binding="{Binding index}" Header="Index" Width="70"/>
-                                        <DataGridTextColumn Binding="{Binding part.Description}" Header="Description" Width="*"/>
-                                        <DataGridTextColumn Binding="{Binding part.Footprint}" Header="Footprint" Width="190"/>
-                                        <DataGridTextColumn Binding="{Binding part.Layer}" Header="Layer" Width="80"/>
-                                        <DataGridTextColumn Binding="{Binding PickToolName}" Header="Pick Tool" Width="90"/>
+                                        <DataGridTextColumn Binding="{Binding Part.Description}" Header="Description" Width="*"/>
+                                        <DataGridTextColumn Binding="{Binding Part.Footprint}" Header="Footprint" Width="190"/>
+                                        <DataGridTextColumn Binding="{Binding Part.Layer}" Header="Layer" Width="80"/>
+                                        <DataGridTextColumn Binding="{Binding PickTool.Description}" Header="Pick Tool" Width="90"/>
                                     </DataGrid.Columns>
                                    
                                     <ui:DataGrid.RowStyle>
@@ -158,16 +161,16 @@
                                     </ui:DataGrid.RowStyle>
                                     <DataGrid.ContextMenu>
                                         <ContextMenu>
-                                            <MenuItem Header="Remove from Cassette"  Command="{Binding selectedFeeder.RemoveFeederFromCassetteCommand}"/>
+                                            <MenuItem Header="Remove from Cassette"  Command="{Binding SelectedFeeder.RemoveFeederFromCassetteCommand}"/>
                                             <Separator Margin="2"></Separator>
-                                            <MenuItem Header="Go to Feeder Origin" Command="{Binding selectedFeeder.GoToFeederCommand}"  />
-                                            <MenuItem Header="Go to Feeder Drive Location" Command="{Binding selectedFeeder.GoToFeederDriveCommand}" />
+                                            <MenuItem Header="Go to Feeder Origin" Command="{Binding SelectedFeeder.GoToFeederCommand}"  />
+                                            <MenuItem Header="Go to Feeder Drive Location" Command="{Binding SelectedFeeder.GoToFeederDriveCommand}" />
                                             <Separator Margin="2"></Separator>
-                                            <MenuItem Header="Go to Next Component" Command="{Binding selectedFeeder.GoToNextComponentCommand}" />
-                                            <MenuItem Header="Go to Pick Position" Command="{Binding selectedFeeder.GoToNextPickComponentCommand}" />
-                                            <MenuItem Header="Pick Next Component" Command="{Binding selectedFeeder.PickNextComponentCommand}"  />
+                                            <MenuItem Header="Go to Next Component" Command="{Binding SelectedFeeder.GoToNextComponentCommand}" />
+                                            <MenuItem Header="Go to Pick Position" Command="{Binding SelectedFeeder.GoToNextPickComponentCommand}" />
+                                            <MenuItem Header="Pick Next Component" Command="{Binding SelectedFeeder.PickNextComponentCommand}"  />
                                             <Separator Margin="2"></Separator>
-                                            <MenuItem Header="Set Part Template" Command="{Binding selectedFeeder.SetPartTemplateCommand}" />
+                                            <MenuItem Header="Set Part Template" Command="{Binding SelectedFeeder.SetPartTemplateCommand}" />
                             
                                         </ContextMenu>
                                     </DataGrid.ContextMenu>

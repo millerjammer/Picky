@@ -1,4 +1,5 @@
 ﻿using EnvDTE;
+using Newtonsoft.Json.Linq;
 using OpenCvSharp;
 using System;
 using System.Collections;
@@ -205,7 +206,7 @@ namespace Picky
                                 for (j = 0; j < length; j++)
                                     Console.Write((char)serial_buffer[j]);
                                 // Parse Steps per Unit
-                                if (msg.cmdString.StartsWith("M92") || msg.cmdString.StartsWith("M503"))
+                                if (msg.cmdString.StartsWith("M92") || msg.cmdString.StartsWith("M503") || msg.cmdString.StartsWith("M119") )
                                 {
                                     // The OK comes out AFTER the result - result parsed below
                                     msg.state = MachineMessage.MessageState.Complete;
@@ -345,12 +346,20 @@ namespace Picky
                                     machine.Settings.Response += Encoding.UTF8.GetString(serial_buffer, 0, Array.IndexOf(serial_buffer, (byte)'\n') + 1);
                                 }
                             }
-                            //Message "M503" output comes befor OK ends with ok
+                            //Message ("M503") output comes before OK ends with ok
                             else if (msg.cmdString.StartsWith("M503"))
                             {
                                 machine.Settings.Response += Encoding.UTF8.GetString(serial_buffer, 0, Array.IndexOf(serial_buffer, (byte)'\n') + 1);
                             }
-                            
+                            // Get Parse Endstop Status ("M119") ok comes AFTER DATA
+                            else if (msg.cmdString.StartsWith("M119"))
+                            {
+                                string pattern = @"z_probe:\s*(\w+)";
+                                Regex regex = new Regex(pattern);
+                                MatchCollection matches = regex.Matches(Encoding.UTF8.GetString(serial_buffer));
+                                machine.IsZProbeAtLimit = matches[0].Value == "z_probe: open" ? true : false;
+                                msg.cmdString = string.Format("Z_PROBE Endpoint Status") + msg.cmdString.Substring(4);  // Ignore this command
+                            }
                         }
                         // Messages waiting for valid position = Target position
                         if (msg.state == MachineMessage.MessageState.PendingPosition && isPositionGood(msg))
@@ -366,7 +375,7 @@ namespace Picky
                             MatchCollection matches = regex.Matches(Encoding.UTF8.GetString(serial_buffer));
                             machine.Cal.StepsPerUnitX = double.Parse(matches[0].Value);
                             machine.Cal.StepsPerUnitY = double.Parse(matches[1].Value);
-                            Console.WriteLine("Steps per MM: " + machine.Cal.StepsPerUnitX + " " + machine.Cal.StepsPerUnitY);
+                            machine.Cal.StepsPerUnitZ = double.Parse(matches[2].Value);
                         }
                     }
 

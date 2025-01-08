@@ -15,17 +15,16 @@ namespace Picky.Tools
     *-------------------------------------------------------------------------------*/
     {
         public MachineMessage msg;
-        public CameraModel camera;
-        public bool autoFocus;
-        public int valFocus;
-        public int delay;
+        public long delay;
+        public long start_ms;
 
         public DelayCommand(int msDelay)
         {
             msg = new MachineMessage();
             msg.messageCommand = this;
             msg.cmd = Encoding.ASCII.GetBytes("J102 Simple Delay\n");
-            delay = (msDelay / Constants.QUEUE_SERVICE_INTERVAL);    //delay (ms) in units of service interval
+            delay = msDelay;
+            start_ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         }
 
         public MachineMessage GetMessage()
@@ -40,9 +39,9 @@ namespace Picky.Tools
 
         public bool PostMessageCommand(MachineMessage msg)
         {
-            if (delay-- > 0)
-                return false;
-            return true;
+            if (DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() > (start_ms + delay))
+                return true;
+            return false;
         }
     }
 }

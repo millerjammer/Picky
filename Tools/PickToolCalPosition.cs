@@ -92,7 +92,7 @@ namespace Picky.Tools
         {
             /*-------------------------------------------------------------
              * This function returns the position of the tool tip (in pixels)
-             * given a localized image.  Used as part of tip calibration.
+             * given a localized image.  Used as Part of tip calibration.
              * the returned position is a circle in pixels measured from the 
              * origin x,y of the givem Mat
              * ------------------------------------------------------------*/

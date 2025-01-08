@@ -36,9 +36,9 @@ namespace Picky
         {
             get
             {
-                if (machine?.selectedCassette?.selectedFeeder?.part != null)
+                if (machine?.SelectedCassette?.SelectedFeeder?.Part != null)
                 {
-                    if (machine.selectedCassette.selectedFeeder.part.IsInView)
+                    if (machine.SelectedCassette.SelectedFeeder.Part.IsInView)
                     {
                         return (new SolidColorBrush(Color.FromArgb(128, 0, 255, 0)));
                     }
@@ -53,9 +53,9 @@ namespace Picky
             camera.FrameImage = iFrame;
             machine = MachineModel.Instance;
 
-            /* Listen for selectedCassette to change, then we can listen for selectedFeeder */
+            /* Listen for SelectedCassette to change, then we can listen for SelectedFeeder */
             /* This should also fire when the camera image changes since camera is property of machine? */
-            /* We use this to know what part we're looking for */
+            /* We use this to know what Part we're looking for */
             machine.PropertyChanged += OnMachinePropertyChanged;
             
             VisualizationView = new List<VisualizationStyle>
@@ -89,9 +89,9 @@ namespace Picky
         private void OnMachinePropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             OnPropertyChanged(nameof(PartInViewIconColor));
-            if (machine?.selectedCassette?.selectedFeeder?.part != null)
+            if (machine?.SelectedCassette?.SelectedFeeder?.Part != null)
             {
-                machine.downCamera.PartToFind = machine.selectedCassette.selectedFeeder.part;
+                machine.downCamera.PartToFind = machine.SelectedCassette.SelectedFeeder.Part;
             }
         }
           

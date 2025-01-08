@@ -140,7 +140,7 @@ namespace Picky
             MachineModel machine = MachineModel.Instance;
             calPosition.CaptureSettings = machine.downCamera.Settings.Clone();
 
-            // Write part template image to file
+            // Write Part template image to file
             calPosition.SaveToolTemplateImage();
             
             calPosition.Set3DToolTipFromToolMat(machine.downCamera.DilatedImage, machine.CurrentZ);
@@ -157,12 +157,14 @@ namespace Picky
              * ------------------------------------------------------------*/
 
             MachineModel machine = MachineModel.Instance;
+            double offset_to_head_x = Constants.CAMERA_TO_HEAD_OFFSET_X_MM;
+            double offset_to_head_y = Constants.CAMERA_TO_HEAD_OFFSET_Y_MM;
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.CalPad.X, machine.Cal.CalPad.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.CalPad.X + offset_to_head_x, machine.Cal.CalPad.Y + offset_to_head_y, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
             machine.Messages.Add(GCommand.SetToolCalibration(UpperCal));
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.DeckPad.X, machine.Cal.DeckPad.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.DeckPad.X + offset_to_head_x, machine.Cal.DeckPad.Y + offset_to_head_y, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
             machine.Messages.Add(GCommand.SetToolCalibration(LowerCal));
@@ -186,10 +188,13 @@ namespace Picky
             { //If there's no template, create anything
                 calPosition.CaptureSettings  = machine.downCamera.Settings.Clone();
             }
-            
+
+            double offset_to_head_x = Constants.CAMERA_TO_HEAD_OFFSET_X_MM;
+            double offset_to_head_y = Constants.CAMERA_TO_HEAD_OFFSET_Y_MM;
+
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             machine.Messages.Add(GCommand.SetCamera(calPosition.CaptureSettings, machine.downCamera));
-            machine.Messages.Add(GCommand.G_SetPosition(pos.X, pos.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(pos.X + offset_to_head_x, pos.Y + offset_to_head_y, 0, 0, 0));
             machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
             machine.Messages.Add(GCommand.SetToolCalibration(calPosition));
             machine.Messages.Add(GCommand.G_FinishMoves());

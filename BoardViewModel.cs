@@ -112,8 +112,8 @@ namespace Picky
                
                 //machine.Messages.Add(GCommand.G_ProbeZ(24.0));
                 //machine.Messages.Add(GCommand.G_FinishMoves());
-                //machine.Messages.Add(GCommand.SetScaleResolutionCalibration(machine, target));
-                //machine.Messages.Add(GCommand.G_SetPosition(target.targetCircle.Center.X, target.targetCircle.Center.Y, 0, 0, 0));
+                //machine.Messages.Add(GCommand.SetScaleResolutionCalibration(machine, template));
+                //machine.Messages.Add(GCommand.G_SetPosition(template.targetCircle.Center.X, template.targetCircle.Center.Y, 0, 0, 0));
             }
         }
     }

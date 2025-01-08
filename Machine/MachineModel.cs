@@ -71,11 +71,11 @@ namespace Picky
         }
         
         /* Cassettes that are installed */
-        private Cassette _selectedCassette;
-        public Cassette selectedCassette
+        private Cassette selectedCassette;
+        public Cassette SelectedCassette
         {
-            get { return _selectedCassette; }
-            set { _selectedCassette = value; OnPropertyChanged(nameof(selectedCassette)); }
+            get { return selectedCassette; }
+            set { selectedCassette = value; OnPropertyChanged(nameof(SelectedCassette)); }
         }
         public ObservableCollection<Cassette> Cassettes { get; set; }
 
@@ -168,11 +168,20 @@ namespace Picky
             set { rxMessageCount = value; OnPropertyChanged(nameof(RxMessageCount)); }
         }
 
+        /* Limit Switches */
+
+        private bool isZProbeAtLimit = false;
+        public bool IsZProbeAtLimit
+        {
+            get { return isZProbeAtLimit; }
+            set { isZProbeAtLimit = value; OnPropertyChanged(nameof(IsZProbeAtLimit)); }
+        }
+
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;
         private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            Console.WriteLine("feeder collection changed");
+            Console.WriteLine("Feeder collection changed");
             OnPropertyChanged(nameof(Cassettes)); // Notify that the collection has changed
         }
 
@@ -301,14 +310,14 @@ namespace Picky
         public bool AddFeederPickToQueue(Feeder feeder)
         {
             MachineModel machine = MachineModel.Instance;
-            //Go to feeder Origin
+            //Go to Feeder Origin
             Messages.Add(GCommand.SetCameraManualFocus(downCamera, true, Constants.FOCUS_FEEDER_QR_CODE));
-            Messages.Add(GCommand.G_SetPosition(feeder.x_origin, feeder.y_origin, 0, 0, 0));
+            Messages.Add(GCommand.G_SetPosition(feeder.Origin.X, feeder.Origin.Y, 0, 0, 0));
             Messages.Add(GCommand.G_FinishMoves());
             Messages.Add(GCommand.SetCameraManualFocus(downCamera, true, Constants.FOCUS_FEEDER_PART));
             Messages.Add(GCommand.OpticallyAlignToPart(feeder));
             Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
-            //Messages.Add(GCommand.OffsetCameraToPick(feeder.part, machine.selectedPickTool.TipOffsetLower.BestCircle.Z + 2.0));
+            //Messages.Add(GCommand.OffsetCameraToPick(Feeder.Part, machine.selectedPickTool.TipOffsetLower.BestCircle.Z + 2.0));
             Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             Messages.Add(GCommand.G_ProbeZ(Constants.PART_NOMINAL_Z_DRIVE_MM));
             Messages.Add(GCommand.G_FinishMoves());
@@ -327,7 +336,7 @@ namespace Picky
             double part_x = Board.PcbOriginX + (Convert.ToDouble(part.CenterX) * Constants.MIL_TO_MM);
             double part_y = Board.PcbOriginY + (Convert.ToDouble(part.CenterY) * Constants.MIL_TO_MM);
             Messages.Add(GCommand.G_SetXYPosition(part_x, part_y));
-            //Messages.Add(GCommand.OffsetCameraToPick(part, machine.selectedPickTool.TipOffsetLower.BestCircle.Z - 2.0));
+            //Messages.Add(GCommand.OffsetCameraToPick(Part, machine.selectedPickTool.TipOffsetLower.BestCircle.Z - 2.0));
             Messages.Add(GCommand.G_SetXYPosition(0, 0));
             Messages.Add(GCommand.G_SetRotation(Convert.ToDouble(part.Rotation)));
             Messages.Add(GCommand.G_FinishMoves());
@@ -340,12 +349,12 @@ namespace Picky
             return true;
         }
 
-        /*public bool AddPartLocationToQueue(Part part)
+        /*public bool AddPartLocationToQueue(Part Part)
         { /* Sets OPTICAL LOCATION 
-            double part_x = Board.PcbOriginX + (Convert.ToDouble(part.CenterX) * Constants.MIL_TO_MM);
-            double part_y = Board.PcbOriginY + (Convert.ToDouble(part.CenterY) * Constants.MIL_TO_MM);
+            double part_x = Board.PcbOriginX + (Convert.ToDouble(Part.CenterX) * Constants.MIL_TO_MM);
+            double part_y = Board.PcbOriginY + (Convert.ToDouble(Part.CenterY) * Constants.MIL_TO_MM);
             Messages.Add(GCommand.G_SetXYPosition(part_x, part_y));
-            //Messages.Add(GCommand.G_SetRotation(Convert.ToDouble(part.Rotation)));
+            //Messages.Add(GCommand.G_SetRotation(Convert.ToDouble(Part.Rotation)));
             Messages.Add(GCommand.G_FinishMoves());
             //Messages.Add(GCommand.G_ProbeZ(Constants.PCB_NOMINAL_Z_DRIVE_MM));
             Messages.Add(GCommand.G_FinishMoves());

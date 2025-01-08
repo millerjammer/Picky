@@ -23,10 +23,10 @@ namespace Picky
     {
         CalibrationViewModel calVM;
 
-        public CalibrationWindow(MachineModel mm)
+        public CalibrationWindow()
         {
             InitializeComponent();
-            calVM = new CalibrationViewModel(mm);
+            calVM = new CalibrationViewModel();
             this.DataContext = calVM;
         }
 

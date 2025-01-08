@@ -55,28 +55,32 @@ namespace Picky
         private void ButtonXLeft()
         {
             MachineMessage.Pos dest = machine.Messages.Last().target;
-            machine.Messages.Add(GCommand.G_SetPosition( dest.x + distanceToAdvance, dest.y, dest.z, dest.a, dest.b));
+            double dest_z = machine.CurrentZ;   // Needed if following a triggered probe command
+            machine.Messages.Add(GCommand.G_SetPosition( dest.x + distanceToAdvance, dest.y, dest_z, dest.a, dest.b));
         }
 
         public ICommand ButtonXRightCommand { get { return new RelayCommand(ButtonXRight); } }
         private void ButtonXRight()
         {
             MachineMessage.Pos dest = machine.Messages.Last().target;
-            machine.Messages.Add(GCommand.G_SetPosition(dest.x - distanceToAdvance, dest.y, dest.z, dest.a, dest.b));
+            double dest_z = machine.CurrentZ;   // Needed if following a triggered probe command
+            machine.Messages.Add(GCommand.G_SetPosition(dest.x - distanceToAdvance, dest.y, dest_z, dest.a, dest.b));
         }
 
         public ICommand ButtonYUpCommand { get { return new RelayCommand(ButtonYUp); } }
         private void ButtonYUp()
         {
             MachineMessage.Pos dest = machine.Messages.Last().target;
-            machine.Messages.Add(GCommand.G_SetPosition(dest.x, dest.y - distanceToAdvance, dest.z, dest.a, dest.b));
+            double dest_z = machine.CurrentZ;   // Needed if following a triggered probe command
+            machine.Messages.Add(GCommand.G_SetPosition(dest.x, dest.y - distanceToAdvance, dest_z, dest.a, dest.b));
         }
 
         public ICommand ButtonYDownCommand { get { return new RelayCommand(ButtonYDown); } }
         private void ButtonYDown()
         {
             MachineMessage.Pos dest = machine.Messages.Last().target;
-            machine.Messages.Add(GCommand.G_SetPosition(dest.x, dest.y + distanceToAdvance, dest.z, dest.a, dest.b));
+            double dest_z = machine.CurrentZ;   // Needed if following a triggered probe command
+            machine.Messages.Add(GCommand.G_SetPosition(dest.x, dest.y + distanceToAdvance, dest_z, dest.a, dest.b));
         }
 
         public ICommand ButtonXYHomeCommand { get { return new RelayCommand(ButtonXYHome); } }
@@ -91,16 +95,17 @@ namespace Picky
         public ICommand ButtonZUpCommand { get { return new RelayCommand(ButtonZUp); } }
         private void ButtonZUp()
         {
-            MachineMessage.Pos dest = machine.Messages.Last().target;
-            machine.Messages.Add(GCommand.G_SetZPosition(dest.z - distanceToAdvance));
+            double dest_z = machine.CurrentZ;   // Needed if following a triggered probe command
+            machine.Messages.Add(GCommand.G_SetZPosition(dest_z - distanceToAdvance));
+            machine.Messages.Add(GCommand.G_EndstopStates());
         }
-
-           
+                   
         public ICommand ButtonZDownCommand { get { return new RelayCommand(ButtonZDown); } }
         private void ButtonZDown()
         {
-            MachineMessage.Pos dest = machine.Messages.Last().target;
-            machine.Messages.Add(GCommand.G_ProbeZ(dest.z + distanceToAdvance));
+            double dest_z = machine.CurrentZ;   // Needed if following a triggered probe command
+            machine.Messages.Add(GCommand.G_ProbeZ(dest_z + distanceToAdvance));
+            machine.Messages.Add(GCommand.G_EndstopStates());
         }
 
         /**  R-Axis *******************************/
@@ -108,14 +113,16 @@ namespace Picky
         private void ButtonRLeft()
         {
             MachineMessage.Pos dest = machine.Messages.Last().target;
-            machine.Messages.Add(GCommand.G_SetPosition(dest.x, dest.y, dest.z, dest.a + distanceToAdvance, dest.b));
+            double dest_z = machine.CurrentZ;   // Needed if following a triggered probe command
+            machine.Messages.Add(GCommand.G_SetPosition(dest.x, dest.y, dest_z, dest.a + distanceToAdvance, dest.b));
         }
 
         public ICommand ButtonRRightCommand { get { return new RelayCommand(ButtonRRight); } }
         private void ButtonRRight()
         {
             MachineMessage.Pos dest = machine.Messages.Last().target;
-            machine.Messages.Add(GCommand.G_SetPosition(dest.x, dest.y, dest.z, dest.a - distanceToAdvance, dest.b));
+            double dest_z = machine.CurrentZ;   // Needed if following a triggered probe command
+            machine.Messages.Add(GCommand.G_SetPosition(dest.x, dest.y, dest_z, dest.a - distanceToAdvance, dest.b));
         }
 
         /**  Toggle Switches *******************************/

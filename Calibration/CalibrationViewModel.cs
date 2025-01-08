@@ -14,63 +14,29 @@ namespace Picky
 {
     internal class CalibrationViewModel : INotifyPropertyChanged
     {
-        private MachineModel machine;
-        //public CalTargetModel Target { get; set; } 
-        
-        /* Listen for changes on the machine properties and propagate to UI */
-        public MachineModel Machine
-        {
-            get { return machine; }
-        }
-        
+        public MachineModel machine { get; set; }
+                   
         public CalTargetModel Target
         {
             get { return machine.Cal.CalTarget; }
             set { machine.Cal.CalTarget = value; OnPropertyChanged(nameof(Target)); }
         }
-
-        /* This is derived from above */
-        public double DownCameraToPickHeadX
-        {
-            get { return machine.Cal.PickHeadToCameraX; }
-            set { machine.Cal.PickHeadToCameraX = value; OnPropertyChanged(nameof(DownCameraToPickHeadX)); }
-        }
-
-        public double DownCameraToPickHeadY
-        {
-            get { return machine.Cal.PickHeadToCameraY; }
-            set { machine.Cal.PickHeadToCameraY = value; OnPropertyChanged(nameof(DownCameraToPickHeadY)); }
-        }
-        
+               
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public CalibrationViewModel(MachineModel mm)
+        public CalibrationViewModel()
         {
-            machine = mm;
-            machine.PropertyChanged += OnMachinePropertyChanged;
-            //Target = new CalTargetModel();
+            machine = MachineModel.Instance;
         }
-
-        public ICommand CalibrateMMPerStepCommand { get { return new RelayCommand(CalibrateMMPerStep); } }
-        private void CalibrateMMPerStep()
-        {
-             Target.CalibrateMMPerStep();
-        }
-               
-        public ICommand GoMonument00Command { get { return new RelayCommand(GoMonument00); } }
-        private void GoMonument00()
-        {
-            machine.Messages.Add(GCommand.G_SetPosition(Target.Grid.X, Target.Grid.Y, 0, 0, 0));
-        }
-                    
+                                  
         public ICommand WriteStepPerUnitCommand { get { return new RelayCommand(WriteStepPerUnit); } }
         private void WriteStepPerUnit()
         {
-            machine.Messages.Add(GCommand.G_SetStepsPerUnit(machine.Cal.CalculatedStepsPerUnitX, machine.Cal.CalculatedStepsPerUnitY));
+            machine.Messages.Add(GCommand.G_SetStepsPerUnit(machine.Cal.CalculatedStepsPerUnitX, machine.Cal.CalculatedStepsPerUnitY, machine.Cal.CalculatedStepsPerUnitZ));
             machine.Messages.Add(GCommand.G_GetStepsPerUnit());
         }
 
@@ -80,89 +46,69 @@ namespace Picky
             machine.Messages.Add(GCommand.G_GetStepsPerUnit());
         }
 
-        public ICommand OffsetCameraToHeadCommand { get { return new RelayCommand(OffsetToHead); } }
-        private void OffsetToHead()
+        public ICommand SetOriginCasetteQRCommand { get { return new RelayCommand(SetOriginCasetteQR); } }
+        private void SetOriginCasetteQR()
         {
-            var offset = machine.Cal.GetPickHeadOffsetToCameraAtZ(machine.CurrentZ);
-            machine.Messages.Add(GCommand.G_SetXYPosition(machine.CurrentX - offset.x_offset, machine.CurrentY - offset.y_offset));
+            // Set the Region AROUND this Y- Dimension ONLY
+            double y = machine.CurrentY;
+            double z = machine.Cal.CalPad.Z + Constants.ZOFFSET_CAL_PAD_TO_QR;
+            machine.Cal.QRRegion = new Position3D(Constants.TRAVEL_LIMIT_X_MM, y, z, Constants.TRAVEL_LIMIT_X_MM, y + Constants.QR_CODE_SIZE_MM);
+
+            machine.Cal.QRCaptureSettings = machine.downCamera.Settings.Clone();
         }
 
-        public ICommand OffsetHeadToCameraCommand { get { return new RelayCommand(OffsetToCamera); } }
-        private void OffsetToCamera()
+        public ICommand PreviewOriginCassetteQRCommand { get { return new RelayCommand(PreviewOriginCassetteQR); } }
+        private void PreviewOriginCassetteQR()
         {
-            var offset = machine.Cal.GetPickHeadOffsetToCameraAtZ(machine.CurrentZ);
-            machine.Messages.Add(GCommand.G_SetXYPosition(machine.CurrentX + offset.x_offset, machine.CurrentY + offset.y_offset));
+            machine.downCamera.Settings = machine.Cal.QRCaptureSettings.Clone();
+            // This is a ROI and thus a camera term offset to center origin.
+            machine.Messages.Add(GCommand.G_SetXYPosition(machine.Cal.QRRegion.X, machine.Cal.QRRegion.Y));
+            machine.Messages.Add(GCommand.SetCamera(machine.Cal.QRCaptureSettings, machine.downCamera));
+            
         }
 
-        public ICommand SetOriginToUpCameraCommand { get { return new RelayCommand(SetOriginToUpCamera); } }
-        private void SetOriginToUpCamera()
+        public ICommand SetOriginPartChannelCommand { get { return new RelayCommand(SetOriginPartChannel); } }
+        private void SetOriginPartChannel()
         {
-            machine.Cal.OriginToUpCameraX = machine.CurrentX;
-            machine.Cal.OriginToUpCameraY = machine.CurrentY;
+            // Set the Region AROUND this Y- Dimension ONLY
+            double y = machine.CurrentY;
+            double z = machine.Cal.CalPad.Z + Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE;
+            machine.Cal.ChannelRegion = new Position3D(Constants.TRAVEL_LIMIT_X_MM, y, z, Constants.TRAVEL_LIMIT_X_MM, Constants.TRAVEL_LIMIT_Y_MM - y);
+            machine.Cal.ChannelCaptureSettings = machine.downCamera.Settings.Clone();
         }
 
-        public ICommand GoToUpCameraCommand { get { return new RelayCommand(GoToUpCamera); } }
-        private void GoToUpCamera()
+        public ICommand PreviewOriginPartChannelCommand { get { return new RelayCommand(PreviewOriginPartChannel); } }
+        private void PreviewOriginPartChannel()
         {
-            machine.Messages.Add(GCommand.G_SetXYPosition(machine.Cal.OriginToUpCameraX, machine.Cal.OriginToUpCameraY));
+            machine.downCamera.Settings = machine.Cal.ChannelCaptureSettings.Clone();
+            // This is a ROI and thus a camera term offset to upper left origin.
+            machine.Messages.Add(GCommand.G_SetXYPosition(machine.Cal.ChannelRegion.X, machine.Cal.ChannelRegion.Y));
+            machine.Messages.Add(GCommand.SetCamera(machine.Cal.ChannelCaptureSettings, machine.downCamera));
         }
 
-        public ICommand SetOriginToDownCameraCommand { get { return new RelayCommand(SetOriginToDownCamera); } }
-        private void SetOriginToDownCamera()
-        {
-            machine.Cal.OriginToDownCameraX = machine.CurrentX;
-            machine.Cal.OriginToDownCameraY = machine.CurrentY;
-        }
-
-        public ICommand GoToDownCameraCommand { get { return new RelayCommand(GoToDownCamera); } }
-        private void GoToDownCamera()
-        {
-            machine.Messages.Add(GCommand.G_SetXYPosition(machine.Cal.OriginToDownCameraX, machine.Cal.OriginToDownCameraY));
-        }
-
-        public ICommand GetFeeder0Command { get { return new RelayCommand(GetFeeder0); } }
-        private void GetFeeder0()
-        {
-            machine.Cal.Feeder0X = machine.CurrentX;
-            machine.Cal.Feeder0Y = machine.CurrentY;
-        }
-
-        public ICommand GetFeederNCommand { get { return new RelayCommand(GetFeederN); } }
-        private void GetFeederN()
-        {
-            machine.Cal.FeederNX = machine.CurrentX;
-            machine.Cal.FeederNY = machine.CurrentY;
-        }
-
-        public ICommand GoToFeederNCommand { get { return new RelayCommand(GoToFeederN); } }
-        private void GoToFeederN()
-        {
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.FeederNX, machine.Cal.FeederNY - 40, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.FeederNX, machine.Cal.FeederNY, 0, 0, 0));
-        }
-        public ICommand GoToFeeder0Command { get { return new RelayCommand(GoToFeeder0); } }
-        private void GoToFeeder0()
-        {
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.Feeder0X, machine.Cal.Feeder0Y - 40, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.Feeder0X, machine.Cal.Feeder0Y, 0, 0, 0));
-        }
         /*-----------------*/
-                       
-        /* This is called when machine z changes */
-        private void OnMachinePropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            machine.Cal.GetPickHeadOffsetToCameraAtZ(Machine.CurrentZ);
-            //machine.Cal.GetScaleMMPerPixAtZ(Machine.CurrentZ + Constants.TOOL_LENGTH_MM);
-        }
+                
                
         public ICommand CalZProbeCommand { get { return new RelayCommand(CalZProbe); } }
         private void CalZProbe()
         {
-            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.CalPad.X, machine.Cal.CalPad.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.CalPad.X + Constants.CAMERA_TO_HEAD_OFFSET_X_MM, machine.Cal.CalPad.Y + Constants.CAMERA_TO_HEAD_OFFSET_Y_MM, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
-            machine.Messages.Add(GCommand.GetZProbe(Machine.Cal.CalPad));
+            machine.Messages.Add(GCommand.GetZProbe(machine.Cal.CalPad));
             machine.Messages.Add(GCommand.G_SetZPosition(0));
+        }
+
+        public ICommand SetStepOriginCommand { get { return new RelayCommand(SetStepOrigin); } }
+        private void SetStepOrigin()
+        {
+            Target.StepPad.X = machine.CurrentX; Target.StepPad.Y = machine.CurrentY;
+        }
+
+        public ICommand GoToStepOriginCommand { get { return new RelayCommand(GoToStepOrigin); } }
+        private void GoToStepOrigin()
+        {
+            machine.Messages.Add(GCommand.G_SetPosition(Target.StepPad.X, Target.StepPad.Y, 0, 0, 0));
         }
 
         public ICommand GoToDeckPadCommand { get { return new RelayCommand(GoToDeckPad); } }
@@ -182,22 +128,19 @@ namespace Picky
         {
             machine.Cal.IsPreviewLowerTargetActive = false;
             machine.Cal.IsPreviewUpperTargetActive = false;
+            machine.Cal.IsPreviewGridActive = false;
             Target.CalibrateMMPerPixelAtZ();
         }
-        
-        public ICommand MoveToPickLocation { get { return new RelayCommand(moveToPickLocation); } }
-        private void moveToPickLocation()
-        {
-            MachineMessage.Pos dest = machine.Messages.Last().target;
-            machine.Messages.Add(GCommand.G_SetPosition(dest.x + DownCameraToPickHeadX, dest.y + DownCameraToPickHeadY, 0, 0, 0));
-        }
 
-        public ICommand MoveToCameraLocation { get { return new RelayCommand(moveToCameraLocation); } }
-        private void moveToCameraLocation()
+        public ICommand CalibrateMMPerStepCommand { get { return new RelayCommand(CalibrateMMPerStep); } }
+        private void CalibrateMMPerStep()
         {
-            MachineMessage.Pos dest = machine.Messages.Last().target;
-            machine.Messages.Add(GCommand.G_SetPosition(dest.x - DownCameraToPickHeadX, dest.y - DownCameraToPickHeadY, 0, 0, 0));
+            machine.Cal.IsPreviewLowerTargetActive = false;
+            machine.Cal.IsPreviewUpperTargetActive = false;
+            machine.Cal.IsPreviewGridActive = false;
+            Target.CalibrateMMPerStep();
         }
+               
 
         public ICommand OkCommand { get { return new RelayCommand(okCommand); } }
         private void okCommand()

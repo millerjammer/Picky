@@ -63,9 +63,9 @@ namespace Picky
            return cmd.GetMessage();
         }
 
-        public static MachineMessage StepAlignToCalCircle(Position3D target_to_update)
+        public static MachineMessage StepAlignToTemplate(Mat _tamplate, OpenCvSharp.Rect _roi, Position3D _result)
         {
-            StepAlignToCalCircleCommand cmd = new StepAlignToCalCircleCommand(target_to_update);
+            StepAlignToTemplateCommand cmd = new StepAlignToTemplateCommand(_tamplate, _roi, _result);
             return cmd.GetMessage();
         }
         
@@ -75,12 +75,12 @@ namespace Picky
             return cmd.GetMessage();
         }
         
-        public static MachineMessage GetGridCalibration(Mat _template, OpenCvSharp.Rect _roi, Position3D _result)            
+        public static MachineMessage Get3x3GridCalibration(Mat _template, OpenCvSharp.Rect _roi, Position3D _result)            
         {
-            GetGridCalibrationCommand cmd = new GetGridCalibrationCommand(_template, _roi, _result);
+            Get3x3GridCalibrationCommand cmd = new Get3x3GridCalibrationCommand(_template, _roi, _result);
             return cmd.GetMessage();
         }
-        
+
         public static MachineMessage SetCamera(CameraSettings settings, CameraModel camera)
         {
             SetCameraCommand cmd = new SetCameraCommand(settings, camera);
@@ -124,6 +124,9 @@ namespace Picky
             /******************************************************************
             * Units are mm, z is absolute
             * See https://marlinfw.org/docs/gcode/G038.html
+            * 
+            * When we probe, we may not reach the target z, so we need to probe,
+            * then wait to see if we reached the target, if not at target, we add
             */
 
             MachineMessage msg = new MachineMessage();
@@ -183,6 +186,18 @@ namespace Picky
             return msg;
         }
 
+        public static MachineMessage G_SetXYPosition(Position3D pos)
+        {
+            /* Units are mm */
+
+            MachineModel machine = MachineModel.Instance;
+            MachineMessage msg = new MachineMessage();
+            msg.target.x = pos.X; msg.target.y = pos.Y;
+
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} F{2}\n", pos.X, pos.Y, machine.Settings.RateXY));
+            return msg;
+        }
+
         public static MachineMessage G_SetPosition(double x, double y, double z, double a, double b)
         {
             /* Units are mm */
@@ -200,6 +215,13 @@ namespace Picky
         {
             MachineMessage msg = new MachineMessage();
             msg.cmd = Encoding.UTF8.GetBytes(string.Format("M503\n"));
+            return msg;
+        }
+
+        public static MachineMessage G_EndstopStates()
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M119\n"));
             return msg;
         }
 
@@ -310,11 +332,11 @@ namespace Picky
             return msg;
         }
 
-        public static MachineMessage G_SetStepsPerUnit(double x_steps_per_unit, double y_steps_per_unit)
+        public static MachineMessage G_SetStepsPerUnit(double x_steps_per_unit, double y_steps_per_unit, double z_steps_per_unit)
         {
             MachineMessage msg = new MachineMessage();
             msg.delay = 1000;
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M92 X{0} Y{1}\n", x_steps_per_unit, y_steps_per_unit));
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M92 X{0} Y{1} Z{2}\n", x_steps_per_unit, y_steps_per_unit, z_steps_per_unit));
             return msg;
         }
                

@@ -9,18 +9,21 @@ namespace Picky
 {
     public class Feeder : INotifyPropertyChanged
     {
-        /* Calibration Grid Size and Location of 1st */
+        /* Calibration GridOrigin Size and Location of 1st */
         public static double FEEDER_8MM_WIDTH_MILS = 500;
         public static double FEEDER_ORIGIN_TO_DRIVE_YOFFSET_MM = 50;
         public static double FEEDER_ORIGIN_TO_DRIVE_XOFFSET_MM = 2;
+        public static double PICK_CHANNEL_OFFSET_Y_MM = 10;
+        public static double PICK_CHANNEL_WIDTH_MM = 10;
+        public static double PICK_CHANNEL_LENGTH_MM = 40;
 
         MachineModel machine = MachineModel.Instance;
 
-        private Part _part;
-        public Part part
+        private Part part;
+        public Part Part
         {
-            get { return _part; }
-            set { _part = value; Console.WriteLine("feeder part changed"); OnPropertyChanged(nameof(part)); }
+            get { return part; }
+            set { part = value; OnPropertyChanged(nameof(Part)); }
         }
 
         public int index { get; set; }
@@ -34,47 +37,21 @@ namespace Picky
         public Position3D NextPartOpticalLocation
         {
             get { return nextPartOpticalLocation; }
-            set
-            {
-                if (nextPartOpticalLocation != value)
-                {
-                    nextPartOpticalLocation = value;
-                    OnPropertyChanged(nameof(NextPartOpticalLocation));
-                }
-            }
+            set { nextPartOpticalLocation = value; OnPropertyChanged(nameof(NextPartOpticalLocation));  }
         }
 
         private Position3D nextPartPickLocation = new Position3D(0, 0, 0);
         public Position3D NextPartPickLocation
         {
             get { return nextPartPickLocation; }
-            set
-            {
-                if (nextPartPickLocation != value)
-                {
-                    nextPartPickLocation = value;
-                    OnPropertyChanged(nameof(NextPartPickLocation));
-                }
-            }
+            set { nextPartPickLocation = value; OnPropertyChanged(nameof(NextPartPickLocation)); }
         }
 
-        private double _x_origin;
-        public double x_origin
+        private Position3D origin = new Position3D(0, 0, 0);
+        public Position3D Origin
         {
-            get { return _x_origin; }
-            set { _x_origin = value; OnPropertyChanged(nameof(x_origin)); }
-        }
-        private double _y_origin;
-        public double y_origin
-        {
-            get { return _y_origin; }
-            set { _y_origin = value; OnPropertyChanged(nameof(y_origin)); }
-        }
-        private double _z_origin;
-        public double z_origin
-        {
-            get { return _z_origin; }
-            set { _z_origin = value; OnPropertyChanged(nameof(z_origin)); }
+            get { return origin; }
+            set { origin = value; OnPropertyChanged(nameof(Origin)); }
         }
 
         private string qrCode;
@@ -89,28 +66,36 @@ namespace Picky
         public double x_drive { get; set; }
         public double y_drive { get; set; }
 
-        private string pickToolName;
-        public string PickToolName
+        private PickToolModel pickTool;
+        public PickToolModel PickTool
         {
-            get { return pickToolName; }
-            set { pickToolName = value; OnPropertyChanged(nameof(PickToolName)); }
+            get { return pickTool; }
+            set { pickTool = value; OnPropertyChanged(nameof(PickTool)); }
         }
 
 
         public Feeder()
         {
-            _part = new Part();
-            _part.PropertyChanged += OnPartPropertyChanged;
+            part = new Part();
+            part.PropertyChanged += OnPartPropertyChanged;
+        }
+
+        public Position3D GetPickROI()
+        {
+            double x = Origin.X + (PICK_CHANNEL_WIDTH_MM / 2);
+            double y = Origin.Y + PICK_CHANNEL_OFFSET_Y_MM;
+            return new Position3D {  X = x, Y = y, Width = PICK_CHANNEL_WIDTH_MM, Height = PICK_CHANNEL_LENGTH_MM };
+
         }
 
         public void SetCandidateNextPartPickLocation(double x_next, double y_next, double targetZ)
         {
             /*----------------------------------------------------------------------
-             * When part is in view, call here to update the part's position, optically
+             * When Part is in view, call here to update the Part's position, optically
              * and pick tool. x and y are in terms of pixels in the current full frame.
              * This routine will convert the pixels to the center of the frame, add
              * the machine current position and calculate the offset too the selected 
-             * tool head if available. targetZ is in mm and is location of part z
+             * tool head if available. targetZ is in mm and is location of Part z
              * ---------------------------------------------------------------------*/
 
             // Get pixel offset relative to center of frame.
@@ -130,7 +115,7 @@ namespace Picky
                 return;
             }
             PickToolModel tool = machine.SelectedPickTool;
-            NextPartPickLocation.Z = Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE + tool.LowerCal.TipPosition.Z;
+            NextPartPickLocation.Z = Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE + tool.UpperCal.TipPosition.Z;
             Position3D pos = machine.SelectedPickTool.GetToolTipOffsetAtZ(NextPartPickLocation.Z);
             NextPartPickLocation.X = NextPartOpticalLocation.X - pos.X;
             NextPartPickLocation.Y = NextPartOpticalLocation.Y + pos.Y;
@@ -139,8 +124,8 @@ namespace Picky
 
         private void OnPartPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            // Something changed on a _part, force a get on the new _part property
-            OnPropertyChanged("part");
+            // Something changed on a part, force a get on the new part property
+            OnPropertyChanged("Part");
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -152,8 +137,8 @@ namespace Picky
         public ICommand GoToFeederCommand { get { return new RelayCommand(GoToFeeder); } }
         public void GoToFeeder()
         {
-            Console.WriteLine("Go To Feeder Position: " + x_origin + " mm " + y_origin + " mm");
-            machine.Messages.Add(GCommand.G_SetPosition(x_origin, y_origin, 0, 0, 0));
+            Console.WriteLine("Go To Feeder Position: " + Origin.X + " mm " + Origin.Y + " mm");
+            machine.Messages.Add(GCommand.G_SetPosition(Origin.X, Origin.Y, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.GetFeederQRCode(this));
         }
@@ -176,10 +161,10 @@ namespace Picky
         {
             foreach (Part part in machine.PickList)
             {
-                if (part.Equals(machine.selectedCassette.selectedFeeder.part))
-                    part.cassette = null;
+                if (part.Equals(machine.SelectedCassette.SelectedFeeder.Part))
+                    part.Cassette = null;
             }
-            machine.selectedCassette.Feeders.Remove(machine.selectedCassette.selectedFeeder);
+            machine.SelectedCassette.Feeders.Remove(machine.SelectedCassette.SelectedFeeder);
         }
 
         public ICommand GoToNextPickComponentCommand { get { return new RelayCommand(GoToNextPickComponent); } }
@@ -219,20 +204,20 @@ namespace Picky
                 {
                     OpenCvSharp.Rect roi = Cv2.SelectROI("Select ROI", mat);
                     // Capture the selected ROI
-                    part.Template = new Mat(machine.downCamera.ColorImage, roi);
+                    Part.Template = new Mat(machine.downCamera.ColorImage, roi);
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine("Ouch - Memory Exception: " + ex.ToString());
                 }
 
-                // Write part template to file
+                // Write Part template to file
                 DateTime now = DateTime.Now;
                 String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                String filename = path + "\\" + part.Footprint + "-" + now.ToString("MMddHHmmss") + ".png";
-                Cv2.ImWrite(filename, part.Template);
+                String filename = path + "\\" + Part.Footprint + "-" + now.ToString("MMddHHmmss") + ".png";
+                Cv2.ImWrite(filename, Part.Template);
                 while (File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read) == null) { }
-                part.TemplateFileName = filename;
+                Part.TemplateFileName = filename;
 
             }
         }

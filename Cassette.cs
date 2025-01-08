@@ -16,6 +16,9 @@ namespace Picky
     {
         MachineModel machine = MachineModel.Instance;
 
+        public static double CASSETTE_ORIGIN_X = 280.0;
+        public static double CASSETTE_ORIGIN_Y = 280.0;
+
         public string FullFileName;
 
         private string _name = "untitled";
@@ -24,71 +27,50 @@ namespace Picky
             get { return _name; }
             set { _name = value; OnPropertyChanged(nameof(name)); }
         }
-
-        private double _x_origin = Constants.CASSETTE_ORIGIN_X;
-        public double x_origin
+               
+        private Position3D origin = new Position3D(CASSETTE_ORIGIN_X, CASSETTE_ORIGIN_Y, 0);
+        public Position3D Origin
         {
-            get { return _x_origin; }
-            set { _x_origin = value; OnPropertyChanged(nameof(x_origin)); }
-        }
-        private double _y_origin = Constants.CASSETTE_ORIGIN_Y;
-        public double y_origin
-        {
-            get { return _y_origin; }
-            set { _y_origin = value; OnPropertyChanged(nameof(y_origin)); }
-        }
-        private double _z_origin = 0;
-        public double z_origin
-        {
-            get { return _z_origin; }
-            set { _z_origin = value; OnPropertyChanged(nameof(z_origin)); }
+            get { return origin; }
+            set { origin = value; OnPropertyChanged(nameof(Origin)); }
         }
 
-        private Feeder _selectedFeeder;
-        public Feeder selectedFeeder
+        private Feeder selectedFeeder;
+        public Feeder SelectedFeeder
         {
-            get { return _selectedFeeder; }
-            set { _selectedFeeder = value; Console.WriteLine("sel cassette feeder changed"); OnPropertyChanged(nameof(selectedFeeder)); }
+            get { return selectedFeeder; }
+            set { selectedFeeder = value; Console.WriteLine("Selected Feeder Set"); OnPropertyChanged(nameof(SelectedFeeder)); }
         }
 
         private ObservableCollection<Feeder> feeders;
         public ObservableCollection<Feeder> Feeders
         {
             get { return feeders; }
-            set
-            {
-                feeders = value;
-                Console.WriteLine("sel cassette feeder changed");
-                OnPropertyChanged(nameof(Feeders));
-            }
+            set { feeders = value; OnPropertyChanged(nameof(Feeders)); }
         }
 
         private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             UpdateFeederLocationsWithinCassette();
-            Console.WriteLine("feeder collection changed");
+            Console.WriteLine("Feeder collection changed");
             OnPropertyChanged(nameof(Feeders)); // Notify that the collection has changed
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void OnPropertyChanged(string propertyName)
         {
-            Console.WriteLine("cassette prop changed - " + propertyName);
+            Console.WriteLine("Cassette prop changed - " + propertyName);
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         private void UpdateFeederLocationsWithinCassette()
         {
-            double offset = 0;
+            double x, offset = 0;
             for (int i = 0; i < feeders.Count; i++)
             {
-                feeders.ElementAt(i).z_origin = 0;
-                feeders.ElementAt(i).y_origin = y_origin;
-                feeders.ElementAt(i).x_origin = x_origin + offset + (feeders.ElementAt(i).thickness/2);
+                x = Origin.X + offset + (feeders.ElementAt(i).thickness/2);
+                feeders.ElementAt(i).Origin = new Position3D(x, Origin.Y, 0, 0);
                 offset += feeders.ElementAt(i).thickness;
-
-                feeders.ElementAt(i).y_drive = feeders.ElementAt(i).y_origin + Feeder.FEEDER_ORIGIN_TO_DRIVE_YOFFSET_MM;
-                feeders.ElementAt(i).x_drive = feeders.ElementAt(i).x_origin + Feeder.FEEDER_ORIGIN_TO_DRIVE_XOFFSET_MM;
             }
         }
 
@@ -101,19 +83,26 @@ namespace Picky
 
         }
 
+        public ICommand AddFeederCommand { get { return new RelayCommand(AddFeeder); } }
+        public void AddFeeder()
+        {
+            Feeder feeder = new Feeder();
+            feeder.Part = new Part();
+            feeders.Add(feeder);
+        }
+
         public ICommand GoToCassetteCommand { get { return new RelayCommand(GoToCassette); } }
         public void GoToCassette()
         {
-            Console.WriteLine("Go To Cassette Position: " + x_origin + " mm " + y_origin + " mm");
-            machine.Messages.Add(GCommand.G_SetPosition(x_origin, y_origin,0 ,0 ,0 ));
+            Console.WriteLine("Go To Cassette Position: " + Origin.X + " mm " + Origin.Y + " mm");
+            machine.Messages.Add(GCommand.G_SetPosition(Origin.X, Origin.Y,0 ,0 ,0 ));
         }
 
         public ICommand SetCassetteHomeCommand { get { return new RelayCommand(SetCassetteHome); } }
         private void SetCassetteHome()
         {
-            x_origin = machine.CurrentX;
-            y_origin = machine.CurrentY;
-            Console.WriteLine("Cassette Home: " + x_origin + " mm " + y_origin + " mm");
+            Origin = new Position3D(machine.CurrentX, machine.CurrentY);
+            Console.WriteLine("Cassette Home: " + Origin.X + " mm " + Origin.Y + " mm");
             UpdateFeederLocationsWithinCassette();
         }
 
@@ -134,7 +123,7 @@ namespace Picky
         public ICommand SaveCassetteCommand { get { return new RelayCommand(SaveCassette); } }
         private void SaveCassette()
         {
-            /* Ignore a Parts reference to it's cassette */
+            /* Ignore a Parts reference to it's Cassette */
             File.WriteAllText(FullFileName, JsonConvert.SerializeObject(this, Formatting.Indented,
                new JsonSerializerSettings()
                     {

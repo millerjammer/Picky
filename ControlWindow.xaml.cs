@@ -32,7 +32,7 @@ namespace Picky
             upCam.Content = new CameraView(machine.upCamera);
             downCam.Content = new CameraView(machine.downCamera);
 
-            calibrationWindow = new CalibrationWindow(machine);
+            calibrationWindow = new CalibrationWindow();
             messageWindow = new MessageWindow(machine);
            
         }

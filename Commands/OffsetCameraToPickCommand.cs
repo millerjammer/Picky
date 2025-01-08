@@ -39,10 +39,10 @@ namespace Picky.Tools
             {
                 MachineModel machine = MachineModel.Instance;
                 machine.selectedPickListPart = part;
-                if (part.cassette != null)
+                if (part.Cassette != null)
                 {
-                    machine.selectedCassette = part.cassette;
-                    machine.selectedCassette.selectedFeeder = part.feeder;
+                    machine.SelectedCassette = part.Cassette;
+                    machine.SelectedCassette.SelectedFeeder = part.Feeder;
                 }
             }
             return true;
@@ -55,21 +55,21 @@ namespace Picky.Tools
             MachineModel machine = MachineModel.Instance;
             MachineMessage message = machine.Messages.ElementAt(machine.Messages.IndexOf(msg) - 1);
 
-            //Get offset in pixels and add to last target
-            //Point2d offset = GetCalibratedOffset(targetZ, double.Parse(part.Rotation));
+            //Get offset in pixels and add to last template
+            //Point2d offset = GetCalibratedOffset(targetZ, double.Parse(Part.Rotation));
             //Convert to mm
             var scale = machine.Cal.GetScaleMMPerPixAtZ(targetZ);
-           // double x = message.target.x + (scale.xScale * offset.X); // machine.Cal.OriginToDownCameraX;
-            //double y = message.target.y + (scale.yScale * offset.Y); // machine.Cal.OriginToDownCameraY;
+           // double x = message.template.x + (scale.xScale * offset.X); // machine.Cal.OriginToDownCameraX;
+            //double y = message.template.y + (scale.yScale * offset.Y); // machine.Cal.OriginToDownCameraY;
 
 
             //Update next command
-           // Console.WriteLine("Part: x:" + message.target.x + "mm ," + message.target.y + "mm");
+           // Console.WriteLine("Part: x:" + message.template.x + "mm ," + message.template.y + "mm");
             //Console.WriteLine("For Pick: x:" + x + "mm ," + y + "mm");
             //message = machine.Messages.ElementAt(machine.Messages.IndexOf(msg) + 1);
-           // message.target.x = x;
-           // message.target.y = y;
-            //message.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1}\n", message.target.x, message.target.y));
+           // message.template.x = x;
+           // message.template.y = y;
+            //message.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1}\n", message.template.x, message.template.y));
             Console.WriteLine("Done");
             return true;
         }

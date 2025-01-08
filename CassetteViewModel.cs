@@ -25,8 +25,8 @@ namespace Picky
 
         public Cassette selectedCassette
         {
-            get { return Machine.selectedCassette; } 
-            set { Machine.selectedCassette = value; if(Machine.selectedCassette != null) Machine.selectedCassette.PropertyChanged += SelectedCassette_PropertyChanged; OnPropertyChanged(nameof(selectedCassette)); }
+            get { return Machine.SelectedCassette; } 
+            set { Machine.SelectedCassette = value; if(Machine.SelectedCassette != null) Machine.SelectedCassette.PropertyChanged += SelectedCassette_PropertyChanged; OnPropertyChanged(nameof(selectedCassette)); }
         }
 
         private void SelectedCassette_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -68,21 +68,21 @@ namespace Picky
 
         public void UpdatePickListCassetteReferences()
         {
-            /* Update the cassette references to each part in the pickList */
-            /* Occurs on cassetee or feeder collection change cassette i.e. add, remove */
+            /* Update the Cassette references to each Part in the pickList */
+            /* Occurs on cassetee or Feeder collection change Cassette i.e. add, remove */
             Console.WriteLine("Adding PickList Part Cassette References... ");
             foreach (Part part in Machine.PickList)
             {
-                part.cassette = null;
+                part.Cassette = null;
                 
                 foreach (Cassette cassette in Machine.Cassettes)
                 {
                     foreach (Feeder feeder in cassette.Feeders)
                     {
-                        if (part.Description == feeder.part.Description && part.Footprint == feeder.part.Footprint)
+                        if (part.Description == feeder.Part.Description && part.Footprint == feeder.Part.Footprint)
                         {
-                            part.cassette = cassette;
-                            part.feeder = feeder;
+                            part.Cassette = cassette;
+                            part.Feeder = feeder;
                         }
                     }
                 }
@@ -104,7 +104,7 @@ namespace Picky
                     Machine.Cassettes.Add((Cassette)serializer.Deserialize(file, typeof(Cassette)));
                 }
             }
-            Machine.selectedCassette = Machine.Cassettes.Last();
+            Machine.SelectedCassette = Machine.Cassettes.Last();
         }
     }
 }

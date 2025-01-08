@@ -134,7 +134,7 @@ namespace Picky
 
         public override string  ToString()
         {
-            return string.Format("X:{0} Y:{1} Z:{2} Angle: {3} Rotation: {4} Radius: {5}", X, Y, Z, Angle, Rotation, Radius);
+            return string.Format("X:{0} Y:{1} Z:{2} Angle: {3} Rot: {4} Rad: {5} W: {6} H: {7}", X, Y, Z, Angle, Rotation, Radius, Width, Height);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
