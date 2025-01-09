@@ -181,9 +181,16 @@
     <Compile Include="ControlWindow.xaml.cs">
       <DependentUpon>ControlWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Feeder.cs" />
     <Compile Include="Commands\GCommand.cs" />
+    <Compile Include="FeederModel.cs" />
+    <Compile Include="FeederViewModel.cs" />
+    <Compile Include="FeederWindow.xaml.cs">
+      <DependentUpon>FeederWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ImageProcessingStyle.cs" />
+    <Compile Include="InputDialog.xaml.cs">
+      <DependentUpon>InputDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Machine\MachineModel.cs" />
     <Compile Include="Machine\MachineMessage.cs" />
     <Compile Include="Machine\MachineView.xaml.cs">
@@ -200,6 +207,7 @@
     <Compile Include="PickListViewModel.cs" />
     <Compile Include="Commands\OpticallyAlignToPartCommand.cs" />
     <Compile Include="Position3D.cs" />
+    <Compile Include="QRCodeUtils.cs" />
     <Compile Include="SettingsModel.cs" />
     <Compile Include="SettingsViewModel.cs" />
     <Compile Include="SettingsWindow.xaml.cs">
@@ -233,6 +241,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ControlWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="FeederWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="InputDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

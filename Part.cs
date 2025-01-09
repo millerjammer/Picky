@@ -46,8 +46,8 @@ namespace Picky
             set { cassette = value; OnPropertyChanged(nameof(Cassette)); }
         }
         
-        private Feeder feeder;
-        public Feeder Feeder
+        private FeederModel feeder;
+        public FeederModel Feeder
         {
             get { return feeder; }
             set { feeder = value; OnPropertyChanged(nameof(Feeder)); }

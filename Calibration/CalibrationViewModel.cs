@@ -52,8 +52,7 @@ namespace Picky
             // Set the Region AROUND this Y- Dimension ONLY
             double y = machine.CurrentY;
             double z = machine.Cal.CalPad.Z + Constants.ZOFFSET_CAL_PAD_TO_QR;
-            machine.Cal.QRRegion = new Position3D(Constants.TRAVEL_LIMIT_X_MM, y, z, Constants.TRAVEL_LIMIT_X_MM, y + Constants.QR_CODE_SIZE_MM);
-
+            machine.Cal.QRRegion = new Position3D(Constants.TRAVEL_LIMIT_X_MM, y, z, Constants.TRAVEL_LIMIT_X_MM, Constants.QR_CODE_SIZE_MM);
             machine.Cal.QRCaptureSettings = machine.downCamera.Settings.Clone();
         }
 

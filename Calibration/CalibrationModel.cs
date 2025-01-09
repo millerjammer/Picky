@@ -14,7 +14,7 @@ namespace Picky
     {
         public CalTargetModel CalTarget { get; set; }
 
-        /* Feeder/Cassette */
+        /* FeederModel/Cassette */
         private Position3D qRRegion = new Position3D(Constants.TRAVEL_LIMIT_X_MM, 200.0, 0, Constants.TRAVEL_LIMIT_X_MM, 10.0);
         public Position3D QRRegion
         {
@@ -195,7 +195,7 @@ namespace Picky
 
             QRCaptureSettings = new CameraSettings();
             ChannelCaptureSettings = new CameraSettings();
-    }
+        }
             
 
         /* Calculate Values Based on Calibration */
@@ -213,8 +213,37 @@ namespace Picky
          
             return (mmPerPixX, mmPerPixY);
         }
-              
-                       
+
+        public OpenCvSharp.Rect GetQRCodeROI()
+        {
+            /*------------------------------------------------------------------------------------
+             * Returns the roi, in pixels based on current position and defined QR code region.
+             * The defined region and the current position is in pixels.  If the pixel calculation
+             * is beyond the limits of the frame the Rect is bounded at the frame edge.  Also uses
+             * scale at the given Z.  Yes, lots going on here!
+             * -----------------------------------------------------------------------------------*/
+
+            MachineModel machine = MachineModel.Instance;
+            var scale = GetScaleMMPerPixAtZ(QRRegion.Z);
+
+            int x = 0;
+
+            double y_mm = machine.CurrentY - QRRegion.Y;
+            double y_pix = y_mm / scale.yScale;
+            int y = (y_pix > Constants.CAMERA_FRAME_HEIGHT) ? 0 : (int)((Constants.CAMERA_FRAME_HEIGHT / 2 ) - y_pix);
+
+            int width = Constants.CAMERA_FRAME_WIDTH;
+
+            double height_mm = Constants.QR_CODE_SIZE_MM;
+            double height_pix = height_mm / scale.yScale;
+            int height = ((height_pix + y) > Constants.CAMERA_FRAME_HEIGHT) ? Constants.CAMERA_FRAME_HEIGHT - y : (int)height_pix;
+
+            OpenCvSharp.Rect rect = new Rect(x, y, width, height);
+            //Console.WriteLine("QR ROI (px): " + rect.ToString());
+
+            return rect;
+        }
+
         /* Default Send Notification boilerplate - properties that notify use OnPropertyChanged */
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged(string propertyName)

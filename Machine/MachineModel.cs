@@ -181,7 +181,7 @@ namespace Picky
         public event NotifyCollectionChangedEventHandler CollectionChanged;
         private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            Console.WriteLine("Feeder collection changed");
+            Console.WriteLine("FeederModel collection changed");
             OnPropertyChanged(nameof(Cassettes)); // Notify that the collection has changed
         }
 
@@ -191,13 +191,16 @@ namespace Picky
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private void ShowEst()
+        public bool IsMachineInQRRegion()
         {
-            if(SelectedPickTool != null)
+            if (CurrentY > Cal?.QRRegion.Y)
             {
-                Console.WriteLine("zEst: " + SelectedPickTool.GetToolTipOffsetAtZ(CurrentZ).ToString());
+                if (CurrentY < (Cal?.QRRegion.Y + Cal?.QRRegion.Height))
+                   return true;
             }
+            return false;
         }
+
 
         private MachineModel()
         {
@@ -307,17 +310,17 @@ namespace Picky
             Console.WriteLine("Calibration Configuration Data Saved.");
 
         }
-        public bool AddFeederPickToQueue(Feeder feeder)
+        public bool AddFeederPickToQueue(FeederModel feeder)
         {
             MachineModel machine = MachineModel.Instance;
-            //Go to Feeder Origin
+            //Go to FeederModel Origin
             Messages.Add(GCommand.SetCameraManualFocus(downCamera, true, Constants.FOCUS_FEEDER_QR_CODE));
             Messages.Add(GCommand.G_SetPosition(feeder.Origin.X, feeder.Origin.Y, 0, 0, 0));
             Messages.Add(GCommand.G_FinishMoves());
             Messages.Add(GCommand.SetCameraManualFocus(downCamera, true, Constants.FOCUS_FEEDER_PART));
             Messages.Add(GCommand.OpticallyAlignToPart(feeder));
             Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
-            //Messages.Add(GCommand.OffsetCameraToPick(Feeder.Part, machine.selectedPickTool.TipOffsetLower.BestCircle.Z + 2.0));
+            //Messages.Add(GCommand.OffsetCameraToPick(FeederModel.Part, machine.selectedPickTool.TipOffsetLower.BestCircle.Z + 2.0));
             Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             Messages.Add(GCommand.G_ProbeZ(Constants.PART_NOMINAL_Z_DRIVE_MM));
             Messages.Add(GCommand.G_FinishMoves());
@@ -348,21 +351,5 @@ namespace Picky
             Messages.Add(GCommand.G_SetZPosition(0));
             return true;
         }
-
-        /*public bool AddPartLocationToQueue(Part Part)
-        { /* Sets OPTICAL LOCATION 
-            double part_x = Board.PcbOriginX + (Convert.ToDouble(Part.CenterX) * Constants.MIL_TO_MM);
-            double part_y = Board.PcbOriginY + (Convert.ToDouble(Part.CenterY) * Constants.MIL_TO_MM);
-            Messages.Add(GCommand.G_SetXYPosition(part_x, part_y));
-            //Messages.Add(GCommand.G_SetRotation(Convert.ToDouble(Part.Rotation)));
-            Messages.Add(GCommand.G_FinishMoves());
-            //Messages.Add(GCommand.G_ProbeZ(Constants.PCB_NOMINAL_Z_DRIVE_MM));
-            Messages.Add(GCommand.G_FinishMoves());
-            //Messages.Add(GCommand.G_EnablePump(false));
-            //Messages.Add(GCommand.G_EnableValve(false));
-            Messages.Add(GCommand.Delay(10));
-            Messages.Add(GCommand.G_SetZPosition(0));
-            return true;
-        }*/
     }
 }

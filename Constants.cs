@@ -74,7 +74,7 @@ namespace Picky
         public static double TRAVEL_LIMIT_X_MM = 284.00;
         public static double TRAVEL_LIMIT_Y_MM = 245.00;
 
-        public static double QR_CODE_SIZE_MM = 10.0;
+        public static double QR_CODE_SIZE_MM = 12.0;
 
         public static double CAMERA_TO_HEAD_OFFSET_Y_MM = 17;
         public static double CAMERA_TO_HEAD_OFFSET_X_MM = 1;

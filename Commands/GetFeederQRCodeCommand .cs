@@ -8,7 +8,7 @@ namespace Picky
     public class GetFeederQRCodeCommand : MessageRelayCommand
     /*------------------------------------------------------------------------------
      * This command uses the down camera to image a QR Code and calculate
-     * it's position.  The Feeder data is updated 
+     * it's position.  The FeederModel data is updated 
      * 
      * REQUIREMENTS:
      *      Up Illuminator 'Off'
@@ -21,18 +21,18 @@ namespace Picky
         public MachineMessage msg;
         public CameraModel cameraToUse;
         public OpenCvSharp.Rect ROI;
-        public Feeder currentFeeder;
+        public FeederModel currentFeeder;
         
 
 
-        public GetFeederQRCodeCommand(Feeder feeder)
+        public GetFeederQRCodeCommand(FeederModel feeder)
         {
             machine = MachineModel.Instance;
             currentFeeder = feeder;
             ROI = new OpenCvSharp.Rect(Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 4, Constants.CAMERA_FRAME_WIDTH / 3, Constants.CAMERA_FRAME_HEIGHT / 2);
             msg = new MachineMessage();
             msg.messageCommand = this;
-            msg.cmd = Encoding.ASCII.GetBytes("J102 Get Feeder QR Code\n");
+            msg.cmd = Encoding.ASCII.GetBytes("J102 Get FeederModel QR Code\n");
             cameraToUse = machine.downCamera;
         }
 
@@ -60,7 +60,7 @@ namespace Picky
                 double y_center_mm = msg.target.y - (scale.yScale * y_center_pix);
                 if (currentFeeder != null)
                 {
-                    //Update Feeder QR Code and location
+                    //Update FeederModel QR Code and location
                     currentFeeder.Origin.X = x_center_mm;
                     currentFeeder.Origin.Y = y_center_mm;
                     currentFeeder.QRCode = cameraToUse.CurrentQRCode[0];

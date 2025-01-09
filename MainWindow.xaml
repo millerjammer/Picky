@@ -7,7 +7,7 @@
         d:DataContext="{d:DesignInstance Type=local:MainWindow}"
         xmlns:local="clr-namespace:Picky" 
         mc:Ignorable="d" FontSize="12" 
-        Height="800" Width="1000" ResizeMode="CanResize"
+        Height="1000" Width="1000" ResizeMode="CanResize"
         WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterScreen" Background="Transparent">
 
     <Window.Resources>
@@ -52,7 +52,13 @@
                         <TextBlock Text="Machine" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </ui:Button>
-            <ui:Button Width="85" Height="80" Command="{Binding OnPCBCommand}">
+                <ui:Button Width="85" Height="80" Command="{Binding OnFeedersCommand}">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE714;" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Parts" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </ui:Button>
+                <ui:Button Width="85" Height="80" Command="{Binding OnPCBCommand}">
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                         <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xF404;" HorizontalAlignment="Center"/>
                         <TextBlock Text="Board" HorizontalAlignment="Center"/>

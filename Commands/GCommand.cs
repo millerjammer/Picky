@@ -51,7 +51,7 @@ namespace Picky
             return cmd.GetMessage();
         }
 
-        public static MachineMessage OpticallyAlignToPart(Feeder feeder)
+        public static MachineMessage OpticallyAlignToPart(FeederModel feeder)
         {
             OpticallyAlignToPartCommand cmd = new OpticallyAlignToPartCommand(feeder);
             return cmd.GetMessage();
@@ -107,7 +107,7 @@ namespace Picky
             return cmd.GetMessage();
         }
                 
-        public static MachineMessage GetFeederQRCode(Feeder feeder)
+        public static MachineMessage GetFeederQRCode(FeederModel feeder)
         {
             GetFeederQRCodeCommand cmd = new GetFeederQRCodeCommand(feeder);
             return cmd.GetMessage();

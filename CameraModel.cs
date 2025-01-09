@@ -30,6 +30,7 @@ namespace Picky
         public Mat ThresImage { get; set; }
         public Mat EdgeImage { get; set; }
         public Mat DilatedImage { get; set; }
+        public Mat QRDetectImage { get; set; }
         public Mat MatchImage { get; set; }
         public Mat MatchThresholdImage { get; set; }
         public Mat searchTemplate { get; set; }
@@ -67,6 +68,7 @@ namespace Picky
         private CircleSegment[] Circles;
 
         /* QR Request */
+        List<(string str, OpenCvSharp.Rect pos)> qrZoneResults = new List<(string str, OpenCvSharp.Rect pos)>();
         public bool searchQRRequest = false;
         private OpenCvSharp.Rect searchQRROI;
         private string[] currentQRCode;
@@ -111,6 +113,7 @@ namespace Picky
             ThresImage = new Mat();
             EdgeImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
             DilatedImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
+            QRDetectImage = new Mat();
             MatchImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
             MatchThresholdImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
 
@@ -213,7 +216,7 @@ namespace Picky
             searchQRROI = roi;
         }
         
-        private bool DecodeQRCode()
+        private bool DecodeQRCode(OpenCvSharp.Rect search_roi, List<(string str, OpenCvSharp.Rect pos)> search_result)
         {
             /************************************************************************
              * Private function for decoding QR codes
@@ -222,30 +225,36 @@ namespace Picky
              * RequestQRCode()
              * GetQRCode()
              * IsQRSearchActive()
-             * 
+             * BY experimentation reduction to .3 is optimal
              * ***********************************************************************/
-
+            
             try
             {
                 using (var detector = new QRCodeDetector())
                 {
-                    QRImageROI = new Mat(GrayImage, searchQRROI);
+                    Mat iQRImageROI = new Mat(ThresImage, search_roi);
 
-                    detector.DetectMulti(QRImageROI, out currentQRCodePoints);
+                    Mat resizedImage = new Mat();
+                    Cv2.Resize(iQRImageROI, resizedImage, new OpenCvSharp.Size(0, 0), 0.3, 0.3);
+
+                    // Perform morphology - reducing image size seems to be the best followed by .Open
+                    Mat kernel = Cv2.GetStructuringElement(MorphShapes.Rect, new OpenCvSharp.Size(3, 3)); // 3x3 rectangular kernel
+                    Cv2.MorphologyEx(resizedImage, QRDetectImage, MorphTypes.Open, kernel);
+
+                    detector.DetectMulti(QRDetectImage, out currentQRCodePoints);
                     if (currentQRCodePoints.Length <= 0)
                         return false;
-                    detector.DecodeMulti(QRImageROI, currentQRCodePoints, out currentQRCode);
-                    for (int i = 0; i < currentQRCode.Length; i++)
-                    {
-                        // Offset all point to reference a full frame since we might have specified a roi
-                        for (int j = 0; j < 4; j++)
-                        {
-                            currentQRCodePoints[(4 * i) + j].X += searchQRROI.X;
-                            currentQRCodePoints[(4 * i) + j].Y += searchQRROI.Y;
-                        }
-                        Console.WriteLine("QR: " + currentQRCode[i] + " " + currentQRCodePoints[ (4 * i) ] + " " + currentQRCodePoints[ (4 * i) + 1] + " " + currentQRCodePoints[(4 * i) + 2] + " " + currentQRCodePoints[(4 * i) + 3]);
-                    }
-                    if (currentQRCode.Length > 0)
+                    
+                    detector.DecodeMulti(QRDetectImage, currentQRCodePoints, out string[] decodedTexts);
+                    OpenCvSharp.Rect[] rects = QRCodeUtils.ConvertPointsToRects(currentQRCodePoints);
+                    // Add the search_roi to return an array of rect referenced to the full frame
+                    OpenCvSharp.Rect[] qrs = Array.ConvertAll(rects, rect => new OpenCvSharp.Rect((int)(rect.X /.3) + search_roi.X, (int)(rect.Y / .3) + search_roi.Y, (int)(rect.Width / .3), (int)(rect.Height / .3) ));
+                    // Store results
+                    search_result.Clear();
+                    for (int i = 0; i < decodedTexts.Length; i++)
+                        search_result.Add((decodedTexts[i], qrs[i]));
+                                        
+                    if (search_result.Count > 0)
                         return true;
                     return false;
                 }
@@ -398,8 +407,8 @@ namespace Picky
                 return true;
             return false; 
         }
-              
-
+        
+       
         
                 
         public void Dispose()
@@ -420,12 +429,14 @@ namespace Picky
             {
                 try
                 {
-                                   
-                    RawImage = Capture.RetrieveMat();
+                    do
+                    {
+                        RawImage = Capture.RetrieveMat();
+                    } while (RawImage.Cols != Constants.CAMERA_FRAME_WIDTH);
                     Cv2.CopyTo(RawImage, ColorImage);
                     Cv2.CvtColor(RawImage, GrayImage, ColorConversionCodes.BGR2GRAY);
                     Cv2.GaussianBlur(GrayImage, GrayImage, new OpenCvSharp.Size(5, 5), 0);
-                    Cv2.Threshold(GrayImage, ThresImage, Settings.BinaryThreshold, 255, ThresholdTypes.Binary);  // Default is 80
+                    Cv2.Threshold(GrayImage, ThresImage, Settings.BinaryThreshold, 255, ThresholdTypes.Binary);  
                     Cv2.Canny(ThresImage, EdgeImage, 50, 150, 3);  //50 150 3
                     Cv2.Dilate(EdgeImage, DilatedImage, null, iterations: 2);
                     
@@ -437,9 +448,9 @@ namespace Picky
                    GC.WaitForPendingFinalizers();
                 }
 
-                if (searchQRRequest)
+                if (false)//searchQRRequest)
                 {
-                    if (DecodeQRCode())
+                    if (DecodeQRCode(searchQRROI, null))
                     {
                         for (int i = 0; i < currentQRCodePoints.Length; i++)
                         {
@@ -485,10 +496,20 @@ namespace Picky
                         }
                     }
                 }
+                else if (machine.IsMachineInQRRegion())
+                {
+                    Cv2.Rectangle(ColorImage, machine.Cal.GetQRCodeROI(), new OpenCvSharp.Scalar(0, 255, 0), 2);
+                    if (DecodeQRCode(machine.Cal.GetQRCodeROI(), qrZoneResults))
+                    {
+                        for (int i = 0; i < qrZoneResults.Count; i++)
+                        {
+                            Cv2.Rectangle(ColorImage, qrZoneResults[i].pos, new OpenCvSharp.Scalar(0, 255, 0), 4);
+                           Console.WriteLine("QR: " + qrZoneResults.ElementAt(i).str);
+                       }
+                    }
+                }
                 else if (PartToFind != null)
                 {
-                    //FindPartInImage(PartToFind, GrayImage);
-
                     OpenCvSharp.Rect partROI = machine.SelectedCassette.SelectedFeeder.GetPickROI().GetRect();
                     if (FindTemplateInImage(PartToFind.Template, partROI, searchPartResults))
                     {

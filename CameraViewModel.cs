@@ -65,6 +65,7 @@ namespace Picky
                 new VisualizationStyle("Threshold", camera.ThresImage),
                 new VisualizationStyle("Edge Image", camera.EdgeImage),
                 new VisualizationStyle("Dilated Image", camera.DilatedImage),
+                new VisualizationStyle("QR Detection", camera.QRDetectImage),
                 new VisualizationStyle("ROI Match", camera.MatchImage),
                 new VisualizationStyle("ROI Threshold", camera.MatchThresholdImage),
             };

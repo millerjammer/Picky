@@ -19,7 +19,7 @@ namespace Picky.Tools
         {
             msg = new MachineMessage();
             msg.messageCommand = this;
-            msg.cmd = Encoding.ASCII.GetBytes("J102 Calculate Machine Steps Per MM\n");
+            msg.cmd = Encoding.ASCII.GetBytes("J102 Calculate machine Steps Per MM\n");
         }
 
         public MachineMessage GetMessage()

@@ -60,8 +60,8 @@ namespace Picky
                 Console.WriteLine("Error, no Cassette selected");
                 return;
             }
-            Feeder fdr = new Feeder();
-            fdr.width = Feeder.FEEDER_8MM_WIDTH_MILS;
+            FeederModel fdr = new FeederModel();
+            fdr.width = FeederModel.FEEDER_8MM_WIDTH_MILS;
             fdr.Part = Machine.selectedPickListPart;
             Machine.SelectedCassette.Feeders.Add(fdr);
             Machine.selectedPickListPart.Cassette = Machine.SelectedCassette;
@@ -122,9 +122,9 @@ namespace Picky
             Machine.Messages.Add(GCommand.SetCameraManualFocus(Machine.downCamera, true, Constants.FOCUS_PCB_062));
             Machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             Machine.Messages.Add(GCommand.G_SetZPosition(0));
-            //for (int i = 0; i < Machine.PickList.Count; i++)
+            //for (int i = 0; i < machine.PickList.Count; i++)
             //{
-            //    Machine.AddPartLocationToQueue(Machine.PickList.ElementAt(i));
+            //    machine.AddPartLocationToQueue(machine.PickList.ElementAt(i));
             //}
         }
 

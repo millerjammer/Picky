@@ -27,7 +27,14 @@ namespace Picky
             get { return _name; }
             set { _name = value; OnPropertyChanged(nameof(name)); }
         }
-               
+
+        private string qrCode;
+        public string QRCode
+        {
+            get { return qrCode; }
+            set { qrCode = value; OnPropertyChanged(nameof(QRCode)); }
+        }
+
         private Position3D origin = new Position3D(CASSETTE_ORIGIN_X, CASSETTE_ORIGIN_Y, 0);
         public Position3D Origin
         {
@@ -35,15 +42,15 @@ namespace Picky
             set { origin = value; OnPropertyChanged(nameof(Origin)); }
         }
 
-        private Feeder selectedFeeder;
-        public Feeder SelectedFeeder
+        private FeederModel selectedFeeder;
+        public FeederModel SelectedFeeder
         {
             get { return selectedFeeder; }
-            set { selectedFeeder = value; Console.WriteLine("Selected Feeder Set"); OnPropertyChanged(nameof(SelectedFeeder)); }
+            set { selectedFeeder = value; Console.WriteLine("Selected FeederModel Set"); OnPropertyChanged(nameof(SelectedFeeder)); }
         }
 
-        private ObservableCollection<Feeder> feeders;
-        public ObservableCollection<Feeder> Feeders
+        private ObservableCollection<FeederModel> feeders;
+        public ObservableCollection<FeederModel> Feeders
         {
             get { return feeders; }
             set { feeders = value; OnPropertyChanged(nameof(Feeders)); }
@@ -52,7 +59,7 @@ namespace Picky
         private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             UpdateFeederLocationsWithinCassette();
-            Console.WriteLine("Feeder collection changed");
+            Console.WriteLine("FeederModel collection changed");
             OnPropertyChanged(nameof(Feeders)); // Notify that the collection has changed
         }
 
@@ -78,7 +85,7 @@ namespace Picky
 
         public Cassette()
         {
-            feeders = new ObservableCollection<Feeder>();
+            feeders = new ObservableCollection<FeederModel>();
             feeders.CollectionChanged += OnCollectionChanged;
 
         }
@@ -86,9 +93,15 @@ namespace Picky
         public ICommand AddFeederCommand { get { return new RelayCommand(AddFeeder); } }
         public void AddFeeder()
         {
-            Feeder feeder = new Feeder();
-            feeder.Part = new Part();
-            feeders.Add(feeder);
+            InputDialog inputDialog = new InputDialog("Scan/Enter FEEDER QR Code:");
+            if (inputDialog.ShowDialog() == true)
+            {
+                string userInput = inputDialog.InputText;
+                FeederModel feeder = new FeederModel();
+                feeder.QRCode = userInput;
+                feeder.Part = new Part();
+                feeders.Add(feeder);
+            }
         }
 
         public ICommand GoToCassetteCommand { get { return new RelayCommand(GoToCassette); } }

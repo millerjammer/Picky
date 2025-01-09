@@ -20,7 +20,7 @@ namespace Picky.Tools
 
         public OffsetCameraToPickCommand(Part _part, double _targetZ)
         {
-            /* Part is based so that it's selected in the Pick List and Feeder */
+            /* Part is based so that it's selected in the Pick List and FeederModel */
             msg = new MachineMessage();
             msg.messageCommand = this;
             msg.cmd = Encoding.ASCII.GetBytes("J102 Offset Camera to Pick\n");

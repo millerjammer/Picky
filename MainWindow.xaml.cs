@@ -32,7 +32,8 @@ namespace Picky
         private readonly PickToolWindow     toolWindow;
         private readonly ControlWindow      controlWindow;
         private readonly SettingsWindow     settingsWindow;
-        
+        private readonly FeederWindow       feederWindow;
+
         public MainWindow()
         {
 
@@ -49,6 +50,7 @@ namespace Picky
 
             toolWindow = new PickToolWindow();
             settingsWindow = new SettingsWindow();
+            feederWindow = new FeederWindow();
                         
             controlWindow = new ControlWindow();
             DataContext = this;
@@ -68,6 +70,13 @@ namespace Picky
         {
             toolWindow.Show();
             toolWindow.Activate();
+        }
+
+        public ICommand OnFeedersCommand { get { return new RelayCommand(onFeeders); } }
+        private void onFeeders()
+        {
+            feederWindow.Show();
+            feederWindow.Activate();
         }
 
         public ICommand OnControlsCommand { get { return new RelayCommand(onControl); } }

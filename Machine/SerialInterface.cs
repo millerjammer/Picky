@@ -92,7 +92,7 @@ namespace Picky
                 serialPort.DiscardOutBuffer();
                 serialPort.ReadExisting();
                 ComPortStatus = string.Format("Connected: {0}", ComPortName);
-                Console.WriteLine("Machine Serial Port Opened. " + System.Environment.CurrentDirectory);
+                Console.WriteLine("machine Serial Port Opened. " + System.Environment.CurrentDirectory);
             }
             
             
