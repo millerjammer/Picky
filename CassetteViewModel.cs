@@ -105,6 +105,7 @@ namespace Picky
             }
             double interval = Constants.TRAVEL_LIMIT_X_MM / 6;
             double y = machine.Cal.QRRegion.Y + (machine.Cal.QRRegion.Height / 2);
+            machine.Messages.Add(GCommand.SetCamera(machine.Cal.QRCaptureSettings, machine.downCamera));
             machine.Messages.Add(GCommand.G_SetPosition(Constants.TRAVEL_LIMIT_X_MM, y, 0, 0, 0));
             for (int i = 0; i < 6; i++)
             {

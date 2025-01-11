@@ -82,7 +82,7 @@ namespace Picky
             }
             else
             {
-                camera.Capture.Set(VideoCaptureProperties.AutoFocus, 1);
+                camera?.Capture?.Set(VideoCaptureProperties.AutoFocus, 1);
             }
         }
 

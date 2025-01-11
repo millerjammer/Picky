@@ -84,7 +84,7 @@ namespace Picky
         public CameraSettings Settings
         {
             get { return settings; }
-            set { settings = value; Console.WriteLine("Camera Settings Upper Changed"); Settings.ApplySettings(this); OnPropertyChanged(nameof(Settings)); } //Notify listeners
+            set { settings = value; Console.WriteLine("Set: Camera Settings"); Settings.ApplySettings(this); OnPropertyChanged(nameof(Settings)); } //Notify listeners
         }
 
         public Mat selectedViewMat { get; set; }
@@ -105,7 +105,7 @@ namespace Picky
             MatchImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
             MatchThresholdImage = new Mat(0, 0, Constants.CAMERA_FRAME_WIDTH, Constants.CAMERA_FRAME_HEIGHT);
 
-            settings = new CameraSettings();
+            Settings = new CameraSettings();
             Capture = new VideoCapture();
 
             Capture.Open(cameraIndex);
