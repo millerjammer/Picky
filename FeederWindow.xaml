@@ -4,7 +4,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    xmlns:local="clr-namespace:Picky.Tools"
+    xmlns:local="clr-namespace:Picky"
+        d:DataContext="{d:DesignInstance Type=local:FeederViewModel}"
     mc:Ignorable="d" FontSize="15"
     Height="525" Width="800" WindowStartupLocation="CenterScreen" Background="#151f2d">
     <Border  Margin="0 0 0 0">
@@ -50,8 +51,8 @@
             <TextBox Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" Margin="10 5 10 5" Text="{Binding SelectedCassette.SelectedFeeder.Interval, StringFormat={}{0:0.0}}"/>
 
             <Label Grid.Row="5" Grid.Column="0" Content="Feeder Width/Offset:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
-            <TextBox Grid.Row="5" Grid.Column="1" Margin="10 5 10 5" HorizontalAlignment="Stretch" Text="{Binding SelectedCassette.SelectedFeeder.Interval, StringFormat={}{0:0.0}}"/>
-            <TextBox Grid.Row="5" Grid.Column="2" Margin="10 5 10 5" HorizontalAlignment="Stretch" Text="{Binding SelectedCassette.SelectedFeeder.Interval, StringFormat={}{0:0.0}}"/>
+            <TextBox Grid.Row="5" Grid.Column="1" Margin="10 5 10 5" HorizontalAlignment="Stretch" Text="{Binding SelectedCassette.SelectedFeeder.Width, StringFormat={}{0:0.0}}"/>
+            <TextBox Grid.Row="5" Grid.Column="2" Margin="10 5 10 5" HorizontalAlignment="Stretch" Text="{Binding SelectedCassette.SelectedFeeder.PartOffset, StringFormat={}{0:0.0}}"/>
 
 
             <Label Grid.Row="6" Grid.Column="0" Content="" Margin="10 5 10 5" VerticalContentAlignment="Center" FontWeight="UltraBold"/>

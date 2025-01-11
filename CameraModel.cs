@@ -469,6 +469,13 @@ namespace Picky
                             Cv2.Rectangle(ColorImage, qrZoneResults[i].pos, new OpenCvSharp.Scalar(0, 255, 0), 4);
                             //Console.WriteLine("QR: " + qrZoneResults.ElementAt(i).str);
                         }
+                        if (machine?.SelectedCassette?.SelectedFeeder != null)
+                        {
+                            double z = (machine.Cal.CalPad.Z + Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE);
+                            OpenCvSharp.Rect rect = TranslationUtils.ConvertGlobalMMRectToFrameRectPix(machine.SelectedCassette.SelectedFeeder.GetPickROI(), z);
+                            Cv2.Rectangle(ColorImage, rect, new OpenCvSharp.Scalar(255, 0, 0), 4);
+                        }
+                        
                     }
                 }
                 else if (false)//PartToFind != null)

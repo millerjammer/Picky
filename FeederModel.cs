@@ -14,10 +14,7 @@ namespace Picky
         public static double FEEDER_DEFAULT_PART_OFFSET = 3.5;
         public static double FEEDER_ORIGIN_TO_DRIVE_YOFFSET_MM = 50;
         public static double FEEDER_ORIGIN_TO_DRIVE_XOFFSET_MM = 2;
-        public static double PICK_CHANNEL_OFFSET_Y_MM = 10;
-        public static double PICK_CHANNEL_WIDTH_MM = 10;
-        public static double PICK_CHANNEL_LENGTH_MM = 40;
-
+        
         MachineModel machine = MachineModel.Instance;
 
         private Part part;
@@ -27,8 +24,8 @@ namespace Picky
             set { part = value; OnPropertyChanged(nameof(Part)); }
         }
 
-        private Part interval;
-        public Part Interval
+        private double interval;
+        public double Interval
         {
             get { return interval; }
             set { interval = value; OnPropertyChanged(nameof(Interval)); }
@@ -93,6 +90,7 @@ namespace Picky
             get { return pickTool; }
             set { pickTool = value; OnPropertyChanged(nameof(PickTool)); }
         }
+            
 
 
         public FeederModel()
@@ -103,9 +101,18 @@ namespace Picky
 
         public Position3D GetPickROI()
         {
-            double x = Origin.X + (PICK_CHANNEL_WIDTH_MM / 2);
-            double y = Origin.Y + PICK_CHANNEL_OFFSET_Y_MM;
-            return new Position3D {  X = x, Y = y, Width = PICK_CHANNEL_WIDTH_MM, Height = PICK_CHANNEL_LENGTH_MM };
+            /*----------------------------------------------------------
+             * Return the ROI for picking parts from this feeder in 
+             * terms of mm referenced to the global frame. Returned ROI
+             * is in mm.  The Pick ROI will not exceed with of Feeder
+             * --------------------------------------------------------*/
+
+            double x = Origin.X + (Width / 2) - PartOffset;
+            double y = machine.Cal.ChannelRegion.Y;
+            /* Limit pick ROI width to width of feeder */
+            double width = Width - PartOffset;
+
+            return new Position3D {  X = x, Y = y, Width = width, Height = 40 };
 
         }
 

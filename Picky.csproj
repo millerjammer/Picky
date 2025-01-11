@@ -224,6 +224,7 @@
     <Compile Include="Tools\PickToolWindow.xaml.cs">
       <DependentUpon>PickToolWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="TranslationUtils.cs" />
     <Compile Include="VisualizationStyle.cs" />
     <Page Include="BoardView.xaml">
       <SubType>Designer</SubType>
