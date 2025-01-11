@@ -15,6 +15,7 @@ using Image = System.Windows.Controls.Image;
 using EnvDTE;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.OLE.Interop;
+using Xamarin.Forms.Xaml;
 
 namespace Picky
 {
@@ -68,22 +69,9 @@ namespace Picky
         private CircleSegment[] Circles;
 
         /* QR Request */
-        List<(string str, OpenCvSharp.Rect pos)> qrZoneResults = new List<(string str, OpenCvSharp.Rect pos)>();
-        public bool searchQRRequest = false;
-        private OpenCvSharp.Rect searchQRROI;
-        private string[] currentQRCode;
-        public string[] CurrentQRCode
-        {
-            get { return currentQRCode; }
-            set { currentQRCode = value; OnPropertyChanged(nameof(CurrentQRCode)); }
-        }
-
-        private Point2f[] currentQRCodePoints;
-        public Point2f[] CurrentQRCodePoints
-        {
-            get { return currentQRCodePoints; }
-            set { currentQRCodePoints = value; OnPropertyChanged(nameof(CurrentQRCodePoints)); }
-        }
+        private readonly object _qrZoneResultsLock = new object();
+        private List<(string str, OpenCvSharp.Rect pos)> qrZoneResults = new List<(string str, OpenCvSharp.Rect pos)>();
+          
 
         private Image frameImage;
         public Image FrameImage
@@ -96,7 +84,7 @@ namespace Picky
         public CameraSettings Settings
         {
             get { return settings; }
-            set { settings = value; Console.WriteLine("Camera SettingsUpper Changed"); Settings.ApplySettings(this); OnPropertyChanged(nameof(Settings)); } //Notify listeners
+            set { settings = value; Console.WriteLine("Camera Settings Upper Changed"); Settings.ApplySettings(this); OnPropertyChanged(nameof(Settings)); } //Notify listeners
         }
 
         public Mat selectedViewMat { get; set; }
@@ -142,7 +130,6 @@ namespace Picky
         public void CancelAllRequests()
         {
             searchCircleRequest = false;
-            searchQRRequest = false;
             searchTemplateRequest = false;
         }
                      
@@ -194,40 +181,29 @@ namespace Picky
             
         }
 
-        /** Public methods for QR Code **/
+        /*--------------------------------- QR Code ---------------------------------------*/
 
-        public string[] GetQRCode()
+        public List<(string str, OpenCvSharp.Rect pos)> GetQrZoneResults()
         {
-            return currentQRCode;
-        }
-
-        public bool IsQRSearchActive()
-        {
-            return searchQRRequest;
-        }
-
-        public void RequestQRCodeLocation(OpenCvSharp.Rect roi)
-        /*-------------------------------------------------------------------------
-        * Call here to start the process, use IsQRSearchActive to monitor
-        * progress and GetQRCode when it's no longer active
-        * ------------------------------------------------------------------------*/
-        {
-            searchQRRequest = true;
-            searchQRROI = roi;
+            /*-------------------------------------------------------------------
+             * This is a thread-safe method of accessing visible QR codes 
+             *
+             *------------------------------------------------------------------*/
+            lock (_qrZoneResultsLock)
+            {
+                return new List<(string str, OpenCvSharp.Rect pos)>(qrZoneResults);
+            }
         }
         
-        private bool DecodeQRCode(OpenCvSharp.Rect search_roi, List<(string str, OpenCvSharp.Rect pos)> search_result)
+        private bool DecodeQRCode(OpenCvSharp.Rect search_roi)
         {
-            /************************************************************************
+            /*---------------------------------------------------------------------
              * Private function for decoding QR codes
+             * By experimentation reduction to .3 is optimal
              * 
-             * Use: 
-             * RequestQRCode()
-             * GetQRCode()
-             * IsQRSearchActive()
-             * BY experimentation reduction to .3 is optimal
-             * ***********************************************************************/
-            
+             *--------------------------------------------------------------------*/
+
+            Point2f[] currentQRCodePoints;
             try
             {
                 using (var detector = new QRCodeDetector())
@@ -242,6 +218,10 @@ namespace Picky
                     Cv2.MorphologyEx(resizedImage, QRDetectImage, MorphTypes.Open, kernel);
 
                     detector.DetectMulti(QRDetectImage, out currentQRCodePoints);
+                    lock (_qrZoneResultsLock)
+                    {
+                        qrZoneResults.Clear();
+                    }
                     if (currentQRCodePoints.Length <= 0)
                         return false;
                     
@@ -250,11 +230,12 @@ namespace Picky
                     // Add the search_roi to return an array of rect referenced to the full frame
                     OpenCvSharp.Rect[] qrs = Array.ConvertAll(rects, rect => new OpenCvSharp.Rect((int)(rect.X /.3) + search_roi.X, (int)(rect.Y / .3) + search_roi.Y, (int)(rect.Width / .3), (int)(rect.Height / .3) ));
                     // Store results
-                    search_result.Clear();
-                    for (int i = 0; i < decodedTexts.Length; i++)
-                        search_result.Add((decodedTexts[i], qrs[i]));
-                                        
-                    if (search_result.Count > 0)
+                    lock (_qrZoneResultsLock)
+                    {
+                        for (int i = 0; i < decodedTexts.Length; i++)
+                            qrZoneResults.Add((decodedTexts[i], qrs[i]));   // Doesn't appear this will return nulls or zero location
+                    }                    
+                    if (qrZoneResults.Count > 0)
                         return true;
                     return false;
                 }
@@ -407,9 +388,7 @@ namespace Picky
                 return true;
             return false; 
         }
-        
-       
-        
+               
                 
         public void Dispose()
         {
@@ -448,23 +427,7 @@ namespace Picky
                    GC.WaitForPendingFinalizers();
                 }
 
-                if (false)//searchQRRequest)
-                {
-                    if (DecodeQRCode(searchQRROI, null))
-                    {
-                        for (int i = 0; i < currentQRCodePoints.Length; i++)
-                        {
-                            OpenCvSharp.Cv2.DrawMarker(ColorImage, new OpenCvSharp.Point(currentQRCodePoints[i].X, currentQRCodePoints[i].Y), new OpenCvSharp.Scalar(255, 0, 0), OpenCvSharp.MarkerTypes.Cross, 200, 4);
-                        }
-                        OpenCvSharp.Cv2.Rectangle(ColorImage, searchQRROI, new OpenCvSharp.Scalar(0, 255, 0), 4);
-                        searchQRRequest = false;        //Don't cancel till you get a QR
-                    }
-                    else
-                    {
-                        OpenCvSharp.Cv2.Rectangle(ColorImage, searchQRROI, new OpenCvSharp.Scalar(0, 0, 255), 4);
-                    }
-                }
-                else if (searchCircleRequest)
+                if (searchCircleRequest)
                 {
                     if (FindCircleInROI())
                     {
@@ -499,19 +462,19 @@ namespace Picky
                 else if (machine.IsMachineInQRRegion())
                 {
                     Cv2.Rectangle(ColorImage, machine.Cal.GetQRCodeROI(), new OpenCvSharp.Scalar(0, 255, 0), 2);
-                    if (DecodeQRCode(machine.Cal.GetQRCodeROI(), qrZoneResults))
+                    if (DecodeQRCode(machine.Cal.GetQRCodeROI()))
                     {
                         for (int i = 0; i < qrZoneResults.Count; i++)
                         {
                             Cv2.Rectangle(ColorImage, qrZoneResults[i].pos, new OpenCvSharp.Scalar(0, 255, 0), 4);
-                           Console.WriteLine("QR: " + qrZoneResults.ElementAt(i).str);
-                       }
+                            //Console.WriteLine("QR: " + qrZoneResults.ElementAt(i).str);
+                        }
                     }
                 }
-                else if (PartToFind != null)
+                else if (false)//PartToFind != null)
                 {
                     OpenCvSharp.Rect partROI = machine.SelectedCassette.SelectedFeeder.GetPickROI().GetRect();
-                    if (FindTemplateInImage(PartToFind.Template, partROI, searchPartResults))
+                    //if (FindTemplateInImage(PartToFind.Template, partROI, searchPartResults))
                     {
                         foreach (Position3D pos in searchTemplateResults)
                         {

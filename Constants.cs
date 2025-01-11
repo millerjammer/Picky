@@ -65,9 +65,9 @@ namespace Picky
         /* Physical Constants */
         public static double ZPROBE_LIMIT = 53.0;
         public static double ZPROBE_CAL_PAD_X = 0;
-        public static double ZPROBE_CAL_PAD_Y = 185;
+        public static double ZPROBE_CAL_PAD_Y = 170;
         public static double ZPROBE_CAL_DECK_PAD_X = 0;
-        public static double ZPROBE_CAL_DECK_PAD_Y = 195;
+        public static double ZPROBE_CAL_DECK_PAD_Y = 188;
         public static double ZPROBE_STEP_PAD_X = 195;
         public static double ZPROBE_STEP_PAD_Y = 0;
 
@@ -100,7 +100,9 @@ namespace Picky
         public static string BOARD_FILE_NAME = "board.json";
         public static string TOOL_FILE_NAME = "tool.json";
         public static string SETTINGS_FILE_NAME = "settings.json";
-            
+        public static string FEEDER_FILE_EXTENTION = ".fdr";
+
+
         public static int DOWN_CAMERA_INDEX = 0;
         public static int UP_CAMERA_INDEX = 1;
 

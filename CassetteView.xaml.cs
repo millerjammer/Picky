@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-
+using System.Windows.Input;
 
 namespace Picky
 {
@@ -25,6 +25,13 @@ namespace Picky
             cassetteVM = new CassetteViewModel();
             this.DataContext = cassetteVM;
 
-        }   
+        }
+
+        private void Row_DoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            MachineModel machine = MachineModel.Instance;
+            if(machine.SelectedCassette.SelectedFeeder.GoToFeederCommand.CanExecute(null))
+                machine.SelectedCassette.SelectedFeeder.GoToFeederCommand.Execute(null);
+        }
     }
 }

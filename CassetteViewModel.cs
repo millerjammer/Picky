@@ -98,8 +98,20 @@ namespace Picky
         public ICommand CreateCassetteCommand { get { return new RelayCommand(CreateCassette); } }
         private void CreateCassette()
         {
-            machine.Messages.Add(GCommand.G_SetPosition(Constants.TRAVEL_LIMIT_X_MM, machine.Cal.QRRegion.Y + (machine.Cal.QRRegion.Height / 2), 0, 0, 0));
-
+            if(machine.Cassettes.Count == 0)
+            {
+                machine.Cassettes.Add(new Cassette());
+                machine.SelectedCassette = machine.Cassettes.ElementAt(0);
+            }
+            double interval = Constants.TRAVEL_LIMIT_X_MM / 6;
+            double y = machine.Cal.QRRegion.Y + (machine.Cal.QRRegion.Height / 2);
+            machine.Messages.Add(GCommand.G_SetPosition(Constants.TRAVEL_LIMIT_X_MM, y, 0, 0, 0));
+            for (int i = 0; i < 6; i++)
+            {
+                machine.Messages.Add(GCommand.G_SetPosition(Constants.TRAVEL_LIMIT_X_MM - (i * interval), y, 0, 0, 0));
+                machine.Messages.Add(GCommand.G_FinishMoves());
+                machine.Messages.Add(GCommand.AssignFeeders(machine.SelectedCassette));
+            }
         }
 
         public ICommand LoadCassetteCommand { get { return new RelayCommand(LoadCassette); } }

@@ -12,7 +12,12 @@ namespace Picky
 {
     public class CalibrationModel : INotifyPropertyChanged
     {
-        public CalTargetModel CalTarget { get; set; }
+        private CalTargetModel target = new CalTargetModel ();
+        public CalTargetModel Target
+        {
+            get { return target; }
+            set { target = value; OnPropertyChanged(nameof(Target)); }
+        }
 
         /* FeederModel/Cassette */
         private Position3D qRRegion = new Position3D(Constants.TRAVEL_LIMIT_X_MM, 200.0, 0, Constants.TRAVEL_LIMIT_X_MM, 10.0);
@@ -33,14 +38,14 @@ namespace Picky
 
 
         /* Used to calculate mm/pixel and different Z using similar triangles */
-        private Position3D mmPerPixUpper;
+        private Position3D mmPerPixUpper = new Position3D(Constants.DEFAULT_MM_PER_PIXEL, Constants.DEFAULT_MM_PER_PIXEL);
         public Position3D MMPerPixUpper
         {
             get { return mmPerPixUpper; }
             set { mmPerPixUpper = value; OnPropertyChanged(nameof(MMPerPixUpper)); }
         }
 
-        private Position3D mmPerPixLower;
+        private Position3D mmPerPixLower = new Position3D(Constants.DEFAULT_MM_PER_PIXEL, Constants.DEFAULT_MM_PER_PIXEL);
         public Position3D MMPerPixLower
         {
             get { return mmPerPixLower; }
@@ -104,7 +109,7 @@ namespace Picky
                 if (value)
                 {
                     isPreviewLowerTargetActive = false; isPreviewGridActive = false;
-                    CalTarget.QueueCalTargetSearch(CalTarget.UpperTemplateFileName, CalTarget.ActualLocUpper, CalTarget.upperSettings, null, 5.5);
+                    Target.QueueCalTargetSearch(Target.UpperTemplateFileName, Target.ActualLocUpper, Target.upperSettings, null, 5.5);
                 }
                 OnPropertyChanged(nameof(IsPreviewUpperTargetActive)); }
         }
@@ -122,7 +127,7 @@ namespace Picky
                 if (value)
                 {
                     isPreviewUpperTargetActive = false; isPreviewGridActive = false;
-                    CalTarget.QueueCalTargetSearch(CalTarget.LowerTemplateFileName, CalTarget.ActualLocLower, CalTarget.lowerSettings, null, 5);
+                    Target.QueueCalTargetSearch(Target.LowerTemplateFileName, Target.ActualLocLower, Target.lowerSettings, null, 5);
                 }
                 OnPropertyChanged(nameof(IsPreviewLowerTargetActive)); }
         }
@@ -139,7 +144,7 @@ namespace Picky
                 isPreviewGridActive = value;
                 if (value)
                 {
-                    CalTarget.QueueCalTargetSearch(CalTarget.GridTemplateFileName, CalTarget.GridOrigin, CalTarget.gridSettings, null, 2);
+                    Target.QueueCalTargetSearch(Target.GridTemplateFileName, Target.GridOrigin, Target.gridSettings, null, 2);
                     isPreviewLowerTargetActive = false; isPreviewUpperTargetActive = false;
                 }
                 OnPropertyChanged(nameof(IsPreviewGridActive));
@@ -178,21 +183,12 @@ namespace Picky
             get { return calPad; }
             set { calPad = value; OnPropertyChanged(nameof(CalPad)); }
         }
-
-        private Position3D stepPad = new Position3D { X = Constants.ZPROBE_STEP_PAD_X, Y = Constants.ZPROBE_STEP_PAD_Y };
-        public Position3D StepPad
-        {
-            get { return stepPad; }
-            set { stepPad = value; OnPropertyChanged(nameof(StepPad)); }
-        }
-
+                
         public CalibrationModel()
         {
             // Create Target
-            CalTarget = new CalTargetModel();
-            mmPerPixUpper = new Position3D();
-            mmPerPixLower = new Position3D();
-
+            Target = new CalTargetModel();
+            
             QRCaptureSettings = new CameraSettings();
             ChannelCaptureSettings = new CameraSettings();
         }

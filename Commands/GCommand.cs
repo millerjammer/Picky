@@ -80,6 +80,12 @@ namespace Picky
             Get3x3GridCalibrationCommand cmd = new Get3x3GridCalibrationCommand(_template, _roi, _result);
             return cmd.GetMessage();
         }
+        
+        public static MachineMessage AssignFeeders(Cassette cassette)
+        {
+            AssignFeedersCommand cmd = new AssignFeedersCommand(cassette);
+            return cmd.GetMessage();
+        }
 
         public static MachineMessage SetCamera(CameraSettings settings, CameraModel camera)
         {
@@ -107,12 +113,7 @@ namespace Picky
             return cmd.GetMessage();
         }
                 
-        public static MachineMessage GetFeederQRCode(FeederModel feeder)
-        {
-            GetFeederQRCodeCommand cmd = new GetFeederQRCodeCommand(feeder);
-            return cmd.GetMessage();
-        }
-
+       
         /***********************************************************
         * 
         *  MOTION CONTROL COMMANDS

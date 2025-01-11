@@ -10,6 +10,9 @@ using System.IO;
 using System.Web.UI.WebControls.WebParts;
 using System.Windows.Input;
 using OpenCvSharp.Detail;
+using System.Windows.Media.Imaging;
+using System.Windows.Media;
+using Xamarin.Forms.PlatformConfiguration.GTKSpecific;
 
 namespace Picky
 {
@@ -19,16 +22,23 @@ namespace Picky
         public string TemplateFileName
         {
             get { return templateFileName; }
-            set { templateFileName = value; SetPartMat(); OnPropertyChanged(nameof(TemplateFileName)); }
+            set { templateFileName = value; LoadTemplateImage(); OnPropertyChanged(nameof(TemplateFileName)); }
         }
-        private CameraSettings CaptureSettings { get; set; } = new CameraSettings();
-       
+
+        private string description;
+        public string Description
+        {
+            get { return description; }
+            set { description = value; OnPropertyChanged(nameof(Description)); }
+        }
+      
         private bool isInView = false;
         public bool IsInView
         {
             get { return isInView; }
             set { isInView = value; OnPropertyChanged(nameof(IsInView)); }
         }
+
         public string Designator { get; set; }
         public string Comment { get; set; }
         public string Layer { get; set; }
@@ -36,7 +46,6 @@ namespace Picky
         public string CenterX { get; set; }
         public string CenterY { get; set; }
         public string Rotation { get; set; }
-        public string Description { get; set; }
         public string Thickness { get; set; }
       
         private Cassette cassette;
@@ -52,9 +61,15 @@ namespace Picky
             get { return feeder; }
             set { feeder = value; OnPropertyChanged(nameof(Feeder)); }
         }
-        
+
         [JsonIgnore]
-        public Mat Template;
+        private BitmapSource template;
+        [JsonIgnore]
+        public BitmapSource Template
+        {
+            get { return template; }
+            set { template = value; OnPropertyChanged(nameof(Template)); }
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged(string propertyName)
@@ -68,13 +83,17 @@ namespace Picky
                 TemplateFileName = System.Environment.CurrentDirectory + "\\no_image_sm.png";
         }
 
-        private void SetPartMat()
+        public void LoadTemplateImage()
         {
-            Console.WriteLine("Part setting Mat: " + templateFileName);
-            if (templateFileName == null)
-                return;
-            Template = new Mat(templateFileName);
-
+            try
+            {
+                Mat img = Cv2.ImRead(TemplateFileName, ImreadModes.Color);
+                Template = BitmapSource.Create(img.Width, img.Height, 96, 96, PixelFormats.Bgr24, null, img.Data, (int)(img.Step() * img.Height), (int)img.Step());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("No Template to load. ");
+            }
         }
     }
 }

@@ -35,7 +35,7 @@ namespace Picky.Tools
         public bool PostMessageCommand(MachineMessage msg)
         {
             MachineModel machine = MachineModel.Instance;
-            machine.Cal.CalTarget.CalculateMachineStepsPerMM();
+            machine.Cal.Target.CalculateMachineStepsPerMM();
             return true;
         }
     }

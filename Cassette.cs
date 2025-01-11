@@ -1,12 +1,14 @@
 ﻿using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.Win32;
 using Newtonsoft.Json;
+using Picky.Properties;
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Web.UI.WebControls.WebParts;
 using System.Windows.Input;
 
@@ -58,8 +60,11 @@ namespace Picky
 
         private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            UpdateFeederLocationsWithinCassette();
-            Console.WriteLine("FeederModel collection changed");
+            int index = 0;
+            foreach (FeederModel feeder in feeders) { feeder.Index = ++index; }
+            // If the change is an "Add" action, set SelectedCassette to the newly added element
+            if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems != null && e.NewItems.Count > 0)
+                machine.SelectedCassette.SelectedFeeder = (FeederModel)e.NewItems[0];
             OnPropertyChanged(nameof(Feeders)); // Notify that the collection has changed
         }
 
@@ -70,28 +75,17 @@ namespace Picky
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private void UpdateFeederLocationsWithinCassette()
-        {
-            double x, offset = 0;
-            for (int i = 0; i < feeders.Count; i++)
-            {
-                x = Origin.X + offset + (feeders.ElementAt(i).thickness/2);
-                feeders.ElementAt(i).Origin = new Position3D(x, Origin.Y, 0, 0);
-                offset += feeders.ElementAt(i).thickness;
-            }
-        }
-
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
         public Cassette()
         {
             feeders = new ObservableCollection<FeederModel>();
             feeders.CollectionChanged += OnCollectionChanged;
-
         }
+            
 
-        public ICommand AddFeederCommand { get { return new RelayCommand(AddFeeder); } }
-        public void AddFeeder()
+        public ICommand AddFeederCommand { get { return new RelayCommand(ManualAddFeeder); } }
+        public void ManualAddFeeder()
         {
             InputDialog inputDialog = new InputDialog("Scan/Enter FEEDER QR Code:");
             if (inputDialog.ShowDialog() == true)
@@ -99,25 +93,10 @@ namespace Picky
                 string userInput = inputDialog.InputText;
                 FeederModel feeder = new FeederModel();
                 feeder.QRCode = userInput;
-                feeder.Part = new Part();
                 feeders.Add(feeder);
             }
         }
-
-        public ICommand GoToCassetteCommand { get { return new RelayCommand(GoToCassette); } }
-        public void GoToCassette()
-        {
-            Console.WriteLine("Go To Cassette Position: " + Origin.X + " mm " + Origin.Y + " mm");
-            machine.Messages.Add(GCommand.G_SetPosition(Origin.X, Origin.Y,0 ,0 ,0 ));
-        }
-
-        public ICommand SetCassetteHomeCommand { get { return new RelayCommand(SetCassetteHome); } }
-        private void SetCassetteHome()
-        {
-            Origin = new Position3D(machine.CurrentX, machine.CurrentY);
-            Console.WriteLine("Cassette Home: " + Origin.X + " mm " + Origin.Y + " mm");
-            UpdateFeederLocationsWithinCassette();
-        }
+               
 
         public ICommand SaveAsCassetteCommand { get { return new RelayCommand(SaveAsCassette); } }
         private void SaveAsCassette()

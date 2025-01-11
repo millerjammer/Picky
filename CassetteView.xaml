@@ -59,9 +59,6 @@
                                             <Separator Margin="2"/>
                                             <MenuItem Header="Add Feeder" Command="{Binding AddFeederCommand}" />
                                             <MenuItem Header="Remove Feeder" Command="{Binding RemoveFeederCommand}" />
-                                            <Separator Margin="2"/> 
-                                            <MenuItem Header="Go to Cassette Origin" Command="{Binding GoToCassetteCommand}" />
-                                            <MenuItem Header="Set As Cassete Origin" Command="{Binding SetCassetteHomeCommand}" />
                                         </ContextMenu>
                                     </TextBlock.ContextMenu>
                                 </TextBlock>
@@ -74,77 +71,10 @@
                                              AutoGenerateColumns="False" CanUserSortColumns="False" HorizontalContentAlignment="Stretch"
                                              MaxHeight="299" VerticalScrollBarVisibility="Auto" SelectionMode="Single" SelectionUnit="FullRow"
                                              IsReadOnly="True" SelectedIndex="0">
-                                    <!-- Define Details -->
-                                    <ui:DataGrid.RowDetailsTemplate>
-                                        <DataTemplate>
-                                            <Grid Margin="10,10 " >
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="auto"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                </Grid.ColumnDefinitions>
-                                                <DockPanel Grid.Column="0" HorizontalAlignment="Stretch">
-                                                   <StackPanel Orientation="Vertical" Margin="0 0 0 0">
-                                                        <DockPanel>
-                                                            <TextBlock DockPanel.Dock="Left"  Text="QRCode: "/>
-                                                            <TextBlock TextAlignment="Right"  Text="{Binding QRCode}"/>
-                                                        </DockPanel>
-                                                        <Grid>
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="auto" />
-                                                                <ColumnDefinition Width="*" />
-                                                                <ColumnDefinition Width="auto" />
-                                                                <ColumnDefinition Width="auto" />
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock  Grid.Column="0" Text="Feeder: (X,Y):"/>
-                                                            <TextBlock  Grid.Column="1" TextAlignment="Right" Text="{Binding Origin.X, StringFormat={}{0:0.000}}"/>
-                                                            <TextBlock  Grid.Column="2" Text=","/>
-                                                            <TextBlock  Grid.Column="3" Text="{Binding Origin.Y , StringFormat={}{0:0.000}}"/>
-                                                        </Grid>
-                                                        <DockPanel>
-                                                            <TextBlock DockPanel.Dock="Left" Text="Part Detection Threshold:"/>
-                                                            <TextBlock TextAlignment="Right" Text="{Binding Part.CaptureSettings.TemplateThreshold}"/>
-                                                        </DockPanel>
-                                                        <Grid>
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="auto" />
-                                                                <ColumnDefinition Width="*" />
-                                                                <ColumnDefinition Width="auto" />
-                                                                <ColumnDefinition Width="auto" />
-                          
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock  Grid.Column="0" Text="Next Part [Optical]: (X,Y):"/>
-                                                            <TextBlock  Grid.Column="1" TextAlignment="Right" Text="{Binding NextPartOpticalLocation.X, StringFormat={}{0:0.000}}"/>
-                                                            <TextBlock  Grid.Column="2" Text=","/>
-                                                            <TextBlock  Grid.Column="3" Text="{Binding NextPartOpticalLocation.Y, StringFormat={}{0:0.000}}"/>
-                                                         </Grid>
-                                                        <Grid>
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="auto" />
-                                                                <ColumnDefinition Width="*" />
-                                                                <ColumnDefinition Width="auto" />
-                                                                <ColumnDefinition Width="auto" />
-
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock  Grid.Column="0" Text="Next Part [Pick]: (X,Y):"/>
-                                                            <TextBlock  Grid.Column="1" TextAlignment="Right" Text="{Binding NextPartPickLocation.X, StringFormat={}{0:0.000}}"/>
-                                                            <TextBlock  Grid.Column="2" Text=","/>
-                                                            <TextBlock  Grid.Column="3" Text="{Binding NextPartPickLocation.Y, StringFormat={}{0:0.000}}"/>
-                                                        </Grid>
-                                                        <DockPanel>
-                                                            <TextBlock DockPanel.Dock="Left" Text="Template:"/>
-                                                            <TextBlock TextAlignment="Right" Text="{Binding Part.TemplateFileName}"/>
-                                                        </DockPanel>
-                                                    </StackPanel>
-                                                </DockPanel>
-                                                <DockPanel Grid.Column="1" DockPanel.Dock="Left">
-                                                    <Image Margin="10 0 20 0" Source="{Binding Part.TemplateFileName}" MaxHeight="100" MaxWidth="200" />
-                                                </DockPanel>
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ui:DataGrid.RowDetailsTemplate>
+                                                                      
                                     <!-- Placement Data Grid -->
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Binding="{Binding index}" Header="Index" Width="70"/>
+                                        <DataGridTextColumn Binding="{Binding Index}" Header="Index" Width="70"/>
                                         <DataGridTextColumn Binding="{Binding Part.Description}" Header="Description" Width="*"/>
                                         <DataGridTextColumn Binding="{Binding Part.Footprint}" Header="Footprint" Width="190"/>
                                         <DataGridTextColumn Binding="{Binding Part.Layer}" Header="Layer" Width="80"/>
@@ -159,6 +89,7 @@
                                                     <Setter Property="Foreground" Value="Black"/>
                                                 </Trigger>
                                             </Style.Triggers>
+                                            <EventSetter Event="MouseDoubleClick" Handler="Row_DoubleClick"/>
                                         </Style>
                                     </ui:DataGrid.RowStyle>
                                     <DataGrid.ContextMenu>

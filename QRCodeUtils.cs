@@ -7,6 +7,9 @@ public class QRCodeUtils
     public static Rect[] ConvertPointsToRects(Point2f[] CodePoints)
     {
         // Ensure the input array's length is a multiple of 4
+        if(CodePoints.Length == 0)
+            return null;
+
         if (CodePoints.Length % 4 != 0)
         {
             throw new ArgumentException("The number of points must be a multiple of 4.");

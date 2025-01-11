@@ -10,7 +10,8 @@ namespace Picky
     public class FeederModel : INotifyPropertyChanged
     {
         /* Calibration GridOrigin Size and Location of 1st */
-        public static double FEEDER_8MM_WIDTH_MILS = 500;
+        public static double FEEDER_DEFAULT_WIDTH_MM = 12.5;
+        public static double FEEDER_DEFAULT_PART_OFFSET = 3.5;
         public static double FEEDER_ORIGIN_TO_DRIVE_YOFFSET_MM = 50;
         public static double FEEDER_ORIGIN_TO_DRIVE_XOFFSET_MM = 2;
         public static double PICK_CHANNEL_OFFSET_Y_MM = 10;
@@ -33,10 +34,23 @@ namespace Picky
             set { interval = value; OnPropertyChanged(nameof(Interval)); }
         }
 
-        public int index { get; set; }
+        private double width = FEEDER_DEFAULT_WIDTH_MM;
+        public double Width
+        {
+            get { return width;  }
+            set { width = value; OnPropertyChanged(nameof(Width)); }
+        }
+
+        private double partOffset = FEEDER_DEFAULT_PART_OFFSET;
+        public double PartOffset
+        {
+            get { return partOffset; }
+            set { partOffset = value; OnPropertyChanged(nameof(PartOffset)); }
+        }
+
+        public int Index { get; set; }
         public int start_count { get; set; }
         public int placed_count { get; set; }
-        public double width { get; set; }
         public double thickness { get; set; }
         
 
@@ -67,7 +81,7 @@ namespace Picky
             get { return qrCode; }
             set { qrCode = value; OnPropertyChanged(nameof(QRCode)); }
         }
-
+        
         public Point2d QRLocation { get; set; }
 
         public double x_drive { get; set; }
@@ -144,10 +158,8 @@ namespace Picky
         public ICommand GoToFeederCommand { get { return new RelayCommand(GoToFeeder); } }
         public void GoToFeeder()
         {
-            Console.WriteLine("Go To FeederModel Position: " + Origin.X + " mm " + Origin.Y + " mm");
             machine.Messages.Add(GCommand.G_SetPosition(Origin.X, Origin.Y, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.GetFeederQRCode(this));
         }
 
         public ICommand GoToFeederDriveCommand { get { return new RelayCommand(GoToFeederDrive); } }
@@ -201,6 +213,7 @@ namespace Picky
         {
             Console.WriteLine("Set Part Template");
             Mat mat = new Mat();
+            Mat part_mat = new Mat();
             Cv2.CopyTo(machine.downCamera.ColorImage, mat);
             using (OpenCvSharp.Window window = new OpenCvSharp.Window("Select ROI"))
             {
@@ -211,7 +224,7 @@ namespace Picky
                 {
                     OpenCvSharp.Rect roi = Cv2.SelectROI("Select ROI", mat);
                     // Capture the selected ROI
-                    Part.Template = new Mat(machine.downCamera.ColorImage, roi);
+                    part_mat = new Mat(machine.downCamera.ColorImage, roi);
                 }
                 catch (Exception ex)
                 {
@@ -222,10 +235,9 @@ namespace Picky
                 DateTime now = DateTime.Now;
                 String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
                 String filename = path + "\\" + Part.Footprint + "-" + now.ToString("MMddHHmmss") + ".png";
-                Cv2.ImWrite(filename, Part.Template);
+                Cv2.ImWrite(filename, part_mat);
                 while (File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read) == null) { }
                 Part.TemplateFileName = filename;
-
             }
         }
     }

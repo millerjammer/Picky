@@ -61,7 +61,6 @@ namespace Picky
                 return;
             }
             FeederModel fdr = new FeederModel();
-            fdr.width = FeederModel.FEEDER_8MM_WIDTH_MILS;
             fdr.Part = Machine.selectedPickListPart;
             Machine.SelectedCassette.Feeders.Add(fdr);
             Machine.selectedPickListPart.Cassette = Machine.SelectedCassette;

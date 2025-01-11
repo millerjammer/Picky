@@ -24,7 +24,6 @@ namespace Picky.Tools
             msg.messageCommand = this;
             msg.cmd = Encoding.ASCII.GetBytes("J102 Simple Delay\n");
             delay = msDelay;
-            start_ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         }
 
         public MachineMessage GetMessage()
@@ -34,6 +33,7 @@ namespace Picky.Tools
 
         public bool PreMessageCommand(MachineMessage msg)
         {
+            start_ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             return true;
         }
 

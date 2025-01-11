@@ -257,9 +257,9 @@ namespace Picky
             machine.Messages.Add(GCommand.G_GetStepsPerUnit());
             // Start with Z Calibration
             for(int i = 0;i < STEP_COUNT; i++)
-            {   
-                y_offset = machine.Cal.StepPad.Y + (i * STEP_SPACING_Y_MM) + Constants.CAMERA_TO_HEAD_OFFSET_Y_MM;
-                machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.StepPad.X - (i * STEP_SPACING_X_MM), (int)y_offset, 0, 0, 0));
+            {
+                y_offset = machine.Cal.Target.StepPad.Y + (i * STEP_SPACING_Y_MM) + Constants.CAMERA_TO_HEAD_OFFSET_Y_MM;
+                machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.Target.StepPad.X - (i * STEP_SPACING_X_MM), (int)y_offset, 0, 0, 0));
                 machine.Messages.Add(GCommand.G_FinishMoves());
                 machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
                 machine.Messages.Add(GCommand.Delay(500));

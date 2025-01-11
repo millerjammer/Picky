@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.Win32;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ using System.Linq;
 using System.Web.UI.WebControls.WebParts;
 using System.Windows.Input;
 using Xamarin.Forms;
+using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace Picky
 {
@@ -37,10 +39,7 @@ namespace Picky
             machine = MachineModel.Instance;
         }
 
-        public ICommand SaveFeederCommand { get { return new RelayCommand(SaveFeeder); } }
-        private void SaveFeeder()
-        {
-        }
+        
     }
 }
 

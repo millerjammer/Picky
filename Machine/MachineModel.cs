@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Web.UI.WebControls.WebParts;
+using System.Windows.Input;
 
 namespace Picky
 {
@@ -196,7 +197,9 @@ namespace Picky
             if (CurrentY > Cal?.QRRegion.Y)
             {
                 if (CurrentY < (Cal?.QRRegion.Y + Cal?.QRRegion.Height))
-                   return true;
+                {
+                    return true;
+                }
             }
             return false;
         }
@@ -310,6 +313,17 @@ namespace Picky
             Console.WriteLine("Calibration Configuration Data Saved.");
 
         }
+
+        public ICommand SaveFeederCommand { get { return new RelayCommand(SaveFeeder); } }
+        private void SaveFeeder()
+        {
+            String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            FeederModel feeder = SelectedCassette.SelectedFeeder;
+            String filename = FileUtils.ConvertToHashedFilename(feeder.QRCode, Constants.FEEDER_FILE_EXTENTION);
+            File.WriteAllText(path + "\\" + filename, JsonConvert.SerializeObject(feeder, Formatting.Indented));
+            Console.WriteLine("Feeder Saved: " + filename);
+        }
+
         public bool AddFeederPickToQueue(FeederModel feeder)
         {
             MachineModel machine = MachineModel.Instance;

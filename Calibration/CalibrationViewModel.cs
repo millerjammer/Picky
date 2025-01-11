@@ -15,13 +15,7 @@ namespace Picky
     internal class CalibrationViewModel : INotifyPropertyChanged
     {
         public MachineModel machine { get; set; }
-                   
-        public CalTargetModel Target
-        {
-            get { return machine.Cal.CalTarget; }
-            set { machine.Cal.CalTarget = value; OnPropertyChanged(nameof(Target)); }
-        }
-               
+                                
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string propertyName)
         {
@@ -101,13 +95,13 @@ namespace Picky
         public ICommand SetStepOriginCommand { get { return new RelayCommand(SetStepOrigin); } }
         private void SetStepOrigin()
         {
-            Target.StepPad.X = machine.CurrentX; Target.StepPad.Y = machine.CurrentY;
+            machine.Cal.Target.StepPad.X = machine.CurrentX; machine.Cal.Target.StepPad.Y = machine.CurrentY;
         }
 
         public ICommand GoToStepOriginCommand { get { return new RelayCommand(GoToStepOrigin); } }
         private void GoToStepOrigin()
         {
-            machine.Messages.Add(GCommand.G_SetPosition(Target.StepPad.X, Target.StepPad.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.Target.StepPad.X, machine.Cal.Target.StepPad.Y, 0, 0, 0));
         }
 
         public ICommand GoToDeckPadCommand { get { return new RelayCommand(GoToDeckPad); } }
@@ -128,7 +122,7 @@ namespace Picky
             machine.Cal.IsPreviewLowerTargetActive = false;
             machine.Cal.IsPreviewUpperTargetActive = false;
             machine.Cal.IsPreviewGridActive = false;
-            Target.CalibrateMMPerPixelAtZ();
+            machine.Cal.Target.CalibrateMMPerPixelAtZ();
         }
 
         public ICommand CalibrateMMPerStepCommand { get { return new RelayCommand(CalibrateMMPerStep); } }
@@ -137,7 +131,7 @@ namespace Picky
             machine.Cal.IsPreviewLowerTargetActive = false;
             machine.Cal.IsPreviewUpperTargetActive = false;
             machine.Cal.IsPreviewGridActive = false;
-            Target.CalibrateMMPerStep();
+            machine.Cal.Target.CalibrateMMPerStep();
         }
                
 
