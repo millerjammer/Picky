@@ -468,9 +468,9 @@ namespace Picky
                 // Match the pattern in the input string
                 MatchCollection matches = regex.Matches(Encoding.UTF8.GetString(serial_buffer));
 
-                machine.CurrentX = double.Parse(matches[0].Value);
-                machine.CurrentY = double.Parse(matches[1].Value);
-                machine.CurrentZ = double.Parse(matches[2].Value);
+                machine.Current.X = double.Parse(matches[0].Value);
+                machine.Current.Y = double.Parse(matches[1].Value);
+                machine.Current.Z = double.Parse(matches[2].Value);
                 machine.CurrentA = double.Parse(matches[3].Value);
 
                 return true;
@@ -485,7 +485,7 @@ namespace Picky
                 bool pOK = false;
 
                 // Make sure machine has stopped
-                if ((machine.CurrentX == lastPos.x) && (machine.CurrentY == lastPos.y) && (machine.CurrentZ == lastPos.z) && (machine.CurrentA == lastPos.a) && (machine.CurrentB == lastPos.b))
+                if ((machine.Current.X == lastPos.x) && (machine.Current.Y == lastPos.y) && (machine.Current.Z == lastPos.z) && (machine.CurrentA == lastPos.a) && (machine.CurrentB == lastPos.b))
                 {
                     if ((Math.Abs(lastPos.x - msg.target.x) < 1))
                     {
@@ -505,7 +505,7 @@ namespace Picky
                     }
                 }
 
-                lastPos.x = machine.CurrentX; lastPos.y = machine.CurrentY; lastPos.z = machine.CurrentZ; lastPos.a = machine.CurrentA; lastPos.b = machine.CurrentB;
+                lastPos.x = machine.Current.X; lastPos.y = machine.Current.Y; lastPos.z = machine.Current.Z; lastPos.a = machine.CurrentA; lastPos.b = machine.CurrentB;
                 return pOK;
             }
         }

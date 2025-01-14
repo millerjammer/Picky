@@ -141,8 +141,8 @@ namespace Picky
         {
             if (Machine.SelectedPickTool != null)
             {
-                Machine.SelectedPickTool.ToolStorage.X = Machine.CurrentX;
-                Machine.SelectedPickTool.ToolStorage.Y = Machine.CurrentY;
+                Machine.SelectedPickTool.ToolStorage.X = Machine.Current.X;
+                Machine.SelectedPickTool.ToolStorage.Y = Machine.Current.Y;
                 Machine.SelectedPickTool.ToolStorage.Z = Constants.TOOL_NOMINAL_Z_DRIVE_MM;
                 OnPropertyChanged(nameof(PickToolList)); // Notify that the collection has changed
             }

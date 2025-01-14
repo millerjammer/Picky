@@ -55,11 +55,11 @@ namespace Picky.Tools
                 {
                     double x_offset_pix = (match.pos.X + (match.pos.Width / 2)) - (Constants.CAMERA_FRAME_WIDTH / 2);
                     double x_offset_mm = scale.xScale * x_offset_pix;
-                    double x = machine.CurrentX - x_offset_mm;
+                    double x = machine.Current.X - x_offset_mm;
 
                     double y_offset_pix = (Constants.CAMERA_FRAME_HEIGHT / 2) - (match.pos.Y + (match.pos.Height / 2));
                     double y_offset_mm = scale.yScale * y_offset_pix;
-                    double y = machine.CurrentY - y_offset_mm;
+                    double y = machine.Current.Y - y_offset_mm;
 
                     if (x < Constants.TRAVEL_LIMIT_X_MM && y < Constants.TRAVEL_LIMIT_Y_MM)
                     {   /* Only update feeder if we can get to it */
@@ -78,11 +78,11 @@ namespace Picky.Tools
                         {
                             double x_offset_pix = (qr.pos.X + (qr.pos.Width / 2)) - (Constants.CAMERA_FRAME_WIDTH / 2);
                             double x_offset_mm = scale.xScale * x_offset_pix;
-                            double x = machine.CurrentX - x_offset_mm;
+                            double x = machine.Current.X - x_offset_mm;
 
                             double y_offset_pix = (Constants.CAMERA_FRAME_HEIGHT / 2) - (qr.pos.Y + (qr.pos.Height / 2));
                             double y_offset_mm = scale.yScale * y_offset_pix;
-                            double y = machine.CurrentY - y_offset_mm;
+                            double y = machine.Current.Y - y_offset_mm;
                             if (x < Constants.TRAVEL_LIMIT_X_MM && y < Constants.TRAVEL_LIMIT_Y_MM)
                             {   /* Only update feeder if we can get to it */
                                 FeederModel feeder = FileUtils.LoadFeederFromQRCode(qr.str);

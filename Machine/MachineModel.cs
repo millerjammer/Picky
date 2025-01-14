@@ -79,33 +79,15 @@ namespace Picky
             set { selectedCassette = value; OnPropertyChanged(nameof(SelectedCassette)); }
         }
         public ObservableCollection<Cassette> Cassettes { get; set; }
-
-        private string calibrationStatusString = "Not Calibrated";
-        public string CalibrationStatusString
-        {
-            get { return calibrationStatusString; }
-            set { calibrationStatusString = value; OnPropertyChanged(nameof(CalibrationStatusString)); }
-        }
-
+                
         /* Current machine position - needed because serial port makes changes here */
-        private double currentX = 0;
-        public double CurrentX
+        private Position3D current = new Position3D();
+        public Position3D Current
         {
-            get { return currentX; }
-            set { currentX = value; OnPropertyChanged(nameof(CurrentX)); }
+            get { return current; }
+            set { current = value; OnPropertyChanged(nameof(Current)); }
         }
-        private double currentY = 0;
-        public double CurrentY
-        {
-            get { return currentY; }
-            set { currentY = value; OnPropertyChanged(nameof(CurrentY)); }
-        }
-        private double currentZ = 0;
-        public double CurrentZ
-        {
-            get { return currentZ; }
-            set { currentZ = value; OnPropertyChanged(nameof(CurrentZ)); }
-        }
+                
         private double currentA = 0;
         public double CurrentA
         {
@@ -170,14 +152,12 @@ namespace Picky
         }
 
         /* Limit Switches */
-
         private bool isZProbeAtLimit = false;
         public bool IsZProbeAtLimit
         {
             get { return isZProbeAtLimit; }
             set { isZProbeAtLimit = value; OnPropertyChanged(nameof(IsZProbeAtLimit)); }
         }
-
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;
         private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -192,24 +172,45 @@ namespace Picky
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public bool IsMachineInQRRegion()
+        private void UpdateObservables(object sender, PropertyChangedEventArgs e)
         {
-            if (CurrentY > Cal?.QRRegion.Y)
+            /*------------------------------------------------------------------------
+             * This function updates properties in various objects based on movement
+             * Movements set the camera and the camera set 
+             * ----------------------------------------------------------------------*/
+
+            bool qrState = false;
+            if (sender.Equals(Current))
             {
-                if (CurrentY < (Cal?.QRRegion.Y + Cal?.QRRegion.Height))
+                /* Get QR Region */
+                if (Current.Y > Cal?.QRRegion.Y)
                 {
-                    return true;
+                    if (Current.Y < (Cal?.QRRegion.Y + Cal?.QRRegion.Height))
+                    {
+                        qrState = true;
+                    }
+                }
+                downCamera.QRInView = qrState;
+                /* Get Closest Feeder */
+                if (Cassettes.Count > 0 && Cassettes.ElementAt(0).Feeders != null && qrState == true)
+                {
+                    downCamera.FeederInView = Cassettes.ElementAt(0).Feeders.OrderBy(feeder => TranslationUtils.GetDistance(feeder.Origin, Current)).FirstOrDefault();
+                    Console.WriteLine("Feeder In View.");
+                }
+                else
+                {
+                    downCamera.FeederInView = null;
+                    Console.WriteLine("Feeder NOT In View.");
                 }
             }
-            return false;
         }
-
-
         private MachineModel()
         {
             Messages = new ObservableCollection<MachineMessage>();
             Cassettes = new ObservableCollection<Cassette>();
             PickList = new ObservableCollection<Part>();
+
+            current.PropertyChanged += UpdateObservables;
 
             String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
@@ -332,7 +333,7 @@ namespace Picky
             Messages.Add(GCommand.G_SetPosition(feeder.Origin.X, feeder.Origin.Y, 0, 0, 0));
             Messages.Add(GCommand.G_FinishMoves());
             Messages.Add(GCommand.SetCameraManualFocus(downCamera, true, Constants.FOCUS_FEEDER_PART));
-            Messages.Add(GCommand.OpticallyAlignToPart(feeder));
+            //Messages.Add(GCommand.OpticallyAlignToPart(feeder));
             Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
             //Messages.Add(GCommand.OffsetCameraToPick(FeederModel.Part, machine.selectedPickTool.TipOffsetLower.BestCircle.Z + 2.0));
             Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));

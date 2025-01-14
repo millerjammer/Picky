@@ -3,6 +3,7 @@ using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -45,7 +46,7 @@ namespace Picky
         public static int    TOOL_COUNT = 4;
         public static double TOOL_CENTER_RADIUS_MILS = 80;
         public static double TOOL_LENGTH_MM = 28.575;
-        
+
         /* GUI */
         public static string PAUSE_ICON = "\uE769";
         public static string PLAY_ICON = "\uE768";
@@ -82,7 +83,7 @@ namespace Picky
         public static double DEFAULT_MM_PER_PIXEL = .0206;    //Assumes a FOV
 
         /* Physical constants beyond where we can probe */
-        public static double ZOFFSET_CAL_PAD_TO_FEEDER_TAPE = 11.0;  //Temp!!!! TODO replace with measurement and focus and all that
+        public static double ZOFFSET_CAL_PAD_TO_FEEDER_TAPE = 11.4;  //Temp!!!! TODO replace with measurement and focus and all that
         public static double ZOFFSET_CAL_PAD_TO_DECK = 8.0;
         public static double ZOFFSET_CAL_PAD_TO_QR = 7.0;
 

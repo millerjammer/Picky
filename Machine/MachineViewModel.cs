@@ -55,7 +55,7 @@ namespace Picky
         private void ButtonXLeft()
         {
             MachineMessage.Pos dest = machine.Messages.Last().target;
-            double dest_z = machine.CurrentZ;   // Needed if following a triggered probe command
+            double dest_z = machine.Current.Z;   // Needed if following a triggered probe command
             machine.Messages.Add(GCommand.G_SetPosition( dest.x + distanceToAdvance, dest.y, dest_z, dest.a, dest.b));
         }
 
@@ -63,7 +63,7 @@ namespace Picky
         private void ButtonXRight()
         {
             MachineMessage.Pos dest = machine.Messages.Last().target;
-            double dest_z = machine.CurrentZ;   // Needed if following a triggered probe command
+            double dest_z = machine.Current.Z;   // Needed if following a triggered probe command
             machine.Messages.Add(GCommand.G_SetPosition(dest.x - distanceToAdvance, dest.y, dest_z, dest.a, dest.b));
         }
 
@@ -71,7 +71,7 @@ namespace Picky
         private void ButtonYUp()
         {
             MachineMessage.Pos dest = machine.Messages.Last().target;
-            double dest_z = machine.CurrentZ;   // Needed if following a triggered probe command
+            double dest_z = machine.Current.Z;   // Needed if following a triggered probe command
             machine.Messages.Add(GCommand.G_SetPosition(dest.x, dest.y - distanceToAdvance, dest_z, dest.a, dest.b));
         }
 
@@ -79,7 +79,7 @@ namespace Picky
         private void ButtonYDown()
         {
             MachineMessage.Pos dest = machine.Messages.Last().target;
-            double dest_z = machine.CurrentZ;   // Needed if following a triggered probe command
+            double dest_z = machine.Current.Z;   // Needed if following a triggered probe command
             machine.Messages.Add(GCommand.G_SetPosition(dest.x, dest.y + distanceToAdvance, dest_z, dest.a, dest.b));
         }
 
@@ -95,7 +95,7 @@ namespace Picky
         public ICommand ButtonZUpCommand { get { return new RelayCommand(ButtonZUp); } }
         private void ButtonZUp()
         {
-            double dest_z = machine.CurrentZ;   // Needed if following a triggered probe command
+            double dest_z = machine.Current.Z;   // Needed if following a triggered probe command
             machine.Messages.Add(GCommand.G_SetZPosition(dest_z - distanceToAdvance));
             machine.Messages.Add(GCommand.G_EndstopStates());
         }
@@ -103,7 +103,7 @@ namespace Picky
         public ICommand ButtonZDownCommand { get { return new RelayCommand(ButtonZDown); } }
         private void ButtonZDown()
         {
-            double dest_z = machine.CurrentZ;   // Needed if following a triggered probe command
+            double dest_z = machine.Current.Z;   // Needed if following a triggered probe command
             machine.Messages.Add(GCommand.G_ProbeZ(dest_z + distanceToAdvance));
             machine.Messages.Add(GCommand.G_EndstopStates());
         }
@@ -113,7 +113,7 @@ namespace Picky
         private void ButtonRLeft()
         {
             MachineMessage.Pos dest = machine.Messages.Last().target;
-            double dest_z = machine.CurrentZ;   // Needed if following a triggered probe command
+            double dest_z = machine.Current.Z;   // Needed if following a triggered probe command
             machine.Messages.Add(GCommand.G_SetPosition(dest.x, dest.y, dest_z, dest.a + distanceToAdvance, dest.b));
         }
 
@@ -121,7 +121,7 @@ namespace Picky
         private void ButtonRRight()
         {
             MachineMessage.Pos dest = machine.Messages.Last().target;
-            double dest_z = machine.CurrentZ;   // Needed if following a triggered probe command
+            double dest_z = machine.Current.Z;   // Needed if following a triggered probe command
             machine.Messages.Add(GCommand.G_SetPosition(dest.x, dest.y, dest_z, dest.a - distanceToAdvance, dest.b));
         }
 

@@ -7,7 +7,8 @@
     xmlns:local="clr-namespace:Picky"
         d:DataContext="{d:DesignInstance Type=local:FeederViewModel}"
     mc:Ignorable="d" FontSize="15"
-    Height="525" Width="800" WindowStartupLocation="CenterScreen" Background="#151f2d">
+    Height="500" Width="800" WindowStartupLocation="CenterScreen" Background="#151f2d" Foreground="White" Title="Feeder">
+    
     <Border  Margin="0 0 0 0">
         <Grid Margin="10 5 10 5" VerticalAlignment="Top">
             <Grid.RowDefinitions>
@@ -32,7 +33,63 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Feeder" Foreground="White" Margin="10,10,10,10" HorizontalAlignment="Left" TextAlignment="Left" />
+            <DockPanel Grid.Row="0" Grid.ColumnSpan="6">
+                <!-- Toolbar at the top -->
+                <ToolBarTray DockPanel.Dock="Top" >
+                    <ToolBar>
+                        <!-- Toolbar Buttons -->
+                        <Button ToolTip="Save Feeder" Margin="2" Background="#2c4c5c" Command="{Binding SaveFeederCommand}">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE74E;" HorizontalAlignment="Left"/>
+                                <TextBlock Text="Save" Margin="10 0 0 0" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <!-- Separator -->
+                        <Separator Margin="5,0" />
+                        <!-- Custom Button -->
+                        <Button ToolTip="Capture Part Template for this Component" Margin="2" Command="{Binding SelectedCassette.SelectedFeeder.SetPartTemplateCommand}">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xF7EE;" HorizontalAlignment="Left"/>
+                                <TextBlock Text="Template" Margin="10 0 0 0" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <!-- Separator -->
+                        <Separator Margin="5,0" />
+                        <!-- Custom Button -->
+                        <Button ToolTip="Got To Feeder Origin" Margin="2" Command="{Binding SelectedCassette.SelectedFeeder.GoToFeederCommand}">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xEE49;" HorizontalAlignment="Left"/>
+                                <TextBlock Text="Feeder" Margin="10 0 0 0" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button ToolTip="Optically Align to Next Part" Margin="2" Command="{Binding SelectedCassette.SelectedFeeder.GoToNextComponentCommand}">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE722;" HorizontalAlignment="Left"/>
+                                <TextBlock Text="To Part" Margin="10 0 0 0" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button ToolTip="Align Pick to Next Part" Margin="2" Command="{Binding SelectedCassette.SelectedFeeder.GoToNextPickComponentCommand}">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE7B7;" HorizontalAlignment="Left"/>
+                                <TextBlock Text="To Part" Margin="10 0 0 0" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button ToolTip="Pick Next Part" Margin="2" Command="{Binding SelectedCassette.SelectedFeeder.PickNextPickComponentCommand}">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE707;" HorizontalAlignment="Left"/>
+                                <TextBlock Text="Part" Margin="10 0 0 0" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <!-- Separator -->
+                        <Separator Margin="5,0" />
+                        <!-- Custom Button -->
+                    </ToolBar>
+                </ToolBarTray>
+
+                <!-- Main Content -->
+                <Frame x:Name="MainFrame" Background="White" NavigationUIVisibility="Hidden" />
+            </DockPanel>
+            
 
             <Label Grid.Row="1" Grid.Column="0" Content="Part Description:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
             <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="5" Margin="10 5 10 5" Text="{Binding SelectedCassette.SelectedFeeder.Part.Description}"/>
@@ -70,11 +127,6 @@
             <Label Grid.Row="9" Grid.Column="0" Content="Next Pick:" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
             <TextBlock Grid.Row="9" Grid.Column="1" Margin="10" Foreground="White" HorizontalAlignment="Center" Text="{Binding SelectedCassette.SelectedFeeder.Width, StringFormat={}{0:0.000}, UpdateSourceTrigger=PropertyChanged}"/>
             <TextBlock Grid.Row="9" Grid.Column="2" Margin="10" Foreground="White" HorizontalAlignment="Center" Text="{Binding SelectedCassette.SelectedFeeder.PartOffset, StringFormat={}{0:0.000}, UpdateSourceTrigger=PropertyChanged}"/>
-
-            <ui:Button Grid.Row="10" Grid.Column="0" Margin="5" HorizontalAlignment="Stretch" Content="Capture Template" Command="{Binding SelectedCassette.SelectedFeeder.SetPartTemplateCommand}"/>
-            <ui:Button Grid.Row="10" Grid.Column="4" Margin="5" HorizontalAlignment="Stretch" Content="Save" Icon="Save28" Command="{Binding SaveFeederCommand}"/>
-            <ui:Button Grid.Row="10" Grid.Column="5" Margin="5" HorizontalAlignment="Stretch" Content="Cancel" Command="{Binding CloseCommand}"/>
-
         </Grid>
     </Border>
 </Window>

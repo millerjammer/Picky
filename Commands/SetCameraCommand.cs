@@ -37,7 +37,7 @@ namespace Picky.Commands
         public bool PreMessageCommand(MachineMessage msg)
         {
             MachineModel machine = MachineModel.Instance;
-            camera.Settings = settings;
+            camera.Settings = settings.Clone();
             start_ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             return true;
         }

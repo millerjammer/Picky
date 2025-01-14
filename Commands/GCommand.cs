@@ -44,18 +44,7 @@ namespace Picky
             SetCameraManualFocusCommand cmd = new SetCameraManualFocusCommand(camera, enableMF, value);
             return cmd.GetMessage();
         }
-
-        public static MachineMessage OffsetCameraToPick(Part part, double targetZ)
-        {
-            OffsetCameraToPickCommand cmd = new OffsetCameraToPickCommand(part, targetZ);
-            return cmd.GetMessage();
-        }
-
-        public static MachineMessage OpticallyAlignToPart(FeederModel feeder)
-        {
-            OpticallyAlignToPartCommand cmd = new OpticallyAlignToPartCommand(feeder);
-            return cmd.GetMessage();
-        }
+                   
 
         public static MachineMessage SetToolOffsetCalibration(PickToolModel tool, bool isUpper)
         {
@@ -68,13 +57,13 @@ namespace Picky
             StepAlignToTemplateCommand cmd = new StepAlignToTemplateCommand(_tamplate, _roi, _result);
             return cmd.GetMessage();
         }
-        
-        public static MachineMessage OpticallyAlignToTool(PickToolModel tool)
+
+        public static MachineMessage GetTemplatePosition(Mat _template, Position3D _roi)
         {
-            OpticallyAlignToToolCommand cmd = new OpticallyAlignToToolCommand(tool);
+            GetTemplatePositionCommand cmd = new GetTemplatePositionCommand(_template, _roi);
             return cmd.GetMessage();
         }
-        
+
         public static MachineMessage Get3x3GridCalibration(Mat _template, OpenCvSharp.Rect _roi, Position3D _result)            
         {
             Get3x3GridCalibrationCommand cmd = new Get3x3GridCalibrationCommand(_template, _roi, _result);

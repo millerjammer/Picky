@@ -168,9 +168,8 @@
     <Compile Include="Commands\CalculateMachineStepsPerMMCommand.cs" />
     <Compile Include="Commands\DelayCommand.cs" />
     <Compile Include="Commands\Get3x3GridCalibrationCommand.cs" />
+    <Compile Include="Commands\GetTemplatePositionCommand.cs" />
     <Compile Include="Commands\GetZProbeCommand.cs" />
-    <Compile Include="Commands\OffsetCameraToPickCommand.cs" />
-    <Compile Include="Commands\OpticallyAlignToToolCommand.cs" />
     <Compile Include="Commands\SendCustomGCodeCommand.cs" />
     <Compile Include="Commands\SetCameraCommand.cs" />
     <Compile Include="Commands\SetCameraManualFocusCommand.cs" />
@@ -206,7 +205,6 @@
       <DependentUpon>PickListView.xaml</DependentUpon>
     </Compile>
     <Compile Include="PickListViewModel.cs" />
-    <Compile Include="Commands\OpticallyAlignToPartCommand.cs" />
     <Compile Include="Position3D.cs" />
     <Compile Include="QRCodeUtils.cs" />
     <Compile Include="SettingsModel.cs" />

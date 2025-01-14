@@ -31,7 +31,7 @@ namespace Picky
             get { return description; }
             set { description = value; OnPropertyChanged(nameof(Description)); }
         }
-      
+
         private bool isInView = false;
         public bool IsInView
         {
@@ -47,14 +47,14 @@ namespace Picky
         public string CenterY { get; set; }
         public string Rotation { get; set; }
         public string Thickness { get; set; }
-      
+
         private Cassette cassette;
         public Cassette Cassette
         {
             get { return cassette; }
             set { cassette = value; OnPropertyChanged(nameof(Cassette)); }
         }
-        
+
         private FeederModel feeder;
         public FeederModel Feeder
         {
@@ -71,6 +71,9 @@ namespace Picky
             set { template = value; OnPropertyChanged(nameof(Template)); }
         }
 
+        [JsonIgnore]
+        public Mat TemplateMat { get; set; }
+
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged(string propertyName)
         {
@@ -81,14 +84,15 @@ namespace Picky
         {
             if(templateFileName == null)
                 TemplateFileName = System.Environment.CurrentDirectory + "\\no_image_sm.png";
+            if (string.IsNullOrEmpty(Description)) Description = string.Format("New Part");
         }
 
         public void LoadTemplateImage()
         {
             try
             {
-                Mat img = Cv2.ImRead(TemplateFileName, ImreadModes.Color);
-                Template = BitmapSource.Create(img.Width, img.Height, 96, 96, PixelFormats.Bgr24, null, img.Data, (int)(img.Step() * img.Height), (int)img.Step());
+                TemplateMat = Cv2.ImRead(TemplateFileName, ImreadModes.Color);
+                Template = BitmapSource.Create(TemplateMat.Width, TemplateMat.Height, 96, 96, PixelFormats.Bgr24, null, TemplateMat.Data, (int)(TemplateMat.Step() * TemplateMat.Height), (int)TemplateMat.Step());
             }
             catch (Exception ex)
             {

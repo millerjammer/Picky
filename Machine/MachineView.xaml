@@ -123,15 +123,15 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal"  Margin="2">
                             <Label Content="X:" VerticalAlignment="Center" Padding="3 0 10 0"/>
-                            <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.CurrentX, StringFormat={}{0:0.000}}"/>
+                            <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.Current.X, StringFormat={}{0:0.000}}"/>
                         </StackPanel>
                         <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 2 2 2">
                             <Label Content="Y:" VerticalAlignment="Center" Padding="3 0 10 0"/>
-                            <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.CurrentY, StringFormat={}{0:0.000}}"/>
+                            <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.Current.Y, StringFormat={}{0:0.000}}"/>
                         </StackPanel>
                         <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 2 2 2">
                             <Label Content="Z:" VerticalAlignment="Center" Padding="3 0 10 0"/>
-                            <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.CurrentZ, StringFormat={}{0:0.000}}"/>
+                            <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.Current.Z, StringFormat={}{0:0.000}}"/>
                         </StackPanel>
                         <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 2 2 2">
                             <Label Content="A:" VerticalAlignment="Center" Padding="3 0 10 0"/>

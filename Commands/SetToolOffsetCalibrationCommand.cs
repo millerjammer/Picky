@@ -93,7 +93,7 @@ namespace Picky
                         {
                             X = circleSegment.Center.X,
                             Y = circleSegment.Center.Y,
-                            Z = (machine.CurrentZ + tool.Length),
+                            Z = (machine.Current.Z + tool.Length),
                             Angle = machine.CurrentA
                         };
                         //tool.SetPickOffsetCalibrationData( pos );

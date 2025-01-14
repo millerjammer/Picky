@@ -143,7 +143,7 @@ namespace Picky
             // Write Part template image to file
             calPosition.SaveToolTemplateImage();
             
-            calPosition.Set3DToolTipFromToolMat(machine.downCamera.DilatedImage, machine.CurrentZ);
+            calPosition.Set3DToolTipFromToolMat(machine.downCamera.DilatedImage, machine.Current.Z);
             Console.WriteLine("Set Tool Target Template: " + calPosition.ToolTemplateFileName);
         }
 

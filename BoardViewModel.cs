@@ -69,8 +69,8 @@ namespace Picky
         private void SetAsPCBOrigin()
         {
             Console.WriteLine("Set As PCB Origin");
-            PcbOriginX = machine.CurrentX;
-            PcbOriginY = machine.CurrentY;
+            PcbOriginX = machine.Current.X;
+            PcbOriginY = machine.Current.Y;
             SaveBoard();
         }
 

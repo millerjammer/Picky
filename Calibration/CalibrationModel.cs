@@ -200,13 +200,16 @@ namespace Picky
             /*----------------------------------------------------------------------------------
              - Returns the scale in mm/pix at the given Z (in mm) requires the calibration has 
              - been performed. Uses linear interpolation.  z is physical distance camera-to-item
-             - WITHOUT A TIP!
+             - WITHOUT A TIP!  From ChatGPT
              -----------------------------------------------------------------------------------*/
 
-            double scaleFactor = (z - MMPerPixUpper.Z) / (MMPerPixLower.Z - MMPerPixUpper.Z);
-            double mmPerPixX = MMPerPixUpper.X + scaleFactor * (MMPerPixLower.X - MMPerPixUpper.X);
-            double mmPerPixY = MMPerPixUpper.Y + scaleFactor * (MMPerPixLower.Y - MMPerPixUpper.Y);
-         
+            double delta_z = (mmPerPixLower.Z - mmPerPixUpper.Z);
+            double slope_x = (mmPerPixLower.X - mmPerPixUpper.X) / delta_z;
+            double mmPerPixX = MMPerPixUpper.X + (slope_x * (z - mmPerPixUpper.Z));
+
+            double slope_y = (mmPerPixLower.Y - mmPerPixUpper.Y) / delta_z;
+            double mmPerPixY = MMPerPixUpper.Y + (slope_y * (z - mmPerPixUpper.Z));
+                       
             return (mmPerPixX, mmPerPixY);
         }
 
@@ -224,7 +227,7 @@ namespace Picky
 
             int x = 0;
 
-            double y_mm = machine.CurrentY - QRRegion.Y;
+            double y_mm = machine.Current.Y - QRRegion.Y;
             double y_pix = y_mm / scale.yScale;
             int y = (y_pix > Constants.CAMERA_FRAME_HEIGHT) ? 0 : (int)((Constants.CAMERA_FRAME_HEIGHT / 2 ) - y_pix);
 

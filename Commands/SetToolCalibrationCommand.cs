@@ -43,7 +43,7 @@ namespace Picky
 
         public bool PreMessageCommand(MachineMessage msg)
         {
-            machine.downCamera.Settings = CalPosition.CaptureSettings;
+            machine.downCamera.Settings = CalPosition.CaptureSettings.Clone();
             return true;
         }
 
@@ -54,10 +54,10 @@ namespace Picky
                 return false;
                         
             // Save Tool Length when calibrating @ the Calibrated Cal Pad 
-            if (machine.CurrentX == machine.Cal.CalPad.X && machine.CurrentY == machine.Cal.CalPad.Y)
-                machine.SelectedPickTool.Length = machine.Cal.CalPad.Z - machine.CurrentZ;
+            if (machine.Current.X == machine.Cal.CalPad.X && machine.Current.Y == machine.Cal.CalPad.Y)
+                machine.SelectedPickTool.Length = machine.Cal.CalPad.Z - machine.Current.Z;
             // Save Current Z 
-            CalPosition.TipPosition.Z = (machine.CurrentZ + machine.SelectedPickTool.Length);
+            CalPosition.TipPosition.Z = (machine.Current.Z + machine.SelectedPickTool.Length);
             // Get 3D Position from Image
             CalPosition.Set3DToolTipFromToolMat(machine.downCamera.DilatedImage, CalPosition.TipPosition.Z);
             // Save The Template Image 

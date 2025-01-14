@@ -9,16 +9,10 @@ using System.Windows.Media;
 
 namespace Picky
 {
-    public class StepAlignToTemplateCommand : MessageRelayCommand
+    public class AlignToTemplateCommand : MessageRelayCommand
     /*---------------------------------------------------------------
-     * This function moves the head to a circle that looks like the
-     * 'estimated' circle using iteration.  This is used when you don't 
-     * know mm/pixel at the current Z.  This is typically used for 
-     * calibration only.  
-     * PREREQUISITS:
-     *  - Resolution calibration must be set first.
-     *  - Z Probe calibration must be set
-     *  - Command must be followed by a position command.
+     * Given a template and a z this will populate the position in 
+     * mm.
      * -------------------------------------------------------------*/
     {
         public MachineModel machine;
@@ -30,7 +24,7 @@ namespace Picky
         public double xScale, yScale;
         public double AdvanceFraction { get; set; } = 0.85;
 
-        public StepAlignToTemplateCommand(Mat _tamplate, OpenCvSharp.Rect _roi, Position3D _result)
+        public AlignToTemplateCommand(Mat _tamplate, OpenCvSharp.Rect _roi, Position3D _result)
         {
             machine = MachineModel.Instance;
             cameraToUse = machine.downCamera;
@@ -58,7 +52,7 @@ namespace Picky
         {
             if (cameraToUse.IsTemplateSearchActive() == false)
             {
-                List<Position3D> matches = cameraToUse.GetTemplateMatches(); 
+                List<Position3D> matches = cameraToUse.GetTemplateMatches();
                 // In pixels, bbsolute position in frame
                 double x_offset = matches.ElementAt(0).X + (matches.ElementAt(0).Width / 2);
                 double y_offset = matches.ElementAt(0).Y + (matches.ElementAt(0).Height / 2);
@@ -82,3 +76,4 @@ namespace Picky
         }
     }
 }
+

@@ -76,6 +76,8 @@
             <TextBlock Grid.Row="5" Grid.Column="2" Margin="10" Foreground="White" HorizontalAlignment="Center" Text="{Binding machine.Cal.MMPerPixLower.Y, StringFormat={}{0:0.00000},UpdateSourceTrigger=PropertyChanged}"/>
             <TextBlock Grid.Row="5" Grid.Column="3" Margin="10" Foreground="White" HorizontalAlignment="Center" Text="{Binding machine.Cal.MMPerPixLower.Z, StringFormat={}{0:0.000},UpdateSourceTrigger=PropertyChanged}"/>
             <Button Grid.Row="5" Grid.Column="4" Content="Calibrate" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding CalibrateMMPerPixCommand}"/>
+            <Button Grid.Row="5" Grid.Column="5" Content="Test" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding TestMMPerPixCommand}"/>
+
             
             <Label Grid.Row="6" Grid.Column="0" Content="Position Calibration (2nd):" Margin="10 5 10 5" VerticalContentAlignment="Center" FontWeight="UltraBold"/>
             <Label Grid.Row="6" Grid.Column="1" Content="X [mm]" Margin="10 5 10 5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="UltraBold"/>

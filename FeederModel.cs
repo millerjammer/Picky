@@ -12,6 +12,7 @@ namespace Picky
         /* Calibration GridOrigin Size and Location of 1st */
         public static double FEEDER_DEFAULT_WIDTH_MM = 12.5;
         public static double FEEDER_DEFAULT_PART_OFFSET = 3.5;
+        public static double FEEDER_DEFAULT_INTERVAL_MM = 5;
         public static double FEEDER_ORIGIN_TO_DRIVE_YOFFSET_MM = 50;
         public static double FEEDER_ORIGIN_TO_DRIVE_XOFFSET_MM = 2;
         
@@ -24,7 +25,7 @@ namespace Picky
             set { part = value; OnPropertyChanged(nameof(Part)); }
         }
 
-        private double interval;
+        private double interval = FEEDER_DEFAULT_INTERVAL_MM;
         public double Interval
         {
             get { return interval; }
@@ -115,40 +116,7 @@ namespace Picky
             return new Position3D {  X = x, Y = y, Width = width, Height = 40 };
 
         }
-
-        public void SetCandidateNextPartPickLocation(double x_next, double y_next, double targetZ)
-        {
-            /*----------------------------------------------------------------------
-             * When Part is in view, call here to update the Part's position, optically
-             * and pick tool. x and y are in terms of pixels in the current full frame.
-             * This routine will convert the pixels to the center of the frame, add
-             * the machine current position and calculate the offset too the selected 
-             * tool head if available. targetZ is in mm and is location of Part z
-             * ---------------------------------------------------------------------*/
-
-            // Get pixel offset relative to center of frame.
-            double x_offset_pix = (x_next - (Constants.CAMERA_FRAME_WIDTH / 2));
-            double y_offset_pix = (y_next - (Constants.CAMERA_FRAME_HEIGHT / 2));
-
-            // Convert pixels to mm
-            var scale = machine.Cal.GetScaleMMPerPixAtZ(targetZ);
-            NextPartOpticalLocation.X = machine.CurrentX - (x_offset_pix * scale.xScale);
-            NextPartOpticalLocation.Y = machine.CurrentY + (y_offset_pix * scale.yScale);
-
-            // Now, if there's a tool, calculate offset to tool
-            if (machine.SelectedPickTool == null)
-            {
-                NextPartPickLocation.X = 0;
-                NextPartPickLocation.Y = 0;
-                return;
-            }
-            PickToolModel tool = machine.SelectedPickTool;
-            NextPartPickLocation.Z = Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE + tool.UpperCal.TipPosition.Z;
-            Position3D pos = machine.SelectedPickTool.GetToolTipOffsetAtZ(NextPartPickLocation.Z);
-            NextPartPickLocation.X = NextPartOpticalLocation.X - pos.X;
-            NextPartPickLocation.Y = NextPartOpticalLocation.Y + pos.Y;
-            return;
-        }
+            
 
         private void OnPartPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -204,8 +172,7 @@ namespace Picky
         private void GoToNextComponent()
         {
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
-            machine.Messages.Add(GCommand.OpticallyAlignToPart(this));
-            machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_SetPosition(NextPartOpticalLocation.X, NextPartOpticalLocation.Y, 0, 0, 0));
         }
 
         public ICommand PickNextComponentCommand { get { return new RelayCommand(PickNextComponent); } }

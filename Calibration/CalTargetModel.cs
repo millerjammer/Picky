@@ -8,8 +8,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.Web.UI.WebControls.WebParts;
 using System.Windows;
@@ -117,7 +119,7 @@ namespace Picky
         public void SetUpperCalTarget()
         {
             MachineModel machine = MachineModel.Instance;
-            ActualLocUpper = new Position3D(machine.CurrentX, machine.CurrentY);
+            ActualLocUpper = new Position3D(machine.Current.X, machine.Current.Y);
             upperSettings = machine.downCamera.Settings.Clone();
             UpperTemplateFileName = SetCalTarget(machine, upperTemplate);
         }
@@ -126,7 +128,7 @@ namespace Picky
         public void SetLowerCalTarget()
         {
             MachineModel machine = MachineModel.Instance;
-            ActualLocLower = new Position3D(machine.CurrentX, machine.CurrentY);
+            ActualLocLower = new Position3D(machine.Current.X, machine.Current.Y);
             lowerSettings = machine.downCamera.Settings.Clone();
             LowerTemplateFileName = SetCalTarget(machine, lowerTemplate);
         }
@@ -135,7 +137,7 @@ namespace Picky
         public void SetGridCalTarget()
         {
             MachineModel machine = MachineModel.Instance;
-            GridOrigin.X = machine.CurrentX; GridOrigin.Y = machine.CurrentY;
+            GridOrigin.X = machine.Current.X; GridOrigin.Y = machine.Current.Y;
             gridSettings = machine.downCamera.Settings.Clone();
             GridTemplateFileName = SetCalTarget(machine, gridTemplate);
         }
@@ -164,6 +166,43 @@ namespace Picky
             Console.WriteLine("Set Cal Target Template: " + filename);
             return filename;
         }
+
+        public void TestMMPerPixelAtZ()
+        /*---------------------------------------------------------------------
+         * Called by GUI to test Calibration
+         * -------------------------------------------------------------------*/
+        {
+            double roi_factor = 6;
+            Mat template = Cv2.ImRead(UpperTemplateFileName, ImreadModes.Color);
+            MachineModel machine = MachineModel.Instance;
+
+            /* Search Area */
+            int width = (int)(roi_factor * template.Width);
+            int height = (int)(roi_factor * template.Height);
+            int x = (Constants.CAMERA_FRAME_WIDTH / 2) - (width / 2);
+            int y = (Constants.CAMERA_FRAME_HEIGHT / 2) - (height / 2);
+
+            Position3D roi_upper = new Position3D(x, y, machine.Cal.MMPerPixUpper.Z, width, height);
+            Position3D roi_lower = new Position3D(x, y, machine.Cal.MMPerPixLower.Z, width, height);
+
+            /* Upper */
+            machine.Messages.Add(GCommand.G_EnableIlluminator(true));
+            machine.Messages.Add(GCommand.SetCamera(upperSettings, machine.downCamera));
+            machine.Messages.Add(GCommand.G_SetPosition(ActualLocUpper.X, ActualLocUpper.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            machine.Messages.Add(GCommand.Delay(2000));
+            machine.Messages.Add(GCommand.GetTemplatePosition(template, roi_upper));
+            machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
+
+            /* Lower */
+            machine.Messages.Add(GCommand.SetCamera(lowerSettings, machine.downCamera));
+            machine.Messages.Add(GCommand.G_SetPosition(ActualLocLower.X, ActualLocLower.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            machine.Messages.Add(GCommand.Delay(2000));
+            machine.Messages.Add(GCommand.GetTemplatePosition(template, roi_lower));
+            machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
+        }
+
 
         public void CalibrateMMPerPixelAtZ()
         /*---------------------------------------------------------------------
@@ -236,7 +275,7 @@ namespace Picky
          * Uses step alignment to determine mm/step. This
          * is a calibration used to verify or update settings in the stepper 
          * motor controller. This should be the first calibration that's done.
-         *  - TODO Use a calibrated Z.  This will read current steps per mm.
+         * 
          * -------------------------------------------------------------------*/
         {
             double roi_factor = 3;

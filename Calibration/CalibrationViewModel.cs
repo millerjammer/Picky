@@ -44,7 +44,7 @@ namespace Picky
         private void SetOriginCasetteQR()
         {
             // Set the Region AROUND this Y- Dimension ONLY
-            double y = machine.CurrentY;
+            double y = machine.Current.Y;
             double z = machine.Cal.CalPad.Z + Constants.ZOFFSET_CAL_PAD_TO_QR;
             machine.Cal.QRRegion = new Position3D(Constants.TRAVEL_LIMIT_X_MM, y, z, Constants.TRAVEL_LIMIT_X_MM, Constants.QR_CODE_SIZE_MM);
             machine.Cal.QRCaptureSettings = machine.downCamera.Settings.Clone();
@@ -64,7 +64,7 @@ namespace Picky
         private void SetOriginPartChannel()
         {
             // Set the Region AROUND this Y- Dimension ONLY
-            double y = machine.CurrentY;
+            double y = machine.Current.Y;
             double z = machine.Cal.CalPad.Z + Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE;
             machine.Cal.ChannelRegion = new Position3D(Constants.TRAVEL_LIMIT_X_MM, y, z, Constants.TRAVEL_LIMIT_X_MM, Constants.TRAVEL_LIMIT_Y_MM - y);
             machine.Cal.ChannelCaptureSettings = machine.downCamera.Settings.Clone();
@@ -95,7 +95,7 @@ namespace Picky
         public ICommand SetStepOriginCommand { get { return new RelayCommand(SetStepOrigin); } }
         private void SetStepOrigin()
         {
-            machine.Cal.Target.StepPad.X = machine.CurrentX; machine.Cal.Target.StepPad.Y = machine.CurrentY;
+            machine.Cal.Target.StepPad.X = machine.Current.X; machine.Cal.Target.StepPad.Y = machine.Current.Y;
         }
 
         public ICommand GoToStepOriginCommand { get { return new RelayCommand(GoToStepOrigin); } }
@@ -123,6 +123,12 @@ namespace Picky
             machine.Cal.IsPreviewUpperTargetActive = false;
             machine.Cal.IsPreviewGridActive = false;
             machine.Cal.Target.CalibrateMMPerPixelAtZ();
+        }
+
+        public ICommand TestMMPerPixCommand { get { return new RelayCommand(TestMMPerPix); } }
+        private void TestMMPerPix()
+        {
+            machine.Cal.Target.TestMMPerPixelAtZ();
         }
 
         public ICommand CalibrateMMPerStepCommand { get { return new RelayCommand(CalibrateMMPerStep); } }
