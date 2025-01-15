@@ -108,7 +108,7 @@ namespace Picky
                 isPreviewUpperTargetActive = value;
                 if (value)
                 {
-                    isPreviewLowerTargetActive = false; isPreviewGridActive = false;
+                    IsPreviewLowerTargetActive = false; IsPreviewGridActive = false;
                     Target.QueueCalTargetSearch(Target.UpperTemplateFileName, Target.ActualLocUpper, Target.upperSettings, null, 5.5);
                 }
                 OnPropertyChanged(nameof(IsPreviewUpperTargetActive)); }
@@ -126,7 +126,7 @@ namespace Picky
                 isPreviewLowerTargetActive = value;
                 if (value)
                 {
-                    isPreviewUpperTargetActive = false; isPreviewGridActive = false;
+                    IsPreviewUpperTargetActive = false; IsPreviewGridActive = false;
                     Target.QueueCalTargetSearch(Target.LowerTemplateFileName, Target.ActualLocLower, Target.lowerSettings, null, 5);
                 }
                 OnPropertyChanged(nameof(IsPreviewLowerTargetActive)); }
@@ -145,7 +145,7 @@ namespace Picky
                 if (value)
                 {
                     Target.QueueCalTargetSearch(Target.GridTemplateFileName, Target.GridOrigin, Target.gridSettings, null, 2);
-                    isPreviewLowerTargetActive = false; isPreviewUpperTargetActive = false;
+                    IsPreviewLowerTargetActive = false; IsPreviewUpperTargetActive = false;
                 }
                 OnPropertyChanged(nameof(IsPreviewGridActive));
             }

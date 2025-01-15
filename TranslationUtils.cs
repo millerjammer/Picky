@@ -25,7 +25,7 @@ public static class TranslationUtils
         double y_center_pix = pos_pix.Y + (pos_pix.Height / 2);
         double y_mm_offset = (y_center_pix - (Constants.CAMERA_FRAME_HEIGHT / 2)) * scale.yScale;
         double y_mm_global = machine.Current.Y + y_mm_offset;
-        Console.WriteLine("z: " + z);
+        
         return new Position3D(x_mm_global, y_mm_global, z, 0);
     }
 

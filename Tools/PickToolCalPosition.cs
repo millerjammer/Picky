@@ -155,6 +155,9 @@ namespace Picky.Tools
             TipOffsetMM.X = mm_per_pix.xScale * ((Constants.CAMERA_FRAME_WIDTH / 2) - (toolROI.X + TipPosition.X));
             TipOffsetMM.Y = mm_per_pix.yScale * ((Constants.CAMERA_FRAME_HEIGHT / 2) - (toolROI.Y + TipPosition.Y));
             TipOffsetMM.Z = TipPosition.Z;
+            /* This can be used to offset the tip offset in Y for imaging on the +y side */
+            /* This is not applied to TipOffset.Y */
+            TipOffsetMM.Radius = mm_per_pix.yScale * TipPosition.Radius;
 
             Console.WriteLine("Offset from center of camera frame: " + TipOffsetMM.ToString());
             return (TipOffsetMM);

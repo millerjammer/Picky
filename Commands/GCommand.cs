@@ -147,7 +147,6 @@ namespace Picky
             MachineModel machine = MachineModel.Instance;
             MachineMessage msg = new MachineMessage();
             msg.target.z = z;
-            Console.WriteLine("xx:" + z);
             msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 Z{0} F{1}\n", z, machine.Settings.ProbeRate));
             return msg;
         }

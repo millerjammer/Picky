@@ -56,15 +56,16 @@ namespace Picky
         public Position3D NextPartOpticalLocation
         {
             get { return nextPartOpticalLocation; }
-            set { nextPartOpticalLocation = value; OnPropertyChanged(nameof(NextPartOpticalLocation));  }
+            set { if (nextPartOpticalLocation != value) { nextPartOpticalLocation = value; updatePartPickLocation(); OnPropertyChanged(nameof(NextPartOpticalLocation)); }  }
         }
 
-        private Position3D nextPartPickLocation = new Position3D(0, 0, 0);
+        public Position3D nextPartPickLocation = new Position3D(0, 0);
         public Position3D NextPartPickLocation
         {
             get { return nextPartPickLocation; }
-            set { nextPartPickLocation = value; OnPropertyChanged(nameof(NextPartPickLocation)); }
+            set { nextPartOpticalLocation = value; OnPropertyChanged(nameof(NextPartPickLocation)); }
         }
+        
 
         private Position3D origin = new Position3D(0, 0, 0);
         public Position3D Origin
@@ -116,7 +117,24 @@ namespace Picky
             return new Position3D {  X = x, Y = y, Width = width, Height = 40 };
 
         }
-            
+
+        private void updatePartPickLocation()
+        {
+            /*-----------------------------------------------------------
+             * When the optical pick location is updated this routine will
+             * update the Part Pick Location based on the current PicK Tool
+             * and only fires when the optical location changes. TODO:
+             * notify when Part Pick Tool isn't what's installed.  The offset
+             * in Y that's applied is based on the fact that the tip is 
+             * represented as a circle at is actually offset by it's radius
+             * to the actual tip.
+             * ---------------------------------------------------------*/
+
+            Position3D offset_mm = machine.SelectedPickTool.GetToolTipOffsetAtZ(machine.Cal.CalPad.Z + Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE);
+            NextPartPickLocation.X = NextPartOpticalLocation.X - offset_mm.X;
+            NextPartPickLocation.Y = NextPartOpticalLocation.Y + offset_mm.Y - offset_mm.Radius;
+            NextPartPickLocation.Z = machine.Cal.CalPad.Z + Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE - machine.SelectedPickTool.Length;
+        }
 
         private void OnPartPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -133,6 +151,8 @@ namespace Picky
         public ICommand GoToFeederCommand { get { return new RelayCommand(GoToFeeder); } }
         public void GoToFeeder()
         {
+            machine.Messages.Add(GCommand.G_SetZPosition(0));
+            machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_SetPosition(Origin.X, Origin.Y, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
         }
@@ -179,7 +199,8 @@ namespace Picky
         public void PickNextComponent()
         {
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
-            machine.AddFeederPickToQueue(this);
+            machine.Messages.Add(GCommand.G_SetPosition(NextPartPickLocation.X, NextPartPickLocation.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_ProbeZ(NextPartPickLocation.Z));
         }
 
         public ICommand SetPartTemplateCommand { get { return new RelayCommand(SetPartTemplate); } }

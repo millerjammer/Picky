@@ -398,7 +398,7 @@ namespace Picky
                 minDist: 30,     // Minimum distance between circle centers
                 param1: set.CircleDetectorP1,     // Higher threshold for the Canny edge detector
                 param2: set.CircleDetectorP2,      // Accumulator threshold for circle detection
-                minRadius: 10,    // Minimum circle radius (10px diameter → radius = 5px)
+                minRadius: 5,    // Minimum circle radius (10px diameter → radius = 5px)
                 maxRadius: 100     // Maximum circle radius
             );
 

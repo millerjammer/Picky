@@ -173,16 +173,22 @@ namespace Picky
          * -------------------------------------------------------------------*/
         {
             double roi_factor = 6;
-            Mat template = Cv2.ImRead(UpperTemplateFileName, ImreadModes.Color);
             MachineModel machine = MachineModel.Instance;
 
-            /* Search Area */
-            int width = (int)(roi_factor * template.Width);
-            int height = (int)(roi_factor * template.Height);
+            /* Upper Search Area */
+            Mat upperTemplate = Cv2.ImRead(UpperTemplateFileName, ImreadModes.Color);
+            int width = (int)(roi_factor * upperTemplate.Width);
+            int height = (int)(roi_factor * upperTemplate.Height);
             int x = (Constants.CAMERA_FRAME_WIDTH / 2) - (width / 2);
             int y = (Constants.CAMERA_FRAME_HEIGHT / 2) - (height / 2);
-
             Position3D roi_upper = new Position3D(x, y, machine.Cal.MMPerPixUpper.Z, width, height);
+
+            /* Lower Search Area */
+            Mat lowerTemplate = Cv2.ImRead(LowerTemplateFileName, ImreadModes.Color);
+            width = (int)(roi_factor * lowerTemplate.Width);
+            height = (int)(roi_factor * lowerTemplate.Height);
+            x = (Constants.CAMERA_FRAME_WIDTH / 2) - (width / 2);
+            y = (Constants.CAMERA_FRAME_HEIGHT / 2) - (height / 2);
             Position3D roi_lower = new Position3D(x, y, machine.Cal.MMPerPixLower.Z, width, height);
 
             /* Upper */
@@ -191,7 +197,7 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetPosition(ActualLocUpper.X, ActualLocUpper.Y, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.Delay(2000));
-            machine.Messages.Add(GCommand.GetTemplatePosition(template, roi_upper));
+            machine.Messages.Add(GCommand.GetTemplatePosition(upperTemplate, roi_upper));
             machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
 
             /* Lower */
@@ -199,7 +205,7 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetPosition(ActualLocLower.X, ActualLocLower.Y, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.Delay(2000));
-            machine.Messages.Add(GCommand.GetTemplatePosition(template, roi_lower));
+            machine.Messages.Add(GCommand.GetTemplatePosition(lowerTemplate, roi_lower));
             machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
         }
 
@@ -217,9 +223,6 @@ namespace Picky
         {
             MachineModel machine = MachineModel.Instance;
             
-            ActualLocUpper.Z = Constants.ZPROBE_LIMIT;
-            ActualLocLower.Z = Constants.ZPROBE_LIMIT;
-
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             /* Probe for upper Z */
             machine.Messages.Add(GCommand.G_SetPosition(ActualLocUpper.X, ActualLocUpper.Y, 0, 0, 0));

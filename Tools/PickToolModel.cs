@@ -222,8 +222,10 @@ namespace Picky
             // Interpolate the X and Y positions
             double iX = LowerCal.TipOffsetMM.X + (scaleFactor * (UpperCal.TipOffsetMM.X - LowerCal.TipOffsetMM.X));
             double iY = LowerCal.TipOffsetMM.Y + (scaleFactor * (UpperCal.TipOffsetMM.Y - LowerCal.TipOffsetMM.Y));
+            double rad = LowerCal.TipOffsetMM.Radius + (scaleFactor * (UpperCal.TipOffsetMM.Radius - LowerCal.TipOffsetMM.Radius));
 
             Position3D pos = new Position3D(iX, iY, z, 0);
+            pos.Radius = rad;
             return (pos);
         }
     }

@@ -100,9 +100,9 @@
             <TextBox Grid.Row="9" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" Text="{Binding  machine.Cal.Target.GridOrigin.Height, StringFormat={}{0:0}}"/>
 
             <Label Grid.Row="10" Grid.Column="0" Content="Calculated [stps/mm]: " Margin="10 5 10 5" VerticalContentAlignment="Center"/>
-            <TextBox Grid.Row="10" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="True" HorizontalAlignment="Stretch" Text="{Binding machine.Cal.CalculatedStepsPerUnitX, StringFormat={}{0:0.000}}"/>
-            <TextBox Grid.Row="10" Grid.Column="2" Margin="10 5 10 5" IsReadOnly="True" HorizontalAlignment="Stretch" Text="{Binding machine.Cal.CalculatedStepsPerUnitY, StringFormat={}{0:0.000}}"/>
-            <TextBox Grid.Row="10" Grid.Column="3" Margin="10 5 10 5" IsReadOnly="True" HorizontalAlignment="Stretch" Text="{Binding  machine.Cal.CalculatedStepsPerUnitZ, StringFormat={}{0:0.000}}"/>
+            <TextBox Grid.Row="10" Grid.Column="1" Margin="10 5 10 5" HorizontalAlignment="Stretch" Text="{Binding machine.Cal.CalculatedStepsPerUnitX, StringFormat={}{0:0.000}}"/>
+            <TextBox Grid.Row="10" Grid.Column="2" Margin="10 5 10 5" HorizontalAlignment="Stretch" Text="{Binding machine.Cal.CalculatedStepsPerUnitY, StringFormat={}{0:0.000}}"/>
+            <TextBox Grid.Row="10" Grid.Column="3" Margin="10 5 10 5" HorizontalAlignment="Stretch" Text="{Binding  machine.Cal.CalculatedStepsPerUnitZ, StringFormat={}{0:0.000}}"/>
             <Button Grid.Row="10" Grid.Column="4" Grid.ColumnSpan="1" Content="Calibrate" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding CalibrateMMPerStepCommand}"/>
 
             <Label Grid.Row="11" Grid.Column="0" Content="Current: [stps/mm]:" Margin="10" VerticalContentAlignment="Center"/>
