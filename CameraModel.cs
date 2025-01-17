@@ -22,11 +22,11 @@ namespace Picky
     public class CameraModel : INotifyPropertyChanged
     {
         public MachineModel machine { get; set; }
-
-        private Mat RawImage { get; set; }
+             
 
         /* Mats for general availability */
-        public Mat ColorImage { get; set; }
+        public Mat CaptureImage { get; set; }
+        public Mat ColorImage { get; set; }     //This is the mark-up image
         public Mat GrayImage { get; set; }
         public Mat ThresImage { get; set; }
         public Mat EdgeImage { get; set; }
@@ -34,12 +34,11 @@ namespace Picky
         public Mat QRDetectImage { get; set; }
         public Mat MatchImage { get; set; }
         public Mat MatchThresholdImage { get; set; }
-        public Mat searchTemplate { get; set; }
+        public Mat SearchTemplate { get; set; }
 
         public Mat CircleROI { get; set; }
         public Mat RectangleROI { get; set; }
         public Mat QRImageROI { get; set; }
-
 
         /* What we are currently viewing */
         public VisualizationStyle SelectedVisualizationViewItem { get; set; }
@@ -51,53 +50,25 @@ namespace Picky
         private Mat grayTemplateImage;
         private Mat matchResultImage;
 
-        private Point2d nextPartOffset;
         public Part PartToFind { get; set; }
-        private List<Position3D> searchPartResults = new List<Position3D>();
-
+        
         /* Template Request */
         private bool searchTemplateRequest = false;
         private OpenCvSharp.Rect searchTemplateROI;
         private List<Position3D> searchTemplateResults = new List<Position3D>();
         public bool IsTemplatePreviewActive { get; set; } = false;
-
-        /* Circle Request */
-        private bool searchCircleRequest = false;
-        private CircleDetector circleDetector;
-        private CircleSegment bestCircle;
-        private List<Position3D> bestCircles = new List<Position3D>();
-        private CircleSegment[] Circles;
-
+               
         /* QR Request */
         private readonly object _qrZoneResultsLock = new object();
         private List<(string str, OpenCvSharp.Rect pos)> qrZoneResults = new List<(string str, OpenCvSharp.Rect pos)>();
 
-        public bool qrInView;
-        public bool QRInView
+        public bool requestQRDecode = false;
+        public bool RequestQRDecode
         {
-            get { return qrInView; }
-            set
-            {
-                if (qrInView != value)
-                {
-                    qrInView = value;
-                    if (value == true)
-                    {
-                        Settings = machine.Cal.QRCaptureSettings.Clone();
-                        Console.WriteLine("Entered QR Region");
-                    }
-                    OnPropertyChanged(nameof(QRInView));
-                }
-            }
+            get { return requestQRDecode; }
+            set { requestQRDecode = value; if(value == true) Settings = machine.Cal.QRCaptureSettings.Clone(); OnPropertyChanged(nameof(RequestQRDecode)); }
         }
-
-        public FeederModel feederInView;
-        public FeederModel FeederInView
-        {
-            get { return feederInView; }
-            set { if (feederInView != value) { feederInView = value; OnPropertyChanged(nameof(FeederInView)); } }
-        }
-
+    
         private Image frameImage;
         public Image FrameImage
         {
@@ -120,7 +91,7 @@ namespace Picky
         public CameraModel(int cameraIndex, MachineModel mm)
         {
             machine = mm;
-            RawImage = new Mat();
+            CaptureImage = new Mat();
             ColorImage = new Mat();
             GrayImage = new Mat();
             ThresImage = new Mat();
@@ -154,8 +125,8 @@ namespace Picky
 
         public void CancelAllRequests()
         {
-            searchCircleRequest = false;
             searchTemplateRequest = false;
+            RequestQRDecode = false;
         }
 
 
@@ -165,46 +136,8 @@ namespace Picky
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
-        public CircleSegment GetBestCircle()
-        {
-            //Best circle, referenced to ROI
-            Console.WriteLine("Best Circle (in pixels): " + bestCircle.ToString());
-            return bestCircle;
-        }
-
-        public List<Position3D> GetBestCircles()
-        {
-            return bestCircles;
-        }
-
-        public bool IsCircleSearchActive()
-        {
-            return searchCircleRequest;
-        }
-
-        public void RequestCircleLocation(CircleDetector detector)
-        /*-------------------------------------------------------------------------
-         * Call here to start the process, use IsCircleSearchActive to monitor
-         * progress and GetBestCircle when it's no longer active. roi is the region 
-         * of interest in pixels.  sc is the circle to find, an estimate in mm.  ZOptical in mm
-         * ZOptical should include length of the tool.
-         * Note: zOpticalDistance is needed ONLY to qualify the circles we are searching for
-         * TODO - eliminate zOpticalDistance.
-         * ------------------------------------------------------------------------*/
-        {
-            //sc is in MM
-            Settings.Focus = detector.Focus;
-            Settings.IsManualFocus = detector.IsManualFocus;
-            Settings.CircleDetectorP1 = detector.Param1;
-            Settings.CircleDetectorP2 = detector.Param2;
-            Settings.BinaryThreshold = detector.Threshold;
-
-            circleDetector = detector;
-            bestCircles.Clear();
-            searchCircleRequest = true;
-
-        }
+                   
+        
 
         /*--------------------------------- QR Code ---------------------------------------*/
 
@@ -289,76 +222,12 @@ namespace Picky
              * roi is the area you wanna search - usually the full image
              *------------------------------------------------------------------------*/
 
-            searchTemplate = template;
+            SearchTemplate = template;
             searchTemplateROI = roi;
             searchTemplateRequest = true;
 
         }
-
-        private bool FindCircleInROI()
-        {
-            /****************************************************************************
-             * Private function for finding circles.
-             * Returns false if no circle found, sets BestCircle to 0,0 r0
-             * Returns true if circle found, call GetBestCircle() to get CircleSegement
-             * where center contains the offset from the center of the image.
-             * ROI in pixels.
-             * Use:
-             * IsCircleSearchActive() to see if a search is active 
-             * GetBestCircle() to get result of last successful search. 
-             * RequestCircleLocation(OpenCvSharp.Rect roi) to start search of ROI
-             * 
-             *****************************************************************************/
-
-            CircleROI = new Mat(DilatedImage, circleDetector.ROI);
-
-            //Convert the estimated circle (in MM) to search criteria (in Pix) based on z.  
-            var scale = machine.Cal.GetScaleMMPerPixAtZ(circleDetector.zEstimate);
-            int minR = (int)((circleDetector.Radius / 2) / scale.xScale);
-            int maxR = (int)((circleDetector.Radius * 2) / scale.xScale);
-            //double param1 = machine.SelectedPickTool.UpperCircleDetector.Param1;
-            //double param2 = machine.SelectedPickTool.UpperCircleDetector.Param2;
-
-            //Set Min distance between matches
-            int minDist = maxR;
-
-            // Find circles using HoughCircles
-            Circles = Cv2.HoughCircles(
-                CircleROI,
-                circleDetector.DetectorType,        // Usually HoughModes.Gradient or HoughModes.GradientAlt
-                dp: 1.5,
-                minDist: minDist,                   //Was 800, formally set to 2xmin raduis
-                                                    // param1: param1,                     //smaller means more false circles
-                                                    // param2: param2,                     //smaller means more false circles
-                minRadius: minR,
-                maxRadius: maxR);
-
-            if (Circles.Length < circleDetector.CountPerScene)
-            {
-                Console.WriteLine("<CountPerScene (" + Circles.Length + "/" + circleDetector.CountPerScene + "). minR/maxR (pix): " + minR + "/" + maxR + "@" + scale.xScale);
-                OpenCvSharp.Cv2.Rectangle(ColorImage, circleDetector.ROI, new OpenCvSharp.Scalar(0, 255, 0), 4);
-                return false;
-            }
-            else
-            {
-                // Calculate the center of the image, in pixels
-                Point2f roiCenter = new Point2f(CircleROI.Width / 2.0f, CircleROI.Height / 2.0f);
-                // Sort by center or image
-                bestCircle = Circles.OrderBy(circle => Math.Pow(circle.Center.X - roiCenter.X, 2) + Math.Pow(circle.Center.Y - roiCenter.Y, 2)).First();
-                bestCircle.Center = new Point2f(bestCircle.Center.X - roiCenter.X, bestCircle.Center.Y - roiCenter.Y);
-                Console.WriteLine("Found: Best Circle minR/avg/maxR (pix): " + minR + "/" + bestCircle.Radius + "/" + maxR + "@" + scale.xScale);
-                for (int i = 0; i < circleDetector.CountPerScene; i++)
-                {
-                    Position3D cir = new Position3D(Circles.ElementAt(i));
-                    cir.X -= roiCenter.X; cir.Y -= roiCenter.Y; // Correct for ROI within the frame
-                    cir.Z = circleDetector.zEstimate;           // Store the Z of the template
-                    bestCircles.Add(cir);
-                }
-
-            }
-            OpenCvSharp.Cv2.Rectangle(ColorImage, circleDetector.ROI, new OpenCvSharp.Scalar(0, 255, 0), 4);
-            return true;
-        }
+          
 
         private bool FindTemplateInImage(Mat template, OpenCvSharp.Rect search_roi, List<Position3D> search_result)
         {
@@ -371,7 +240,9 @@ namespace Picky
              * offset you'll need to subtract half the frame.
              *****************************************************************************/
 
-            Mat roiImage, res_32f;
+            Mat roiImage = new Mat();
+            Mat mImage = new Mat();
+            Mat res_32f;
             double x, y;
 
             try
@@ -382,13 +253,21 @@ namespace Picky
                 res_32f = new Mat(roiImage.Rows - template.Rows + 1, roiImage.Cols - template.Cols + 1, MatType.CV_32FC1);
                 Cv2.MatchTemplate(roiImage, grayTemplateImage, res_32f, TemplateMatchModes.CCoeffNormed);
             }
-            catch (Exception e) { return false; };
+            catch (Exception e) { 
+                return false; 
+            };
 
             /* Show Results - search area only */
             res_32f.ConvertTo(MatchImage, MatType.CV_8U, 255.0);
             int size = ((template.Cols + template.Rows) / 4) * 2 + 1; //force size to be odd
             CameraSettings set = machine.downCamera.Settings;
-            Cv2.AdaptiveThreshold(MatchImage, MatchThresholdImage, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.Binary, size, set.TemplateThreshold);
+            mImage = new Mat();
+            Cv2.AdaptiveThreshold(MatchImage, mImage, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.Binary, size, set.TemplateThreshold);
+
+            // Perform morphology - reducing image size seems to be the best followed by .Open
+            Mat kernel = Cv2.GetStructuringElement(MorphShapes.Rect, new OpenCvSharp.Size(10, 10)); // rectangular kernel
+            Cv2.MorphologyEx(mImage, MatchThresholdImage, MorphTypes.Dilate, kernel);
+
 
             search_result.Clear();
             CircleSegment[] circles = Cv2.HoughCircles(
@@ -435,16 +314,14 @@ namespace Picky
                 {
                     do
                     {
-                        RawImage = Capture.RetrieveMat();
-                    } while (RawImage.Cols != Constants.CAMERA_FRAME_WIDTH);
-                    Cv2.CopyTo(RawImage, ColorImage);
-                    Cv2.CvtColor(RawImage, GrayImage, ColorConversionCodes.BGR2GRAY);
+                        CaptureImage = Capture.RetrieveMat();
+                    } while (CaptureImage.Cols != Constants.CAMERA_FRAME_WIDTH);
+                    Cv2.CopyTo(CaptureImage, ColorImage);
+                    Cv2.CvtColor(CaptureImage, GrayImage, ColorConversionCodes.BGR2GRAY);
                     Cv2.GaussianBlur(GrayImage, GrayImage, new OpenCvSharp.Size(5, 5), 0);
                     Cv2.Threshold(GrayImage, ThresImage, Settings.BinaryThreshold, 255, ThresholdTypes.Binary);
                     Cv2.Canny(ThresImage, EdgeImage, 50, 150, 3);  //50 150 3
                     Cv2.Dilate(EdgeImage, DilatedImage, null, iterations: 2);
-
-                    RawImage = null;  // hint garbage collection
                 }
                 catch (Exception ex)
                 {
@@ -452,27 +329,9 @@ namespace Picky
                     GC.WaitForPendingFinalizers();
                 }
 
-                if (searchCircleRequest)
+                if (searchTemplateRequest)
                 {
-                    if (FindCircleInROI())
-                    {
-                        foreach (CircleSegment circle in Circles)
-                        {
-                            // Draw the circle outline
-                            int x = (int)(circle.Center.X + circleDetector.ROI.X);
-                            int y = (int)(circle.Center.Y + circleDetector.ROI.Y);
-                            Cv2.Circle(ColorImage, x, y, (int)circle.Radius, Scalar.Green, 2);
-                            // Draw the circle center
-                            Cv2.Circle(ColorImage, x, y, 3, Scalar.Red, 3);
-                            // Add 'break' here to just show the first circle in the list
-                        }
-                        if (bestCircles.Count >= (circleDetector.ScenesToAquire * circleDetector.CountPerScene))
-                            searchCircleRequest = false;
-                    }
-                }
-                else if (searchTemplateRequest)
-                {
-                    if (FindTemplateInImage(searchTemplate, searchTemplateROI, searchTemplateResults))
+                    if (FindTemplateInImage(SearchTemplate, searchTemplateROI, searchTemplateResults))
                     {
 
                         if (!machine.Cal.IsPreviewLowerTargetActive && !machine.Cal.IsPreviewUpperTargetActive && !machine.Cal.IsPreviewGridActive)
@@ -484,7 +343,7 @@ namespace Picky
                         }
                     }
                 }
-                else if (QRInView)
+                else if (machine.Region == MachineModel.PickHeadRegion.FeederQR && RequestQRDecode)
                 {
                     Cv2.Rectangle(ColorImage, machine.Cal.GetQRCodeROI(), new OpenCvSharp.Scalar(0, 255, 0), 2);
                     if (DecodeQRCode(machine.Cal.GetQRCodeROI()))
@@ -492,16 +351,17 @@ namespace Picky
                         for (int i = 0; i < qrZoneResults.Count; i++)
                             Cv2.Rectangle(ColorImage, qrZoneResults[i].pos, new OpenCvSharp.Scalar(0, 255, 0), 4);
                     }
-                    /* While in QR Region, show selected feeder pick zone */
-                    if (machine?.SelectedCassette?.SelectedFeeder != null)
+                }
+                if (machine.Region == MachineModel.PickHeadRegion.FeederQR || machine.Region == MachineModel.PickHeadRegion.FeederPick) { 
+                    if (machine?.SelectedCassette?.SelectedFeeder != null && machine.IsMachineInMotion == false)
                     {
                         double zAtFeederTape = (machine.Cal.CalPad.Z + Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE);
                         Position3D pickROI = machine.SelectedCassette.SelectedFeeder.GetPickROI();
                         OpenCvSharp.Rect rect = TranslationUtils.ConvertGlobalMMRectToFrameRectPix(pickROI, zAtFeederTape);
-                        Cv2.Rectangle(ColorImage, rect, new OpenCvSharp.Scalar(255, 0, 0), 4);
-                        /* And, show the parts */
-                        if (machine.SelectedCassette.SelectedFeeder.Part != null)
+                        /* And, show the parts and Roi */
+                        if (machine.SelectedCassette.SelectedFeeder.Part != null && rect != default)
                         {
+                            Cv2.Rectangle(ColorImage, rect, new OpenCvSharp.Scalar(255, 0, 0), 4);
                             if (FindTemplateInImage(machine.SelectedCassette.SelectedFeeder.Part.TemplateMat, rect, searchTemplateResults))
                             {
                                 /* Update data for the next part to pick */

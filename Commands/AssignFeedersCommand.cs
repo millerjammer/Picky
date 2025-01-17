@@ -22,8 +22,8 @@ namespace Picky.Tools
         public MachineModel machine;
         public MachineMessage msg;
         public Cassette cassette;
-        public int query_count = 4;
-
+        int debounce;
+                
         public AssignFeedersCommand(Cassette _cassette)
         {
             machine = MachineModel.Instance;
@@ -31,6 +31,7 @@ namespace Picky.Tools
             msg = new MachineMessage();
             msg.messageCommand = this;
             msg.cmd = Encoding.ASCII.GetBytes("J102 Assign Feeders\n");
+            debounce = 0;
         }
 
         public MachineMessage GetMessage()
@@ -40,6 +41,7 @@ namespace Picky.Tools
 
         public bool PreMessageCommand(MachineMessage msg)
         {
+            machine.downCamera.RequestQRDecode = true;
             return true;
         }
 
@@ -92,8 +94,12 @@ namespace Picky.Tools
                         }
                     }
                 });
-            if (query_count-- <= 0)
+            if (machine.IsMachineInMotion == false && ++debounce > 3)
+            {
+                machine.downCamera.RequestQRDecode = false;
                 return true;
+            }
+
             return false;
         }
     }

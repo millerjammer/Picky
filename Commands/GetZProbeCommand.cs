@@ -41,7 +41,6 @@ namespace Picky
             if (delay-- > 0)
                 return false;
             MachineModel machine = MachineModel.Instance;
-            machine.LastZProbeResult = machine.Current.Z;
             pos_to_update.Z = machine.Current.Z;
             Console.WriteLine("Last Z Result: " + machine.Current.Z + "mm");
             return true;

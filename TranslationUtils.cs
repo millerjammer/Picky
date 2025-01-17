@@ -33,7 +33,8 @@ public static class TranslationUtils
     {
         /*------------------------------------------------------------------------------------
          * Returns the Rect, in pixels based on current position and passed Rect, in mm.
-         * Requires the x and y scale in mm/pix - usually from a z.
+         * Requires the x and y scale in mm/pix - usually from a z.  Returns null is x,y 
+         * is out of bounds
          * -----------------------------------------------------------------------------------*/
 
         MachineModel machine = MachineModel.Instance;
@@ -47,7 +48,7 @@ public static class TranslationUtils
         double y_pix = y_mm / scale.yScale;
         int y = (y_pix > Constants.CAMERA_FRAME_HEIGHT) ? 0 : (int)((Constants.CAMERA_FRAME_HEIGHT / 2) - y_pix);
 
-        if(x==0 && y==0)
+        if(x == 0 || y == 0)
             return default(OpenCvSharp.Rect);
 
         double width_mm = global_rect_mm.Width;
@@ -58,6 +59,8 @@ public static class TranslationUtils
         double height_pix = height_mm / scale.yScale;
         int height = ((height_pix + y) > Constants.CAMERA_FRAME_HEIGHT) ? Constants.CAMERA_FRAME_HEIGHT - y : (int)height_pix;
 
+        if( width <= 0 || height <= 0)
+            return default(OpenCvSharp.Rect);
         OpenCvSharp.Rect rect = new Rect(x, y, width, height);
         //Console.WriteLine("Global: " + global_rect_mm.ToString());
         //Console.WriteLine("ROI (px): " + rect.ToString());

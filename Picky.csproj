@@ -174,8 +174,10 @@
     <Compile Include="Commands\SetCameraCommand.cs" />
     <Compile Include="Commands\SetCameraManualFocusCommand.cs" />
     <Compile Include="Commands\SetToolCalibrationCommand.cs" />
-    <Compile Include="Commands\SetToolOffsetCalibrationCommand.cs" />
     <Compile Include="Commands\StepAlignToTemplateCommand.cs" />
+    <Compile Include="ConfirmationDialog.xaml.cs">
+      <DependentUpon>ConfirmationDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Constants.cs" />
     <Compile Include="ControlWindow.xaml.cs">
       <DependentUpon>ControlWindow.xaml</DependentUpon>
@@ -237,6 +239,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="CassetteView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ConfirmationDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

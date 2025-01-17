@@ -6,75 +6,69 @@
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:local="clr-namespace:Picky.Tools"
         mc:Ignorable="d" FontSize="14"
-        Height="750" Width="1000" Background="#151f2d" Foreground="White" Title="Tools">
+        Height="720" Width="1000" Background="#151f2d" Foreground="White" Title="Tools">
     <Border Margin="0 0 0 0">
-        <Grid Margin="10 5 10 5" VerticalAlignment="Top">
+        <Grid Margin="10 0 10 5" VerticalAlignment="Top">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <DockPanel Grid.Row="0" Grid.ColumnSpan="6">
-                <!-- Toolbar at the top -->
-                <ToolBarTray DockPanel.Dock="Top" >
-                    <ToolBar>
-                        <!-- Toolbar Buttons -->
-                        <Button ToolTip="Save Tool" Margin="2" Background="#2c4c5c" Command="{Binding SaveToolsCommand}">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE74E;" HorizontalAlignment="Left"/>
-                                <TextBlock Text="Save" Margin="10 0 0 0" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                        <!-- Separator -->
-                        <Separator Margin="5,0" />
-                        <!-- Custom Button -->
-                        <Button ToolTip="Add New Tool" Margin="2">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Command="{Binding NewToolCommand}">
-                                <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE710;" HorizontalAlignment="Left"/>
-                                <TextBlock Text="Add" Margin="10 0 0 0" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                        <Button ToolTip="Remove Tool" Margin="2">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Command="{Binding RemoveToolCommand}">
-                                <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE894;" HorizontalAlignment="Left"/>
-                                <TextBlock Text="Remove" Margin="10 0 0 0" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                        <!-- Separator -->
-                        <Separator Margin="5,0" />
-                        <!-- Custom Button -->
-                        <Button ToolTip="Attach Tool" Margin="2" Command="{Binding RetrieveRemoveToolCommand}">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xEA3B;" HorizontalAlignment="Left"/>
-                                <TextBlock Text="Attach" Margin="10 0 0 0" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                        <Button ToolTip="Return Tool" Margin="2" Command="{Binding ReturnToolCommand}">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xEA3A;" HorizontalAlignment="Left"/>
-                                <TextBlock Text="Return" Margin="10 0 0 0" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                        <Separator Margin="5,0" />
-                        <Button ToolTip="Calibrate Selected Tool" Margin="2" Command="{Binding CalibrateToolCommand}">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xF272;" HorizontalAlignment="Left"/>
-                                <TextBlock Text="Calibrate" Margin="10 0 0 0" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                        <!-- Separator -->
-                        <Separator Margin="5,0" />
-                        <!-- Custom Button -->
-                    </ToolBar>
-                </ToolBarTray>
-
-                <!-- Main Content -->
-                <Frame x:Name="MainFrame" Background="White" NavigationUIVisibility="Hidden" />
-            </DockPanel>
-            <Grid Grid.Row="1" Grid.Column="1">
+            <!-- Toolbar at the top -->
+            <ToolBar Grid.Row="0">
+                <!-- Toolbar Buttons -->
+                <Button ToolTip="Save Tool" Margin="2" Command="{Binding SaveToolsCommand}">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE74E;" HorizontalAlignment="Left"/>
+                        <TextBlock Text="Save" Margin="10 0 0 0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <!-- Separator -->
+                <Separator Margin="5,0" />
+                <!-- Custom Button -->
+                <Button ToolTip="Add New Tool" Margin="2" Command="{Binding NewToolCommand}">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE710;" HorizontalAlignment="Left"/>
+                        <TextBlock Text="Add" Margin="10 0 0 0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button ToolTip="Remove Tool" Margin="2" Command="{Binding RemoveToolCommand}">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE894;" HorizontalAlignment="Left"/>
+                        <TextBlock Text="Remove" Margin="10 0 0 0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <!-- Separator -->
+                <Separator Margin="5,0" />
+                <!-- Custom Button -->
+                <Button ToolTip="Attach Tool" Margin="2" Command="{Binding RetrieveRemoveToolCommand}">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xEA3B;" HorizontalAlignment="Left"/>
+                        <TextBlock Text="Attach" Margin="10 0 0 0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button ToolTip="Return Tool" Margin="2" Command="{Binding ReturnToolCommand}">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xEA3A;" HorizontalAlignment="Left"/>
+                        <TextBlock Text="Return" Margin="10 0 0 0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Separator Margin="5,0" />
+                <Button ToolTip="Calibrate Selected Tool" Margin="2" Command="{Binding CalibrateToolCommand}">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xF272;" HorizontalAlignment="Left"/>
+                        <TextBlock Text="Calibrate" Margin="10 0 0 0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <!-- Separator -->
+                <Separator Margin="5,0" />
+                <!-- Custom Button -->
+            </ToolBar>
+            <!-- Main Content -->
+            <Grid Grid.Row="1" Grid.Column="0">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -101,8 +95,8 @@
                                 <ColumnDefinition Width="auto"/>
 
                             </Grid.ColumnDefinitions>
-                            
-                           
+
+
 
                         </Grid>
                         <ui:DataGrid  x:Name="PickListGrid" Grid.Row="1" HorizontalAlignment="Stretch" SelectedItem="{Binding selectedPickTool}" 
@@ -270,7 +264,7 @@
                                 </ContextMenu>
                             </DataGrid.ContextMenu>
                         </ui:DataGrid>
-                        <Grid Grid.Row="3">
+                        <Grid Grid.Row="2">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
@@ -325,7 +319,6 @@
                         </Grid>
                     </Grid>
                 </Grid>
-
             </Grid>
         </Grid>
     </Border>

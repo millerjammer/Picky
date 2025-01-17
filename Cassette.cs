@@ -73,6 +73,7 @@ namespace Picky
         {
             Console.WriteLine("Cassette prop changed - " + propertyName);
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+       
         }
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;

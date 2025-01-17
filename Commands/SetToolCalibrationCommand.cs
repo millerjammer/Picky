@@ -52,8 +52,7 @@ namespace Picky
 
         public bool PostMessageCommand(MachineMessage msg)
         {
-            if (DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() < (start_ms + delay))
-                return false;
+            
 
             // Save Tool Length when calibrating @ the Calibrated Cal Pad 
             double offset_to_head_x = Constants.CAMERA_TO_HEAD_OFFSET_X_MM;
@@ -74,6 +73,8 @@ namespace Picky
             {
                 CalPosition.LoadToolTemplateImage();
             });
+            if (DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() < (start_ms + delay))
+                return false;
             return true;
         }
     }

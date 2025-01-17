@@ -66,7 +66,6 @@ namespace Picky
             set { nextPartOpticalLocation = value; OnPropertyChanged(nameof(NextPartPickLocation)); }
         }
         
-
         private Position3D origin = new Position3D(0, 0, 0);
         public Position3D Origin
         {
@@ -92,8 +91,13 @@ namespace Picky
             get { return pickTool; }
             set { pickTool = value; OnPropertyChanged(nameof(PickTool)); }
         }
-            
 
+        private CameraSettings captureSettings = new CameraSettings();
+        public CameraSettings CaptureSettings
+        {
+            get { return captureSettings; }
+            set { captureSettings = value; OnPropertyChanged(nameof(captureSettings)); }
+        }
 
         public FeederModel()
         {
@@ -132,7 +136,7 @@ namespace Picky
 
             Position3D offset_mm = machine.SelectedPickTool.GetToolTipOffsetAtZ(machine.Cal.CalPad.Z + Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE);
             NextPartPickLocation.X = NextPartOpticalLocation.X - offset_mm.X;
-            NextPartPickLocation.Y = NextPartOpticalLocation.Y + offset_mm.Y - offset_mm.Radius;
+            NextPartPickLocation.Y = NextPartOpticalLocation.Y + offset_mm.Y;
             NextPartPickLocation.Z = machine.Cal.CalPad.Z + Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE - machine.SelectedPickTool.Length;
         }
 
@@ -147,16 +151,7 @@ namespace Picky
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(e));
         }
-
-        public ICommand GoToFeederCommand { get { return new RelayCommand(GoToFeeder); } }
-        public void GoToFeeder()
-        {
-            machine.Messages.Add(GCommand.G_SetZPosition(0));
-            machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.G_SetPosition(Origin.X, Origin.Y, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_FinishMoves());
-        }
-
+        
         public ICommand GoToFeederDriveCommand { get { return new RelayCommand(GoToFeederDrive); } }
         private void GoToFeederDrive()
         {
@@ -181,18 +176,18 @@ namespace Picky
             machine.SelectedCassette.Feeders.Remove(machine.SelectedCassette.SelectedFeeder);
         }
 
-        public ICommand GoToNextPickComponentCommand { get { return new RelayCommand(GoToNextPickComponent); } }
-        private void GoToNextPickComponent()
-        {
-            machine.Messages.Add(GCommand.G_EnableIlluminator(true));
-            machine.Messages.Add(GCommand.G_SetPosition(NextPartPickLocation.X, NextPartPickLocation.Y, 0, 0, 0));
-        }
-
         public ICommand GoToNextComponentCommand { get { return new RelayCommand(GoToNextComponent); } }
         private void GoToNextComponent()
         {
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             machine.Messages.Add(GCommand.G_SetPosition(NextPartOpticalLocation.X, NextPartOpticalLocation.Y, 0, 0, 0));
+        }
+
+        public ICommand GoToNextPickComponentCommand { get { return new RelayCommand(GoToNextPickComponent); } }
+        private void GoToNextPickComponent()
+        {
+            machine.Messages.Add(GCommand.G_EnableIlluminator(true));
+            machine.Messages.Add(GCommand.G_SetPosition(NextPartPickLocation.X, NextPartPickLocation.Y, 0, 0, 0));
         }
 
         public ICommand PickNextComponentCommand { get { return new RelayCommand(PickNextComponent); } }
@@ -203,13 +198,28 @@ namespace Picky
             machine.Messages.Add(GCommand.G_ProbeZ(NextPartPickLocation.Z));
         }
 
+        public ICommand GoToFeederCommand { get { return new RelayCommand(GoToFeeder); } }
+        public void GoToFeeder()
+        {
+            machine.Messages.Add(GCommand.G_SetZPosition(0));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            machine.Messages.Add(GCommand.G_SetPosition(Origin.X, machine.Cal.ChannelRegion.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+        }
+
+        public ICommand SetCameraCaptureCommand { get { return new RelayCommand(SetCameraCapture); } }
+        private void SetCameraCapture()
+        {
+            CaptureSettings = machine.downCamera.Settings.Clone();
+        }
+                
         public ICommand SetPartTemplateCommand { get { return new RelayCommand(SetPartTemplate); } }
         private void SetPartTemplate()
         {
             Console.WriteLine("Set Part Template");
             Mat mat = new Mat();
             Mat part_mat = new Mat();
-            Cv2.CopyTo(machine.downCamera.ColorImage, mat);
+            Cv2.CopyTo(machine.downCamera.CaptureImage, mat);
             using (OpenCvSharp.Window window = new OpenCvSharp.Window("Select ROI"))
             {
                 window.Image = mat;
@@ -229,10 +239,14 @@ namespace Picky
                 // Write Part template to file
                 DateTime now = DateTime.Now;
                 String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                String filename = path + "\\" + Part.Footprint + "-" + now.ToString("MMddHHmmss") + ".png";
+                String filename = FileUtils.ConvertToHashedFilename(QRCode, Constants.FEEDER_TEMPLATE_FILE_EXTENTION);
                 Cv2.ImWrite(filename, part_mat);
                 while (File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read) == null) { }
                 Part.TemplateFileName = filename;
+
+                string msg = string.Format("Part Template Saved Successfully.\n{0}", filename);
+                ConfirmationDialog dlg = new ConfirmationDialog(msg);
+                dlg.ShowDialog();
             }
         }
     }

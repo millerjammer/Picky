@@ -15,31 +15,18 @@ using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace Picky
 {
-    internal class FeederViewModel : INotifyPropertyChanged
+    internal class FeederViewModel 
     {
         public MachineModel machine { get; set; }
-
-        /* Allow the dialog to make changes to the currently selected feeder
-           If the selected feeder is changed the GUI will update */
-        public MachineModel Machine
+        private FeederModel feeder 
         {
-            get { return machine; }
+            get { return machine?.SelectedCassette?.SelectedFeeder; }
         }
-
-
-        // Boilerplate for notifications
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
+        
         public FeederViewModel()
         {
             machine = MachineModel.Instance;
         }
-
-        
     }
 }
 

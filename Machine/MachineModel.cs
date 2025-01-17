@@ -7,7 +7,9 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Web.UI.WebControls.WebParts;
+using System.Windows.Forms.VisualStyles;
 using System.Windows.Input;
+using static System.Windows.Forms.AxHost;
 
 namespace Picky
 {
@@ -50,9 +52,6 @@ namespace Picky
 
         /* Tools */
         public ObservableCollection<PickToolModel> PickToolList { get; set; }
-
-        /* Last Actions */
-        public double LastZProbeResult { get; set; }
 
         private PickToolModel selectedPickTool;
         public PickToolModel SelectedPickTool
@@ -99,6 +98,14 @@ namespace Picky
         {
             get { return currentB; }
             set { currentB = value; OnPropertyChanged(nameof(CurrentB)); }
+        }
+
+        public enum PickHeadRegion { Unknown, FeederPick, FeederQR, Deck, PCBPlacement, ToolStorage, UpperCalPad, DeckCalPad, Error }
+        private PickHeadRegion region = PickHeadRegion.Unknown;
+        public PickHeadRegion Region
+        {
+            get { return region; }
+            set { region = value; OnPropertyChanged(nameof(Region)); } //Notify listeners
         }
 
         /* Hardware Components */
@@ -151,6 +158,13 @@ namespace Picky
             set { rxMessageCount = value; OnPropertyChanged(nameof(RxMessageCount)); }
         }
 
+        private bool isMachineInMotion = false;
+        public bool IsMachineInMotion
+        {
+            get { return isMachineInMotion; }
+            set { isMachineInMotion = value; OnPropertyChanged(nameof(IsMachineInMotion)); }
+        }
+
         /* Limit Switches */
         private bool isZProbeAtLimit = false;
         public bool IsZProbeAtLimit
@@ -172,35 +186,47 @@ namespace Picky
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private void UpdateObservables(object sender, PropertyChangedEventArgs e)
+        public FeederModel GetClosestFeeder()
+        {
+            /*------------------------------------------------------------------------
+             * Not really a use for this but, whatever
+             * 
+             * ----------------------------------------------------------------------*/
+            
+            if (Cassettes.Count > 0 && Cassettes.ElementAt(0).Feeders != null)
+                return Cassettes.ElementAt(0).Feeders.OrderBy(feeder => TranslationUtils.GetDistance(feeder.Origin, Current)).FirstOrDefault();
+            else
+                return null;
+        }
+
+        private void UpdateCurrentRegion(object sender, PropertyChangedEventArgs e)
         {
             /*------------------------------------------------------------------------
              * This function updates properties in various objects based on movement
-             * Movements set the camera and the camera set 
+             * Movements set the camera, but only when the Region changes
              * ----------------------------------------------------------------------*/
 
-            bool qrState = false;
             if (sender.Equals(Current))
             {
                 /* Get QR Region */
-                if (Current.Y > Cal?.QRRegion.Y)
+                if (Current.Y >= Cal?.QRRegion.Y)
                 {
-                    if (Current.Y < (Cal?.QRRegion.Y + Cal?.QRRegion.Height))
+                    if ((Current.Y < (Cal?.QRRegion.Y + Cal?.QRRegion.Height)) && Region != PickHeadRegion.FeederQR)
                     {
-                        qrState = true;
+                        Region = PickHeadRegion.FeederQR;
+                        /* We don't set the camera QR functions are triggered by commands and they will set camera settings */
+                    }
+                    else if(Current.Y >= Cal?.ChannelRegion.Y && Region != PickHeadRegion.FeederPick)
+                    {
+                        Region = PickHeadRegion.FeederPick;
+                        FeederModel feeder = GetClosestFeeder();
+                        if(feeder != null)
+                            downCamera.Settings = feeder.CaptureSettings.Clone();
                     }
                 }
-                downCamera.QRInView = qrState;
-                /* Get Closest Feeder */
-                if (Cassettes.Count > 0 && Cassettes.ElementAt(0).Feeders != null && qrState == true)
+                else if(Region != PickHeadRegion.Deck)
                 {
-                    downCamera.FeederInView = Cassettes.ElementAt(0).Feeders.OrderBy(feeder => TranslationUtils.GetDistance(feeder.Origin, Current)).FirstOrDefault();
-                    Console.WriteLine("Feeder In View.");
-                }
-                else
-                {
-                    downCamera.FeederInView = null;
-                    Console.WriteLine("Feeder NOT In View.");
+                    Region = PickHeadRegion.Deck;
                 }
             }
         }
@@ -210,7 +236,7 @@ namespace Picky
             Cassettes = new ObservableCollection<Cassette>();
             PickList = new ObservableCollection<Part>();
 
-            current.PropertyChanged += UpdateObservables;
+            current.PropertyChanged += UpdateCurrentRegion;
 
             String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
@@ -296,33 +322,43 @@ namespace Picky
         public void SaveSettings()
         {
             String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            File.WriteAllText(path + "\\" + Constants.SETTINGS_FILE_NAME, JsonConvert.SerializeObject(Settings, Formatting.Indented));
-            Console.WriteLine("Save SettingsUpper");
+            string filename = path + "\\" + Constants.SETTINGS_FILE_NAME;
+            File.WriteAllText(filename, JsonConvert.SerializeObject(Settings, Formatting.Indented));
+            string msg = string.Format("Settings Successfully.\n{0}", filename);
+            ConfirmationDialog dlg = new ConfirmationDialog(msg);
+            dlg.ShowDialog();
         }
 
         public void SaveTools()
         {
             String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            File.WriteAllText(path + "\\" + Constants.TOOL_FILE_NAME, JsonConvert.SerializeObject(PickToolList, Formatting.Indented));
-            Console.WriteLine("Tool Configuration Data Saved.");
+            string filename = path + "\\" + Constants.TOOL_FILE_NAME;
+            File.WriteAllText(filename, JsonConvert.SerializeObject(PickToolList, Formatting.Indented));
+            string msg = string.Format("Tools Configuration Successfully.\n{0}", filename);
+            ConfirmationDialog dlg = new ConfirmationDialog(msg);
+            dlg.ShowDialog();
         }
 
         public void SaveCalibration()
         {
             String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            File.WriteAllText(path + "\\" + Constants.CALIBRATION_FILE_NAME, JsonConvert.SerializeObject(Cal, Formatting.Indented));
-            Console.WriteLine("Calibration Configuration Data Saved.");
-
+            string filename = path + "\\" + Constants.CALIBRATION_FILE_NAME;
+            File.WriteAllText(filename, JsonConvert.SerializeObject(Cal, Formatting.Indented));
+            string msg = string.Format("Calibration Configuration Successfully.\n{0}", filename);
+            ConfirmationDialog dlg = new ConfirmationDialog(msg);
+            dlg.ShowDialog();
         }
 
         public ICommand SaveFeederCommand { get { return new RelayCommand(SaveFeeder); } }
-        private void SaveFeeder()
+        public void SaveFeeder()
         {
             String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             FeederModel feeder = SelectedCassette.SelectedFeeder;
             String filename = FileUtils.ConvertToHashedFilename(feeder.QRCode, Constants.FEEDER_FILE_EXTENTION);
             File.WriteAllText(path + "\\" + filename, JsonConvert.SerializeObject(feeder, Formatting.Indented));
-            Console.WriteLine("Feeder Saved: " + filename);
+            string msg = string.Format("Feeder Saved Successfully.\n{0}", filename);
+            ConfirmationDialog dlg = new ConfirmationDialog(msg);
+            dlg.ShowDialog();
         }
 
         public bool AddFeederPickToQueue(FeederModel feeder)

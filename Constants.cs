@@ -101,6 +101,8 @@ namespace Picky
         public static string BOARD_FILE_NAME = "board.json";
         public static string TOOL_FILE_NAME = "tool.json";
         public static string SETTINGS_FILE_NAME = "settings.json";
+
+        public static string FEEDER_TEMPLATE_FILE_EXTENTION = ".png";
         public static string FEEDER_FILE_EXTENTION = ".fdr";
 
 

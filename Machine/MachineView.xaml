@@ -145,12 +145,13 @@
                             <Label Content="Q:" VerticalAlignment="Center" Padding="3 0 10 0"/>
                             <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.Messages.Count}"/>
                         </StackPanel>
+                        
                     </Grid>
                 </Border>
-                
+           
                 
                 <Grid Grid.Row="4">
-                    <TextBlock Text="{Binding Machine.CalibrationStatusString}" Margin="0 15 3 3"/>
+                    <TextBlock Text="{Binding Machine.Region}" Margin="0 15 3 3"/>
                 </Grid>
             </Grid>
         </Expander>

@@ -44,14 +44,7 @@ namespace Picky
             SetCameraManualFocusCommand cmd = new SetCameraManualFocusCommand(camera, enableMF, value);
             return cmd.GetMessage();
         }
-                   
-
-        public static MachineMessage SetToolOffsetCalibration(PickToolModel tool, bool isUpper)
-        {
-           SetToolOffsetCalibrationCommand cmd = new SetToolOffsetCalibrationCommand(tool, isUpper);
-           return cmd.GetMessage();
-        }
-
+       
         public static MachineMessage StepAlignToTemplate(Mat _tamplate, OpenCvSharp.Rect _roi, Position3D _result)
         {
             StepAlignToTemplateCommand cmd = new StepAlignToTemplateCommand(_tamplate, _roi, _result);
@@ -172,6 +165,19 @@ namespace Picky
             msg.target.x = x; msg.target.y = y;
             
             msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} F{2}\n", x, y, machine.Settings.RateXY));
+            return msg;
+        }
+
+        public static MachineMessage G_SetXYPosition(double x, double y, double feed_factor)
+        {
+            /* Units are mm */
+
+            MachineModel machine = MachineModel.Instance;
+            MachineMessage msg = new MachineMessage();
+            msg.target.x = x; msg.target.y = y;
+
+            double feed = feed_factor * machine.Settings.RateXY;
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} F{2}\n", x, y, (int)feed));
             return msg;
         }
 

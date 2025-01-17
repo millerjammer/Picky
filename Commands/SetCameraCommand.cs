@@ -37,6 +37,7 @@ namespace Picky.Commands
         public bool PreMessageCommand(MachineMessage msg)
         {
             MachineModel machine = MachineModel.Instance;
+            Console.WriteLine("Camera Settings changed by SetCameraCommand");
             camera.Settings = settings.Clone();
             start_ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             return true;

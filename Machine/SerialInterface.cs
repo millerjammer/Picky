@@ -462,18 +462,44 @@ namespace Picky
              *********************************************************************/
             {
                 // Define a regular expression pattern for extracting doubles
+
+                bool isInMotion = false;
                 string pattern = @"(\d+\.\d+)";
                 Regex regex = new Regex(pattern);
 
                 // Match the pattern in the input string
                 MatchCollection matches = regex.Matches(Encoding.UTF8.GetString(serial_buffer));
+                        
 
-                machine.Current.X = double.Parse(matches[0].Value);
-                machine.Current.Y = double.Parse(matches[1].Value);
-                machine.Current.Z = double.Parse(matches[2].Value);
-                machine.CurrentA = double.Parse(matches[3].Value);
+                double x = double.Parse(matches[0].Value);
+                double y = double.Parse(matches[1].Value);
+                double z = double.Parse(matches[2].Value);
+                double a = double.Parse(matches[3].Value);
 
-                return true;
+                if (machine.Current.X != x)
+                {
+                    isInMotion = true;
+                    machine.Current.X = x;
+                }
+                if (machine.Current.Y != y)
+                {
+                    isInMotion = true;
+                    machine.Current.Y = y;
+                }
+                if (machine.Current.Z != z)
+                {
+                    isInMotion = true;
+                    machine.Current.Z = z;
+                }
+                if (machine.CurrentA != a)
+                {
+                    isInMotion = true;
+                    machine.CurrentA = a;
+                }
+                machine.IsMachineInMotion = isInMotion;
+
+
+            return true;
             }
 
             private bool isPositionGood(MachineMessage msg)

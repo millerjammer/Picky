@@ -22,20 +22,19 @@ namespace Picky
     public class PickToolModel : INotifyPropertyChanged
     {
         public enum TipStates { Unknown, Loading, Calibrating, Ready, Unloading, Stored, Error }
-        public List<TipStyle> TipList { get; set; }
-
-        private TipStyle selectedTip;
-        public TipStyle SelectedTip
-        {
-            get { return selectedTip; }
-            set { selectedTip = value; OnPropertyChanged(nameof(SelectedTip)); } //Notify listeners
-        }
-
         private TipStates state;
         public TipStates State
         {
             get { return state; }
             set { state = value; OnPropertyChanged(nameof(State)); } //Notify listeners
+        }
+
+        public List<TipStyle> TipList { get; set; }
+        private TipStyle selectedTip;
+        public TipStyle SelectedTip
+        {
+            get { return selectedTip; }
+            set { selectedTip = value; OnPropertyChanged(nameof(SelectedTip)); } //Notify listeners
         }
 
         public string Description { get; set; }
@@ -163,10 +162,12 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.CalPad.X + offset_to_head_x, machine.Cal.CalPad.Y + offset_to_head_y, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
+            machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.SetToolCalibration(UpperCal));
             machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.DeckPad.X + offset_to_head_x, machine.Cal.DeckPad.Y + offset_to_head_y, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
+            machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.SetToolCalibration(LowerCal));
             // Raise Probe
             machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.DeckPad.X, machine.Cal.DeckPad.Y, 0, 0, 0));
