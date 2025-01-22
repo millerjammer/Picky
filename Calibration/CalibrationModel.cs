@@ -96,6 +96,14 @@ namespace Picky
             set { calculatedStepsPerUnitZ = value; OnPropertyChanged(nameof(CalculatedStepsPerUnitZ)); }
         }
 
+        private double driveLineY = Constants.DEFAULT_MACHINE_DRIVELINE;
+        public double DriveLineY
+        {
+            get { return driveLineY; }
+            set { driveLineY = value; OnPropertyChanged(nameof(DriveLineY)); }
+        }
+
+
         [JsonIgnore]
         private bool isPreviewUpperTargetActive = false;
         [JsonIgnore]

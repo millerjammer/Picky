@@ -99,6 +99,12 @@ namespace Picky
             get { return currentB; }
             set { currentB = value; OnPropertyChanged(nameof(CurrentB)); }
         }
+        private double currentP = 0;
+        public double CurrentP
+        {
+            get { return currentP; }
+            set { currentP = value; OnPropertyChanged(nameof(CurrentP)); }
+        }
 
         public enum PickHeadRegion { Unknown, FeederPick, FeederQR, Deck, PCBPlacement, ToolStorage, UpperCalPad, DeckCalPad, Error }
         private PickHeadRegion region = PickHeadRegion.Unknown;
@@ -360,7 +366,7 @@ namespace Picky
             ConfirmationDialog dlg = new ConfirmationDialog(msg);
             dlg.ShowDialog();
         }
-
+                
         public bool AddFeederPickToQueue(FeederModel feeder)
         {
             MachineModel machine = MachineModel.Instance;

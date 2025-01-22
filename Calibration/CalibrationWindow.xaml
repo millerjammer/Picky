@@ -7,7 +7,7 @@
         d:DataContext="{d:DesignInstance Type=local:CalibrationViewModel}"
         xmlns:local="clr-namespace:Picky" 
         mc:Ignorable="d" FontSize="15" 
-        Height="850" Width="800" ResizeMode="NoResize"
+        Height="870" Width="800" ResizeMode="NoResize"
         WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterScreen" Background="Transparent">
     <Border CornerRadius="10" Background="#151f2d" Margin="0 0 0 0">
         <Grid>
@@ -145,10 +145,15 @@
             <TextBlock Grid.Row="17" Grid.Column="3" Margin="10" Foreground="White" HorizontalAlignment="Center" Text="{Binding machine.Cal.ChannelRegion.Z, StringFormat={}{0:0.000},UpdateSourceTrigger=PropertyChanged}"/>
             <Button Grid.Row="17" Grid.Column="4" Grid.ColumnSpan="1" Content="Apply" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding SetOriginPartChannelCommand}"/>
             <Button Grid.Row="17" Grid.Column="5" Grid.ColumnSpan="1" Content="Go To" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding PreviewOriginPartChannelCommand}"/>
-                      
-            <Button Grid.Row="18" Grid.Column="1" Grid.ColumnSpan="2" Width="140" Content="Update EE" Margin="10 25 10 5" Command="{Binding WriteStepPerUnitCommand}"/>
-            <Button Grid.Row="18" Grid.Column="3" Grid.ColumnSpan="2" Width ="140" Content="Read EE" Margin="-40 25 10 5" Command="{Binding ReadStepPerUnitCommand}"/>
-            <Button Grid.Row="18" Grid.Column="4" Grid.ColumnSpan="2" Content="Save" Margin="10 25 10 5" Width="100" HorizontalAlignment="Center" Command="{Binding OkCommand}"/>
+
+            <Label Grid.Row="18" Grid.Column="0" Content="Machine Drive Line Y" Margin="10 5 10 5" VerticalContentAlignment="Center"/>
+            <TextBox Grid.Row="18" Grid.Column="1" Margin="10 5 10 5" IsReadOnly="False" Text="{Binding machine.Cal.DriveLineY, StringFormat={}{0:0.0000}, UpdateSourceTrigger=PropertyChanged}"/>
+            <Button Grid.Row="18" Grid.Column="4" Grid.ColumnSpan="1" Content="Apply" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding SetMachineDriveLineCommand}"/>
+            <Button Grid.Row="18" Grid.Column="5" Grid.ColumnSpan="1" Content="Go To" Margin="10 5 10 5" Width="120" HorizontalAlignment="Center" Command="{Binding GoToMachineDriveLineCommand}"/>
+
+            <Button Grid.Row="19" Grid.Column="1" Grid.ColumnSpan="2" Width="140" Content="Update EE" Margin="10 25 10 5" Command="{Binding WriteStepPerUnitCommand}"/>
+            <Button Grid.Row="19" Grid.Column="3" Grid.ColumnSpan="2" Width ="140" Content="Read EE" Margin="-40 25 10 5" Command="{Binding ReadStepPerUnitCommand}"/>
+            <Button Grid.Row="19" Grid.Column="4" Grid.ColumnSpan="2" Content="Save" Margin="10 25 10 5" Width="100" HorizontalAlignment="Center" Command="{Binding OkCommand}"/>
         </Grid>
     </Border>
 </Window>

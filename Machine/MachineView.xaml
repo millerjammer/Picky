@@ -115,6 +115,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="auto"/>
@@ -133,7 +134,7 @@
                             <Label Content="Z:" VerticalAlignment="Center" Padding="3 0 10 0"/>
                             <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.Current.Z, StringFormat={}{0:0.000}}"/>
                         </StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 2 2 2">
+                        <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0 2 2 2">
                             <Label Content="A:" VerticalAlignment="Center" Padding="3 0 10 0"/>
                             <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.CurrentA, StringFormat={}{0:0.000}}"/>
                         </StackPanel>
@@ -145,13 +146,21 @@
                             <Label Content="Q:" VerticalAlignment="Center" Padding="3 0 10 0"/>
                             <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.Messages.Count}"/>
                         </StackPanel>
-                        
+                        <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0 2 2 2">
+                            <Label Content="P [kPa]:" VerticalAlignment="Center" Padding="3 0 10 0"/>
+                            <TextBlock VerticalAlignment="Center" Width="50" HorizontalAlignment="Right" Text="{Binding Machine.CurrentP, StringFormat={}{0:0.000}}"/>
+                        </StackPanel>
+
                     </Grid>
                 </Border>
            
                 
                 <Grid Grid.Row="4">
-                    <TextBlock Text="{Binding Machine.Region}" Margin="0 15 3 3"/>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="1" Text="{Binding Machine.Region}" Margin="10" VerticalAlignment="Center"/>
                 </Grid>
             </Grid>
         </Expander>

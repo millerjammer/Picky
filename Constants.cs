@@ -47,6 +47,9 @@ namespace Picky
         public static double TOOL_CENTER_RADIUS_MILS = 80;
         public static double TOOL_LENGTH_MM = 28.575;
 
+        /* Feeder */
+        public static double TAPE_DISTANCE_TO_TIME_MULTIPLIER = 50;
+
         /* GUI */
         public static string PAUSE_ICON = "\uE769";
         public static string PLAY_ICON = "\uE768";
@@ -55,7 +58,11 @@ namespace Picky
         public static int FOCUS_FEEDER_QR_CODE = 461;
         public static int FOCUS_FEEDER_PART = 481;
         public static int FOCUS_PCB_062 = 450;
-   
+
+        /* Pressure Sensor */
+        public static int PRESSURE_DELTA_THRESHOLD = 8;
+        public static double PRESSURE_SENSOR_RANGE_MAX = 40.0;
+
         /* Nominal Z - This is what we probe to, just enough to cause sensor to trip */
         /* These are movement distances with TOOL_LENGTH_MILS attached */
         /* If you need the optical distance to surface, add TOOL_LENGTH_MILS and CONVERSION */
@@ -80,6 +87,8 @@ namespace Picky
         public static double CAMERA_TO_HEAD_OFFSET_Y_MM = 17;
         public static double CAMERA_TO_HEAD_OFFSET_X_MM = 1;
 
+        public static double DEFAULT_MACHINE_DRIVELINE = 248.3;
+        
         public static double DEFAULT_MM_PER_PIXEL = .0206;    //Assumes a FOV
 
         /* Physical constants beyond where we can probe */

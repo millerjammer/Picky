@@ -44,7 +44,7 @@
                 <!-- Separator -->
                 <Separator Margin="5,0" />
                 <!-- Custom Button -->
-                <Button ToolTip="Attach Tool" Margin="2" Command="{Binding RetrieveRemoveToolCommand}">
+                <Button ToolTip="Attach Tool" Margin="2" Command="{Binding RetrieveToolCommand}">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                         <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xEA3B;" HorizontalAlignment="Left"/>
                         <TextBlock Text="Attach" Margin="10 0 0 0" HorizontalAlignment="Center"/>

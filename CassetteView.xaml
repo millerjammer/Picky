@@ -30,21 +30,21 @@
                 <Grid Grid.Column="1" Margin="5 -10 5 5" HorizontalAlignment="Stretch">
                     <!-- Cassette 2 Rows -->
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="45" />
+                        <RowDefinition Height="auto" />
                         <RowDefinition Height="auto"/>
                     </Grid.RowDefinitions>
-                    <Grid Grid.Row="0" Margin="10 0 10 0" HorizontalAlignment="Stretch" >
+                    <Grid Grid.Row="0" Margin="0 0 0 0" HorizontalAlignment="Stretch" >
                         <!-- Cassette 1 Row - Title and Basic Controls -->
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="auto"/>
                             <ColumnDefinition Width="auto"/>
-                            <ColumnDefinition Width="auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="" Margin="5,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"  TextAlignment="Left" />
-                        <ui:Button Grid.Column="1" Content="Create..." Icon="Autocorrect24" Height="30" Margin="0,0,5,0" Command="{Binding CreateCassetteCommand}" HorizontalAlignment="Right"/>
-                        <ui:Button Grid.Column="2" Content="Load..." Icon="Folder32" Height="30" Margin="0,0,5,0" Command="{Binding LoadCassetteCommand}" HorizontalAlignment="Right"/>
-                        <ui:Button Grid.Column="3" Content="New..." Icon="New24" Height="30" Margin="0,0,0,0" Command="{Binding AddCassetteCommand}" HorizontalAlignment="Right"/>
+                            </Grid.ColumnDefinitions>
+                        <ui:Button Grid.Column="0" Content="To Origin" Icon="Home28" Margin="0,0,0,5" Command="{Binding GoToCassetteOriginCommand}" HorizontalAlignment="Left"/>
+                        <ui:Button Grid.Column="1" Content="AutoAdd" Icon="Camera28" Margin="0,0,5,5" Command="{Binding CreateCassetteCommand}" HorizontalAlignment="Right"/>
+                        <ui:Button Grid.Column="2" Content="Load..." Icon="Folder32" Margin="0,0,5,5" Command="{Binding LoadCassetteCommand}" HorizontalAlignment="Right"/>
+                        <ui:Button Grid.Column="3" Content="New..." Icon="New24" Margin="0,0,5,5" Command="{Binding AddCassetteCommand}" HorizontalAlignment="Right"/>
                     </Grid>
                     <TabControl Grid.Row="1" SelectedIndex="0" SelectedItem="{Binding SelectedCassette}" ItemsSource="{Binding Cassettes}">
                         <TabControl.ItemTemplate>

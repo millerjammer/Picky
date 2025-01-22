@@ -108,8 +108,8 @@ namespace Picky.Tools
                 minDist: 10,     // Minimum distance between circle centers
                 param1: 100,     // Higher threshold for the Canny edge detector
                 param2: 0.65,      // Accumulator threshold for circle detection
-                minRadius: 5,    // Minimum circle radius (10px diameter → radius = 5px)
-                maxRadius: 20     // Maximum circle radius
+                minRadius: 10,    // Minimum circle radius (10px diameter → radius = 5px)
+                maxRadius: 80     // Maximum circle radius
             );
 
             // Calculate the center of the image

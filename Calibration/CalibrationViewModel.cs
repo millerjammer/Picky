@@ -115,6 +115,18 @@ namespace Picky
         {
             machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.CalPad.X, machine.Cal.CalPad.Y, 0, 0, 0));
         }
+        
+        public ICommand SetCurrentDriveLineCommand { get { return new RelayCommand(SetCurrentDriveLine); } }
+        private void SetCurrentDriveLine()
+        {
+            machine.Cal.DriveLineY = machine.Current.Y;
+        }
+
+        public ICommand GoToMachineDriveLineCommand { get { return new RelayCommand(GoToMachineDriveLine); } }
+        private void GoToMachineDriveLine()
+        {
+            machine.Messages.Add(GCommand.G_SetPosition(machine.Current.X, machine.Cal.DriveLineY, 0, 0, 0));
+        }
 
         public ICommand CalibrateMMPerPixCommand { get { return new RelayCommand(CalibrateMMPerPix); } }
         private void CalibrateMMPerPix()

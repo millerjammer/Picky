@@ -104,6 +104,7 @@ namespace Picky
                 machine.Messages.Add(GCommand.G_GetStepsPerUnit());
                 machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
                 machine.Messages.Add(GCommand.G_SetZPosition(0));
+                machine.Messages.Add(GCommand.G_SetPressureSensor(Constants.PRESSURE_DELTA_THRESHOLD));
                 machine.Messages.Add(GCommand.G_SetXYBacklashCompensationOff());
 
                 machine.upCamera.Settings.IsManualFocus = false;
@@ -206,7 +207,7 @@ namespace Picky
                                 for (j = 0; j < length; j++)
                                     Console.Write((char)serial_buffer[j]);
                                 // Parse Steps per Unit
-                                if (msg.cmdString.StartsWith("M92") || msg.cmdString.StartsWith("M503") || msg.cmdString.StartsWith("M119") )
+                                if (msg.cmdString.StartsWith("M92") || msg.cmdString.StartsWith("M503") || msg.cmdString.StartsWith("M119"))
                                 {
                                     // The OK comes out AFTER the result - result parsed below
                                     msg.state = MachineMessage.MessageState.Complete;
@@ -464,7 +465,7 @@ namespace Picky
                 // Define a regular expression pattern for extracting doubles
 
                 bool isInMotion = false;
-                string pattern = @"(\d+\.\d+)";
+                string pattern = @"(?<=:)([-+]?[0-9]*\.?[0-9]+)";
                 Regex regex = new Regex(pattern);
 
                 // Match the pattern in the input string
@@ -475,8 +476,9 @@ namespace Picky
                 double y = double.Parse(matches[1].Value);
                 double z = double.Parse(matches[2].Value);
                 double a = double.Parse(matches[3].Value);
+                double p = (double.Parse(matches[4].Value) / 65535) * Constants.PRESSURE_SENSOR_RANGE_MAX;
 
-                if (machine.Current.X != x)
+            if (machine.Current.X != x)
                 {
                     isInMotion = true;
                     machine.Current.X = x;
@@ -496,7 +498,11 @@ namespace Picky
                     isInMotion = true;
                     machine.CurrentA = a;
                 }
-                machine.IsMachineInMotion = isInMotion;
+                if (machine.CurrentP != p)
+                {
+                    machine.CurrentP = p;
+                }
+            machine.IsMachineInMotion = isInMotion;
 
 
             return true;

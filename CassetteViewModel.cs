@@ -95,6 +95,14 @@ namespace Picky
             }
         }
 
+        public ICommand GoToCassetteOriginCommand { get { return new RelayCommand(GoToCassetteOrigin); } }
+        private void GoToCassetteOrigin()
+        {
+            double y = machine.Cal.QRRegion.Y + (machine.Cal.QRRegion.Height / 2);
+            machine.Messages.Add(GCommand.G_SetPosition(Constants.TRAVEL_LIMIT_X_MM, y, 0, 0, 0));
+
+        }
+
         public ICommand CreateCassetteCommand { get { return new RelayCommand(CreateCassette); } }
         private void CreateCassette()
         {
@@ -103,12 +111,6 @@ namespace Picky
                 machine.Cassettes.Add(new Cassette());
                 machine.SelectedCassette = machine.Cassettes.ElementAt(0);
             }
-            double interval = Constants.TRAVEL_LIMIT_X_MM / 6;
-            double y = machine.Cal.QRRegion.Y + (machine.Cal.QRRegion.Height / 2);
-            machine.Messages.Add(GCommand.SetCamera(machine.Cal.QRCaptureSettings, machine.downCamera));
-            machine.Messages.Add(GCommand.G_SetPosition(Constants.TRAVEL_LIMIT_X_MM, y, 0, 0, 0));
-            machine.Messages.Add(GCommand.G_FinishMoves());
-            machine.Messages.Add(GCommand.G_SetXYPosition(0, y, .1));
             machine.Messages.Add(GCommand.AssignFeeders(machine.SelectedCassette));
             
             return;

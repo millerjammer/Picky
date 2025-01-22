@@ -20,13 +20,14 @@ namespace Picky
 {
     public class GCommand
     {
-        
+
         /***********************************************************
          * 
          *  CAMERA, CALIBRATION AND IMAGING COMMANDS
          *  
          ***********************************************************/
 
+        
         public static MachineMessage SendCustomGCode(string command, int msDelay)
         {
             SendCustomGCodeCommand cmd = new SendCustomGCodeCommand(command, msDelay);
@@ -111,11 +112,19 @@ namespace Picky
             * When we probe, we may not reach the target z, so we need to probe,
             * then wait to see if we reached the target, if not at target, we add
             */
-
+            SettingsModel settings = MachineModel.Instance.Settings;
             MachineMessage msg = new MachineMessage();
             msg.target.z = z;
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G38.4 F{0} Z{1}\n", settings.ProbeRate, z));
+            return msg;
 
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G38.4 Z{0}\n", z));
+        }
+
+        public static MachineMessage G_ProbeZ(double z, double feed_rate)
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.target.z = z;
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G38.4 F{0} Z{1}\n", feed_rate, z));
             return msg;
 
         }
@@ -168,16 +177,15 @@ namespace Picky
             return msg;
         }
 
-        public static MachineMessage G_SetXYPosition(double x, double y, double feed_factor)
+        public static MachineMessage G_SetXYPosition(double x, double y, int feed_rate)
         {
             /* Units are mm */
 
             MachineModel machine = MachineModel.Instance;
             MachineMessage msg = new MachineMessage();
             msg.target.x = x; msg.target.y = y;
-
-            double feed = feed_factor * machine.Settings.RateXY;
-            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} F{2}\n", x, y, (int)feed));
+                      
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1} F{2}\n", x, y, feed_rate));
             return msg;
         }
 
@@ -271,6 +279,7 @@ namespace Picky
             msg.cmd = Encoding.UTF8.GetBytes(string.Format("M260 A8 B33\nM260 B1\nM260 B{0} S1\n", (duration + 128) ));
             return msg;
         }
+              
 
         public static MachineMessage G_EnableUpIlluminator(bool enable)
         {
@@ -324,6 +333,14 @@ namespace Picky
             MachineMessage msg = new MachineMessage();
             msg.delay = 1000;
             msg.cmd = Encoding.UTF8.GetBytes(string.Format("M92\n"));
+            return msg;
+        }
+
+        public static MachineMessage G_SetPressureSensor(int threshold_delta)
+        {
+            MachineMessage msg = new MachineMessage();
+            msg.delay = 1000;
+            msg.cmd = Encoding.UTF8.GetBytes(string.Format("M700 S1 T{0}\n", threshold_delta));
             return msg;
         }
 

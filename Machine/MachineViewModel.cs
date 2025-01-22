@@ -170,5 +170,7 @@ namespace Picky
             else
                 machine.Messages.Add(GCommand.G_OpenToolStorage(true));
         }
+
+       
     }
 }
