@@ -366,7 +366,20 @@ namespace Picky
             ConfirmationDialog dlg = new ConfirmationDialog(msg);
             dlg.ShowDialog();
         }
-                
+
+        /*** Here ... but not used ****/
+        public ICommand SaveCassetteCommand { get { return new RelayCommand(SaveCassette); } }
+        public void SaveCassette()
+        {
+            String path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            Cassette cassette = SelectedCassette;
+            String filename = FileUtils.ConvertToHashedFilename(cassette.QRCode, Constants.CASSETTE_FILE_EXTENTION);
+            File.WriteAllText(path + "\\" + filename, JsonConvert.SerializeObject(cassette, Formatting.Indented));
+            string msg = string.Format("Cassette Saved Successfully.\n{0}", filename);
+            ConfirmationDialog dlg = new ConfirmationDialog(msg);
+            dlg.ShowDialog();
+        }
+
         public bool AddFeederPickToQueue(FeederModel feeder)
         {
             MachineModel machine = MachineModel.Instance;

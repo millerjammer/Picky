@@ -333,7 +333,6 @@ namespace Picky
                 {
                     if (FindTemplateInImage(SearchTemplate, searchTemplateROI, searchTemplateResults))
                     {
-
                         if (!machine.Cal.IsPreviewLowerTargetActive && !machine.Cal.IsPreviewUpperTargetActive && !machine.Cal.IsPreviewGridActive)
                             searchTemplateRequest = false;
                         foreach (Position3D pos in searchTemplateResults)
@@ -352,22 +351,22 @@ namespace Picky
                             Cv2.Rectangle(ColorImage, qrZoneResults[i].pos, new OpenCvSharp.Scalar(0, 255, 0), 4);
                     }
                 }
-                if (machine.Region == MachineModel.PickHeadRegion.FeederQR || machine.Region == MachineModel.PickHeadRegion.FeederPick) { 
+                else if (machine.Region == MachineModel.PickHeadRegion.FeederQR || machine.Region == MachineModel.PickHeadRegion.FeederPick) { 
                     if (machine?.SelectedCassette?.SelectedFeeder != null && machine.IsMachineInMotion == false)
                     {
-                        double zAtFeederTape = (machine.Cal.CalPad.Z + Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE);
+                        /* Draw the pick ROI! We're in the region, not in motion and a feeder is selected */
                         Position3D pickROI = machine.SelectedCassette.SelectedFeeder.GetPickROI();
-                        OpenCvSharp.Rect rect = TranslationUtils.ConvertGlobalMMRectToFrameRectPix(pickROI, zAtFeederTape);
-                        /* And, show the parts and Roi */
+                        OpenCvSharp.Rect rect = TranslationUtils.ConvertGlobalMMRectToFrameRectPix(pickROI);
                         if (machine.SelectedCassette.SelectedFeeder.Part != null && rect != default)
                         {
                             Cv2.Rectangle(ColorImage, rect, new OpenCvSharp.Scalar(255, 0, 0), 4);
+                            /* Find Parts */
                             if (FindTemplateInImage(machine.SelectedCassette.SelectedFeeder.Part.TemplateMat, rect, searchTemplateResults))
                             {
                                 /* Update data for the next part to pick */
-                                Position3D pos_mm = TranslationUtils.ConvertFrameRectPosPixToGlobalMM(searchTemplateResults.OrderBy(pos => pos.Y).FirstOrDefault(), zAtFeederTape);
+                                Position3D pos_mm = TranslationUtils.ConvertFrameRectPosPixToGlobalMM(searchTemplateResults.OrderBy(pos => pos.Y).FirstOrDefault(), pickROI.Z);
                                 machine.SelectedCassette.SelectedFeeder.NextPartOpticalLocation = pos_mm;
-                                /* Draw all parts */
+                                /* Draw Parts! */
                                 foreach (Position3D pos in searchTemplateResults)
                                 {                                   
                                     Cv2.Rectangle(ColorImage, pos.GetRect(), new OpenCvSharp.Scalar(0, 255, 0), 2);

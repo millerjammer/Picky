@@ -91,6 +91,11 @@ namespace Picky.Tools
                                 feeder.QRCode = qr.str;
                                 machine.SelectedCassette.Feeders.Add(feeder);
                             }
+                            else if(x > Constants.TRAVEL_LIMIT_X_MM && y < Constants.TRAVEL_LIMIT_Y_MM)
+                            {
+                                /* This is a Cassette */
+                                machine.SelectedCassette.QRCode = qr.str;
+                            }
                         }
                     }
                 });

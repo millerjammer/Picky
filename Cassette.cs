@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.Win32;
 using Newtonsoft.Json;
+using OpenCvSharp;
 using Picky.Properties;
 using System;
 using System.Collections.ObjectModel;

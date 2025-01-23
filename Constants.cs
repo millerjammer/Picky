@@ -87,6 +87,8 @@ namespace Picky
         public static double CAMERA_TO_HEAD_OFFSET_Y_MM = 17;
         public static double CAMERA_TO_HEAD_OFFSET_X_MM = 1;
 
+        public static double DEFAULT_SKEW_X = 0;
+
         public static double DEFAULT_MACHINE_DRIVELINE = 248.3;
         
         public static double DEFAULT_MM_PER_PIXEL = .0206;    //Assumes a FOV
@@ -113,6 +115,7 @@ namespace Picky
 
         public static string FEEDER_TEMPLATE_FILE_EXTENTION = ".png";
         public static string FEEDER_FILE_EXTENTION = ".fdr";
+        public static string CASSETTE_FILE_EXTENTION = ".cst";
 
 
         public static int DOWN_CAMERA_INDEX = 0;

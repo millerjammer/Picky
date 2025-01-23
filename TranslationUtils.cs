@@ -9,27 +9,32 @@ public static class TranslationUtils
     public static Position3D ConvertFrameRectPosPixToGlobalMM(Position3D pos_pix, double z)
     {
         /*------------------------------------------------------------------------------------
-         * Returns a global Position3D in mm given a frame-centered Rectangle position.
+         * Returns a global Position3D in mm given a Rectangle relative to the camera frame.
          * It gets the center of the rectangle relative to the image center then adds an offset.
-         * Requires x and y in pix and a z.
+         * Requires x and y in pix and a z.  Use for moving the pick head to the center of a 
+         * frame.
          * -----------------------------------------------------------------------------------*/
 
         MachineModel machine = MachineModel.Instance;
         
         var scale = machine.Cal.GetScaleMMPerPixAtZ(z);
 
-        double x_center_pix = pos_pix.X + (pos_pix.Width / 2);
-        double x_mm_offset = (x_center_pix - (Constants.CAMERA_FRAME_WIDTH / 2)) * scale.xScale;
-        double x_mm_global = machine.Current.X - x_mm_offset;
-
+        
         double y_center_pix = pos_pix.Y + (pos_pix.Height / 2);
         double y_mm_offset = (y_center_pix - (Constants.CAMERA_FRAME_HEIGHT / 2)) * scale.yScale;
-        double y_mm_global = machine.Current.Y + y_mm_offset;
         
+        double x_center_pix = pos_pix.X + (pos_pix.Width / 2);
+        double x_mm_offset = (x_center_pix - (Constants.CAMERA_FRAME_WIDTH / 2)) * scale.xScale;
+        
+        double x_skew = Math.Sqrt(Math.Pow(x_mm_offset,2) + Math.Pow(y_mm_offset, 2)) * machine.Cal.SkewX;  // Like 0.02? Works Units: ? 
+        
+        double y_mm_global = machine.Current.Y + y_mm_offset;
+        double x_mm_global = machine.Current.X - x_mm_offset + x_skew;
+
         return new Position3D(x_mm_global, y_mm_global, z, 0);
     }
 
-    public static OpenCvSharp.Rect ConvertGlobalMMRectToFrameRectPix(Position3D global_rect_mm, double z)
+    public static OpenCvSharp.Rect ConvertGlobalMMRectToFrameRectPix(Position3D global_rect_mm)
     {
         /*------------------------------------------------------------------------------------
          * Returns the Rect, in pixels based on current position and passed Rect, in mm.
@@ -38,7 +43,7 @@ public static class TranslationUtils
          * -----------------------------------------------------------------------------------*/
 
         MachineModel machine = MachineModel.Instance;
-        var scale = machine.Cal.GetScaleMMPerPixAtZ(z);
+        var scale = machine.Cal.GetScaleMMPerPixAtZ(global_rect_mm.Z);
 
         double x_mm = machine.Current.X - global_rect_mm.X;
         double x_pix = x_mm / scale.xScale;

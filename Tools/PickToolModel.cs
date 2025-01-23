@@ -73,7 +73,7 @@ namespace Picky
         public PickToolCalPosition LowerCal
         {
             get { return lowerCal; }
-            set { lowerCal = value; OnPropertyChanged(nameof(LowerCal)); }
+            set { lowerCal = value; State = TipStates.Ready; OnPropertyChanged(nameof(LowerCal)); }
         }
              
 
@@ -158,6 +158,7 @@ namespace Picky
             MachineModel machine = MachineModel.Instance;
             double offset_to_head_x = Constants.CAMERA_TO_HEAD_OFFSET_X_MM;
             double offset_to_head_y = Constants.CAMERA_TO_HEAD_OFFSET_Y_MM;
+            State = TipStates.Calibrating;
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             machine.Messages.Add(GCommand.G_SetPosition(machine.Cal.CalPad.X + offset_to_head_x, machine.Cal.CalPad.Y + offset_to_head_y, 0, 0, 0));
             machine.Messages.Add(GCommand.G_FinishMoves());
@@ -209,7 +210,8 @@ namespace Picky
             /*----------------------------------------------------
              * Given a z in MM this function returns the x, y, z
              * position of the tip based on calibration and 
-             * similar triangles.  This is focus corrected
+             * similar triangles.  This is focus corrected.  There
+             * is a MANUAL offset in y equal to tip radius / 2
              * --------------------------------------------------*/
 
             double zUpper = UpperCal.TipOffsetMM.Z;
@@ -221,10 +223,10 @@ namespace Picky
             double scaleFactor = (z - zLower) / (zUpper - zLower);
 
             // Interpolate the X and Y positions
-            double iX = LowerCal.TipOffsetMM.X + (scaleFactor * (UpperCal.TipOffsetMM.X - LowerCal.TipOffsetMM.X));
-            double iY = LowerCal.TipOffsetMM.Y + (scaleFactor * (UpperCal.TipOffsetMM.Y - LowerCal.TipOffsetMM.Y));
             double rad = LowerCal.TipOffsetMM.Radius + (scaleFactor * (UpperCal.TipOffsetMM.Radius - LowerCal.TipOffsetMM.Radius));
-
+            double iX = LowerCal.TipOffsetMM.X + (scaleFactor * (UpperCal.TipOffsetMM.X - LowerCal.TipOffsetMM.X));
+            double iY = LowerCal.TipOffsetMM.Y + (scaleFactor * (UpperCal.TipOffsetMM.Y - LowerCal.TipOffsetMM.Y)) + (rad/4);
+            
             Position3D pos = new Position3D(iX, iY, z, 0);
             pos.Radius = rad;
             return (pos);

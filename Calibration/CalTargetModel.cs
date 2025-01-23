@@ -222,19 +222,32 @@ namespace Picky
          * -------------------------------------------------------------------*/
         {
             MachineModel machine = MachineModel.Instance;
-            
+
+            upperTemplate = Cv2.ImRead(UpperTemplateFileName, ImreadModes.Color);
+            lowerTemplate = Cv2.ImRead(LowerTemplateFileName, ImreadModes.Color);
+
+            /* Search Area - middle quarter */
+            int width = (int)(Constants.CAMERA_FRAME_WIDTH / 3);
+            int height = (int)(Constants.CAMERA_FRAME_HEIGHT / 3);
+            int x = (Constants.CAMERA_FRAME_WIDTH / 3);
+            int y = (Constants.CAMERA_FRAME_HEIGHT / 3);
+            OpenCvSharp.Rect center_fifth = new OpenCvSharp.Rect(x, y, width, height);    
+
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
             /* Probe for upper Z */
+            machine.Messages.Add(GCommand.SetCamera(upperSettings, machine.downCamera));
             machine.Messages.Add(GCommand.G_SetPosition(ActualLocUpper.X, ActualLocUpper.Y, 0, 0, 0));
+            QueueStepAlignment(5, upperTemplate, center_fifth, ActualLocUpper);
             machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_EndstopStates());
             machine.Messages.Add(GCommand.GetZProbe(machine.Cal.MMPerPixUpper));
             /* Queue for upper */
             QueueCalTargetSearch(upperTemplateFileName, ActualLocUpper, upperSettings, machine.Cal.MMPerPixUpper, 5.5);
-            
-            machine.Messages.Add(GCommand.G_SetPosition(ActualLocLower.X, ActualLocLower.Y, 0, 0, 0));
             /* Probe for lower Z */
+            machine.Messages.Add(GCommand.SetCamera(lowerSettings, machine.downCamera));
+            machine.Messages.Add(GCommand.G_SetPosition(ActualLocLower.X, ActualLocLower.Y, 0, 0, 0));
+            QueueStepAlignment(5, lowerTemplate, center_fifth, ActualLocLower);
             machine.Messages.Add(GCommand.G_ProbeZ(Constants.ZPROBE_LIMIT));
             machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_EndstopStates());
@@ -313,22 +326,11 @@ namespace Picky
             machine.Messages.Add(GCommand.G_SetAbsolutePositioningMode(true));
             // For the x = 0, y = 0 position
             machine.Messages.Add(GCommand.G_SetPosition(GridOrigin.X, GridOrigin.Y, 0, 0, 0));
-            for (int i = 0; i < 4; i++)
-            {
-                machine.Messages.Add(GCommand.G_FinishMoves());
-                machine.Messages.Add(GCommand.Delay(500));
-                machine.Messages.Add(GCommand.StepAlignToTemplate(template, search_roi, grid00));
-                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
-            }
+            QueueStepAlignment(5, template, search_roi, grid00);
             //For the x = 1, y = 1 position
+            machine.Messages.Add(GCommand.G_FinishMoves());
             machine.Messages.Add(GCommand.G_SetPosition(GridOrigin.X + GridOrigin.Width, GridOrigin.Y + GridOrigin.Height, 0, 0, 0));
-            for (int i = 0; i < 4; i++)
-            {
-                machine.Messages.Add(GCommand.G_FinishMoves());
-                machine.Messages.Add(GCommand.Delay(500));
-                machine.Messages.Add(GCommand.StepAlignToTemplate(template, search_roi, grid11));
-                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
-            }
+            QueueStepAlignment(5, template, search_roi, grid11);
             machine.Messages.Add(GCommand.CalculateMachineStepsPerMM());
         }
 
@@ -336,6 +338,23 @@ namespace Picky
         private void OnPropertyChanged(string propertyName)
         {
            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void QueueStepAlignment(int iterations, Mat template, OpenCvSharp.Rect roi, Position3D result) {
+            /*------------------------------------------
+             * Roll up the step align function
+             * 
+             * -----------------------------------------*/
+            MachineModel machine = MachineModel.Instance;
+
+            for (int i = 0; i < iterations; i++)
+            {
+                machine.Messages.Add(GCommand.G_FinishMoves());
+                machine.Messages.Add(GCommand.Delay(500));
+                machine.Messages.Add(GCommand.StepAlignToTemplate(template, roi, result));
+                machine.Messages.Add(GCommand.G_SetPosition(0, 0, 0, 0, 0));
+                machine.Messages.Add(GCommand.G_FinishMoves());
+            }
         }
               
 

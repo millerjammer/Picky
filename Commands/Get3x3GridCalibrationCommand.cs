@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
+using static Picky.MachineMessage;
 
 namespace Picky.Commands
 {
@@ -50,14 +51,26 @@ namespace Picky.Commands
             {
                 if (cameraToUse.GetTemplateMatches().Count == 9)
                 {
-                    double x_min = cameraToUse.GetTemplateMatches().OrderBy(p => p.X).Take(3).Average(p => p.X);
-                    double y_min = cameraToUse.GetTemplateMatches().OrderBy(p => p.Y).Take(3).Average(p => p.Y);
-                    double x_max = cameraToUse.GetTemplateMatches().OrderByDescending(p => p.X).Take(3).Average(p => p.X);
-                    double y_max = cameraToUse.GetTemplateMatches().OrderByDescending(p => p.Y).Take(3).Average(p => p.Y);
+                    /* Use only Vertical and Horizontal Centers to avoid pin-cushion error */
+                    Position3D p1 = cameraToUse.GetTemplateMatches().OrderBy(p => p.X).Take(3).OrderBy(p => p.Y).ElementAt(1);
+                    double x_min = p1.X;
+                    Position3D p2 = cameraToUse.GetTemplateMatches().OrderByDescending(p => p.X).Take(3).OrderBy(p => p.Y).ElementAt(1);
+                    double x_max = p2.X;
+                    Position3D p3 = cameraToUse.GetTemplateMatches().OrderBy(p => p.Y).Take(3).OrderBy(p => p.X).ElementAt(1);
+                    double y_min = p3.Y;
+                    Position3D p4 = cameraToUse.GetTemplateMatches().OrderByDescending(p => p.Y).Take(3).OrderBy(p => p.X).ElementAt(1);
+                    double y_max = p4.Y;
+
+                    Console.WriteLine("p1: " + p1.ToString());
+                    Console.WriteLine("p2: " + p2.ToString());
+                    Console.WriteLine("p3: " + p3.ToString());
+                    Console.WriteLine("p4: " + p4.ToString());
+
                     if (result == null)
                         return true;
                     result.X = (2 * CalTargetModel.OPTICAL_GRID_X_MM) / (x_max - x_min);
                     result.Y = (2 * CalTargetModel.OPTICAL_GRID_Y_MM) / (y_max - y_min);
+
                     Console.WriteLine("MMPerPixel Calibration Complete. X: " + result.X + " mm/pix, Y: " + result.Y + " mm/pix");
                     return true;
                 }

@@ -30,12 +30,11 @@ namespace Picky
         public double xScale, yScale;
         public double AdvanceFraction { get; set; } = 0.85;
 
-        public StepAlignToTemplateCommand(Mat _tamplate, OpenCvSharp.Rect _roi, Position3D _result)
+        public StepAlignToTemplateCommand(Mat _template, OpenCvSharp.Rect _roi, Position3D _result)
         {
             machine = MachineModel.Instance;
             cameraToUse = machine.downCamera;
-            (xScale, yScale) = machine.Cal.GetScaleMMPerPixAtZ(Constants.ZPROBE_LIMIT);
-            template = _tamplate;
+            template = _template;
             roi = _roi;
             result = _result;
         }
@@ -65,16 +64,20 @@ namespace Picky
                 // In pixels, offset from center of image
                 x_offset -= Constants.CAMERA_FRAME_WIDTH / 2;
                 y_offset -= Constants.CAMERA_FRAME_HEIGHT / 2;
-                // In mm
-                x_offset *= xScale;
-                y_offset *= yScale;
+                // In mm - USING DEFAULT - This function is intended to find mm/pix or mm/step, thus assumptions made
+                x_offset *= Constants.DEFAULT_MM_PER_PIXEL;
+                y_offset *= Constants.DEFAULT_MM_PER_PIXEL;
 
                 Console.WriteLine("Template Offset (mm): " + x_offset + " " + y_offset + " offset: " + matches.ElementAt(0).ToString());
                 MachineMessage nxt = machine.Messages.ElementAt(machine.Messages.IndexOf(msg) + 1);
                 nxt.target.x = machine.Current.X - (float)(x_offset * AdvanceFraction);
                 nxt.target.y = machine.Current.Y + (float)(y_offset * AdvanceFraction);
                 nxt.cmd = Encoding.UTF8.GetBytes(string.Format("G0 X{0} Y{1}\n", nxt.target.x, nxt.target.y));
-                result.X = machine.Current.X; result.Y = machine.Current.Y;
+                if (result != null)
+                {
+                    result.X = machine.Current.X;
+                    result.Y = machine.Current.Y;
+                }
                 return true;
             }
             Console.WriteLine("no dice");

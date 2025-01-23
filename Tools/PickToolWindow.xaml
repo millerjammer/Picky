@@ -139,7 +139,7 @@
                                                     <TextBlock Grid.Row="0" Grid.Column="3" Text="Z [mm]" FontWeight="Bold"/>
                                                     <TextBlock Grid.Row="0" Grid.Column="4" Text="Tip [pix]" FontWeight="Bold"/>
                                                     <TextBlock Grid.Row="0" Grid.Column="5" Text="Tip [mm]" FontWeight="Bold"/>
-                                                    <TextBlock Grid.Row="0" Grid.Column="6" Text="Y-Offset [pix/mm]" ToolTip="Based on Measured Radius of the Tip" FontWeight="Bold"/>
+                                                    <TextBlock Grid.Row="0" Grid.Column="6" Text="Tip Radius [pix/mm]" ToolTip="Based on Measured Radius of the Tip" FontWeight="Bold"/>
                                                     <Line X1="0" Y1="30" X2="700" Y2="30" Stroke="DarkSlateGray" StrokeThickness="1" Grid.ColumnSpan="7" />
 
                                                     <!-- Data Row 1 -->

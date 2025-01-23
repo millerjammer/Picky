@@ -46,7 +46,13 @@ namespace Picky
         public string CenterX { get; set; }
         public string CenterY { get; set; }
         public string Rotation { get; set; }
-        public string Thickness { get; set; }
+       
+        private double thickness;
+        public double Thickness
+        {
+            get { return thickness; }
+            set { thickness = value; OnPropertyChanged(nameof(Thickness)); }
+        }
 
         private Cassette cassette;
         public Cassette Cassette

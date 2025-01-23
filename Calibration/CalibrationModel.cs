@@ -103,6 +103,13 @@ namespace Picky
             set { driveLineY = value; OnPropertyChanged(nameof(DriveLineY)); }
         }
 
+        private double skewX = Constants.DEFAULT_SKEW_X;
+        public double SkewX
+        {
+            get { return skewX; }
+            set { skewX = value; OnPropertyChanged(nameof(SkewX)); }
+        }
+
 
         [JsonIgnore]
         private bool isPreviewUpperTargetActive = false;

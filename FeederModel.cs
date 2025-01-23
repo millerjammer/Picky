@@ -16,6 +16,7 @@ namespace Picky
         public static double MACHINE_DRIVELINE_TO_FEEDER_DRIVE_YOFFSET_MM = 0;
         public static double FEEDER_ORIGIN_TO_DRIVE_XOFFSET_MM = 0;
         public static double PICK_TERMINAL_TRAVEL = 3.0;
+        public static double PICK_CHANNEL_HEIGHT = 40;
         public static double DRIVE_APPROACH_FEED_FACTOR = 0.25;
         /* The motor controller runs the motor for a specific time as it doesn't
          * have feedback.  So, adjust this so that when advance is called you get 
@@ -128,10 +129,12 @@ namespace Picky
 
             double x = Origin.X + (Width / 2) - PartOffset;
             double y = machine.Cal.ChannelRegion.Y;
+            double z = machine.Cal.CalPad.Z + Constants.ZOFFSET_CAL_PAD_TO_FEEDER_TAPE;
             /* Limit pick ROI width to width of feeder */
             double width = Width - PartOffset;
+            double height = PICK_CHANNEL_HEIGHT;
 
-            return new Position3D {  X = x, Y = y, Width = width, Height = 40 };
+            return new Position3D {  X = x, Y = y, Z = z, Width = width, Height = height };
 
         }
 
@@ -215,21 +218,23 @@ namespace Picky
         private void GoToNextPickComponent()
         {
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
+            machine.Messages.Add(GCommand.G_EnableValve(false));
             machine.Messages.Add(GCommand.G_SetPosition(NextPartPickLocation.X, NextPartPickLocation.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_ProbeZ(NextPartPickLocation.Z, machine.Settings.ProbeRate));
         }
 
         public ICommand PickNextComponentCommand { get { return new RelayCommand(PickNextComponent); } }
         public void PickNextComponent()
         {
             machine.Messages.Add(GCommand.G_EnableIlluminator(true));
-           // machine.Messages.Add(GCommand.G_EnablePump(true));
+            machine.Messages.Add(GCommand.G_EnablePump(true));
             machine.Messages.Add(GCommand.G_EnableValve(false));
             machine.Messages.Add(GCommand.G_SetPosition(NextPartPickLocation.X, NextPartPickLocation.Y, 0, 0, 0));
             machine.Messages.Add(GCommand.G_ProbeZ(NextPartPickLocation.Z, machine.Settings.ProbeRate));
-            //machine.Messages.Add(GCommand.G_FinishMoves());
-            //machine.Messages.Add(GCommand.G_ProbeZ(NextPartPickLocation.Z + PICK_TERMINAL_TRAVEL, 100));
-            //machine.Messages.Add(GCommand.G_FinishMoves());
-            //machine.Messages.Add(GCommand.G_SetPosition(NextPartPickLocation.X, NextPartPickLocation.Y, 0, 0, 0));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            machine.Messages.Add(GCommand.G_ProbeZ(NextPartPickLocation.Z + PICK_TERMINAL_TRAVEL, 100));
+            machine.Messages.Add(GCommand.G_FinishMoves());
+            machine.Messages.Add(GCommand.G_SetPosition(NextPartPickLocation.X, NextPartPickLocation.Y, 0, 0, 0));
         }
 
         public ICommand GoToFeederCommand { get { return new RelayCommand(GoToFeeder); } }
